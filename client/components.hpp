@@ -1,4 +1,5 @@
 #include "component.hpp"
+#include "game_manager.hpp"
 
 struct Position
 {
@@ -11,7 +12,7 @@ private:
     Position position;
 
 public:
-    Transform(int x, int y) : position{x, y} {}
+    Transform(int x = 0, int y = 0) : position{x, y} {}
     ~Transform() {}
 
     void Update() override {}
@@ -32,12 +33,21 @@ public:
 class SpriteRenderer : public Component
 {
 private:
-    /* data */
+    SDL_Rect rect;
+
 public:
-    SpriteRenderer(/* args */) {}
+    SpriteRenderer()
+    {
+        rect = {100, 100, 20, 20};
+    }
     ~SpriteRenderer() {}
 
     void Update() override
     {
+        SDL_SetRenderDrawColor(GameManager::getInstance().renderer, 255, 0, 0, 255);
+        SDL_RenderDrawRect(GameManager::getInstance().renderer, &rect);
     }
+
+    virtual void HandleEvent() override {};
+    virtual void Delete() override {};
 };

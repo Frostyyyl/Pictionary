@@ -25,3 +25,5 @@ public:
         currentScene = newScene;
     }
 };
+
+SDL_Renderer *GameManager::renderer = nullptr;

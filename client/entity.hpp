@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <set>
 #include <memory>
@@ -13,6 +15,14 @@ public:
 
     Entity() : enabled(false) {}
     ~Entity() {}
+
+    void HandleEvent()
+    {
+        for (const auto &comp : Components)
+        {
+            comp->HandleEvent();
+        }
+    }
 
     void Update()
     {

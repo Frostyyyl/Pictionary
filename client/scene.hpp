@@ -1,3 +1,5 @@
+#pragma once
+
 #include "entity.hpp"
 
 class Scene
@@ -9,10 +11,9 @@ public:
     Scene() {}
     ~Scene() {}
 
-    void AddObject(Entity newEntity)
+    void AddObject(std::shared_ptr<Entity> newEntity)
     {
-        std::shared_ptr<Entity> ptr(&newEntity);
-        SceneObjects.insert(ptr);
+        SceneObjects.insert(newEntity);
     }
 
     void DeleteObject(Entity entity)
@@ -20,6 +21,22 @@ public:
         for (const auto &obj : SceneObjects)
         {
             obj.get()->Delete();
+        }
+    }
+
+    void HandleEvent()
+    {
+        for (const auto &obj : SceneObjects)
+        {
+            obj.get()->HandleEvent();
+        }
+    }
+
+    void Update()
+    {
+        for (const auto &obj : SceneObjects)
+        {
+            obj.get()->Update();
         }
     }
 };
