@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entity.hpp"
+#include <iostream>
 
 class Scene
 {
@@ -14,6 +15,7 @@ public:
     void AddObject(std::shared_ptr<Entity> newEntity)
     {
         SceneObjects.insert(newEntity);
+        std::cout << "SceneObjects size: " << SceneObjects.size() << std::endl; // Debug
     }
 
     void DeleteObject(Entity entity)
@@ -28,7 +30,8 @@ public:
     {
         for (const auto &obj : SceneObjects)
         {
-            obj.get()->HandleEvent();
+            if (obj.get()->enabled == true)
+                obj.get()->HandleEvent();
         }
     }
 
@@ -36,7 +39,8 @@ public:
     {
         for (const auto &obj : SceneObjects)
         {
-            obj.get()->Update();
+            if (obj.get()->enabled == true)
+                obj.get()->Update();
         }
     }
 };

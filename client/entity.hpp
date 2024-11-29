@@ -13,7 +13,7 @@ private:
 public:
     bool enabled;
 
-    Entity() : enabled(false) {}
+    Entity() : enabled(true) {}
     ~Entity() {}
 
     void HandleEvent()

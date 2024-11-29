@@ -1,5 +1,8 @@
+#pragma once
+
 #include "component.hpp"
-#include "game_manager.hpp"
+#include "interactable.hpp"
+#include <iostream>
 
 struct Position
 {
@@ -42,12 +45,29 @@ public:
     }
     ~SpriteRenderer() {}
 
-    void Update() override
-    {
-        SDL_SetRenderDrawColor(GameManager::getInstance().renderer, 255, 0, 0, 255);
-        SDL_RenderDrawRect(GameManager::getInstance().renderer, &rect);
-    }
+    void Update() override;
 
     virtual void HandleEvent() override {};
     virtual void Delete() override {};
+};
+
+class Button : public Component, public Interactable
+{
+private:
+    SDL_Rect rect;
+
+public:
+    Button(int x, int y, int w, int h)
+    {
+        rect.x = x;
+        rect.y = y;
+        rect.w = w;
+        rect.h = h;
+    }
+    ~Button() {}
+
+    void HandleEvent(Uint32 eventType)
+    {
+        std::cout << "aaaaaaaaaa" << std::endl;
+    }
 };

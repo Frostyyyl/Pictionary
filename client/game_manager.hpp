@@ -1,29 +1,28 @@
 #pragma once
-#include <SDL2/SDL.h>
+
 #include "scene.hpp"
+#include "input_manager.hpp"
+#include "window.hpp"
 
 class GameManager
 {
 private:
-    GameManager() {}
-    Scene currentScene;
+    GameManager();
+
+    Window window;
+    Scene *currentScene;
+
+    InputManager *inputManager;
 
 public:
-    static GameManager &getInstance()
-    {
-        static GameManager INSTANCE;
-        return INSTANCE;
-    }
+    bool isRunning;
+    static GameManager &getInstance();
 
     static SDL_Renderer *renderer;
-    static SDL_Event event;
 
-    ~GameManager() {}
+    ~GameManager();
 
-    void ChangeScene(Scene newScene)
-    {
-        currentScene = newScene;
-    }
+    void Init();
+    void Run();
+    void Exit();
 };
-
-SDL_Renderer *GameManager::renderer = nullptr;
