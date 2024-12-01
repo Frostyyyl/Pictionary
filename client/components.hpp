@@ -9,46 +9,26 @@ struct Position
     int x, y;
 };
 
-class Transform : public Component
-{
-private:
-    Position position;
-
-public:
-    Transform(int x = 0, int y = 0) : position{x, y} {}
-    ~Transform() {}
-
-    void Update() override {}
-    void HandleEvent() override {}
-    void Delete() override {}
-
-    Position GetPosition()
-    {
-        return position;
-    }
-
-    void SetPosition(Position newPosition)
-    {
-        position = newPosition;
-    }
-};
-
 class SpriteRenderer : public Component
 {
 private:
     SDL_Rect rect;
 
 public:
+    Position pos;
     SpriteRenderer()
     {
         rect = {100, 100, 20, 20};
     }
+    SpriteRenderer(int x, int y)
+    {
+        pos = {x, y};
+        rect = {x, y, 40, 40};
+    }
     ~SpriteRenderer() {}
 
     void Update() override;
-
-    virtual void HandleEvent() override {};
-    virtual void Delete() override {};
+    void Delete() override {};
 };
 
 class Button : public Component, public Interactable
@@ -57,17 +37,32 @@ private:
     SDL_Rect rect;
 
 public:
+    Position pos;
     Button(int x, int y, int w, int h)
     {
-        rect.x = x;
-        rect.y = y;
-        rect.w = w;
-        rect.h = h;
+        pos = {x, y};
+        rect = {x, y, w, h};
     }
     ~Button() {}
 
-    void HandleEvent(Uint32 eventType)
-    {
-        std::cout << "aaaaaaaaaa" << std::endl;
-    }
+    void HandleEvent(Uint32 eventType) override;
+    void Update() override;
+    void Delete() override {};
+};
+
+class Canvas : public Component, public Interactable
+{
+private:
+    SDL_Rect rect;
+    SDL_Texture *tex;
+
+    Position prevPos;
+
+public:
+    Canvas();
+    ~Canvas() {}
+
+    void HandleEvent(Uint32 eventType) override;
+    void Update() override;
+    void Delete() override {};
 };

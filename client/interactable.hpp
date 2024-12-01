@@ -1,10 +1,10 @@
 #pragma once
 #include <SDL2/SDL.h>
+#include <iostream>
 
 class Interactable
 {
 private:
-    /* data */
 public:
     Interactable() {}
     ~Interactable() {}

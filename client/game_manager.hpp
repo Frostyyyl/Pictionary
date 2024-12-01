@@ -1,28 +1,33 @@
 #pragma once
 
 #include "scene.hpp"
-#include "input_manager.hpp"
-#include "window.hpp"
+#include "SDL2/SDL.h"
+#include "interactable.hpp"
+#include <unordered_map>
 
 class GameManager
 {
 private:
     GameManager();
 
-    Window window;
+    SDL_Window *window;
     Scene *currentScene;
 
-    InputManager *inputManager;
+    bool isDrawing;
 
 public:
+    SDL_Event event;
     bool isRunning;
-    static GameManager &getInstance();
+    std::unordered_map<std::string, std::shared_ptr<Interactable>> interactables;
 
     static SDL_Renderer *renderer;
 
+    static GameManager &getInstance();
     ~GameManager();
 
-    void Init();
+    void Init(const char *title, int width, int height);
     void Run();
     void Exit();
+
+    void ChangeCurrentScene(const char *newScene);
 };

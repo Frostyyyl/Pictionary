@@ -6,9 +6,14 @@
 Scene *CreateMainMenuScene()
 {
     Scene *newScene = new Scene();
+    // Button *btn = new Button(400, 400, 80, 80);
+    // newScene->AddObject(btn);
+    // GameManager::getInstance().interactables.insert(
+    //     std::make_pair("startButton", std::shared_ptr<Interactable>(btn)));
 
-    auto startButton = std::make_shared<Entity>();
-    startButton->AddComponent<SpriteRenderer>();
-    newScene->AddObject(startButton);
+    Canvas *cvs = new Canvas();
+    newScene->AddObject(cvs);
+    GameManager::getInstance().interactables.insert(
+        std::make_pair("canvas", std::shared_ptr<Interactable>(cvs)));
     return newScene;
 }

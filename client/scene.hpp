@@ -1,46 +1,27 @@
 #pragma once
 
-#include "entity.hpp"
-#include <iostream>
+#include "component.hpp"
+#include <memory>
+#include <set>
 
 class Scene
 {
 private:
-    std::set<std::shared_ptr<Entity>> SceneObjects;
+    std::set<std::shared_ptr<Component>> objects;
 
 public:
     Scene() {}
     ~Scene() {}
-
-    void AddObject(std::shared_ptr<Entity> newEntity)
-    {
-        SceneObjects.insert(newEntity);
-        std::cout << "SceneObjects size: " << SceneObjects.size() << std::endl; // Debug
-    }
-
-    void DeleteObject(Entity entity)
-    {
-        for (const auto &obj : SceneObjects)
-        {
-            obj.get()->Delete();
-        }
-    }
-
-    void HandleEvent()
-    {
-        for (const auto &obj : SceneObjects)
-        {
-            if (obj.get()->enabled == true)
-                obj.get()->HandleEvent();
-        }
-    }
-
     void Update()
     {
-        for (const auto &obj : SceneObjects)
+        for (const auto &obj : objects)
         {
-            if (obj.get()->enabled == true)
-                obj.get()->Update();
+            obj.get()->Update();
         }
+    }
+
+    void AddObject(Component *component)
+    {
+        objects.insert(std::shared_ptr<Component>(component));
     }
 };
