@@ -3,6 +3,7 @@
 #include "component.hpp"
 #include "interactable.hpp"
 #include <iostream>
+#include <functional>
 
 struct Position
 {
@@ -31,17 +32,32 @@ public:
     void Delete() override {};
 };
 
+class Text : public Component
+{
+private:
+    SDL_Rect rect;
+    SDL_Texture *tex;
+
+public:
+    Text(/* args */) {}
+    ~Text() {}
+};
+
 class Button : public Component, public Interactable
 {
 private:
     SDL_Rect rect;
+    std::function<void()> onClick;
+
+    bool isClicked();
 
 public:
     Position pos;
-    Button(int x, int y, int w, int h)
+    Button(int x, int y, int w, int h, std::function<void()> func)
     {
         pos = {x, y};
         rect = {x, y, w, h};
+        onClick = func;
     }
     ~Button() {}
 

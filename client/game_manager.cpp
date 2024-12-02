@@ -33,6 +33,8 @@ void GameManager::Init(const char *title, int width, int height)
         exit(1);
     }
 
+    SDL_StartTextInput();
+
     window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
 
     renderer = renderer = SDL_CreateRenderer(window, -1, 0);
@@ -43,6 +45,7 @@ void GameManager::Init(const char *title, int width, int height)
 
     isRunning = true;
     isDrawing = false;
+    isTyping = false;
 }
 
 void GameManager::Run()
@@ -56,36 +59,7 @@ void GameManager::Run()
 
         SDL_RenderClear(renderer);
 
-        SDL_PollEvent(&event);
-        if (event.type == SDL_QUIT)
-        {
-            Exit();
-            return;
-        }
-        else if (event.type == SDL_MOUSEBUTTONDOWN)
-        {
-            isDrawing = true;
-            interactables["canvas"].get()->HandleEvent(SDL_MOUSEBUTTONDOWN);
-
-                    std::shared_ptr<Button> btnShared = std::dynamic_pointer_cast<Button>(GameManager::interactables["startButton"]);
-
-            if (btnShared)
-            {
-                Button *btn = btnShared.get();
-                std::cout << "skibidi sigma rizzler" << std::endl;
-            }
-        }
-        else if (event.type == SDL_MOUSEBUTTONUP)
-        {
-            isDrawing = false;
-        }
-        else if (event.type == SDL_MOUSEMOTION)
-        {
-            if (isDrawing)
-            {
-                interactables["canvas"].get()->HandleEvent(SDL_MOUSEMOTION);
-            }
-        }
+        HandleInput();
 
         currentScene->Update();
 
@@ -100,9 +74,54 @@ void GameManager::Run()
     }
 }
 
+void GameManager::HandleInput()
+{
+    SDL_PollEvent(&event);
+    if (event.type == SDL_QUIT)
+    {
+        Exit();
+        return;
+    }
+    else if (event.type == SDL_MOUSEBUTTONDOWN)
+    {
+        // Canvas
+        if (currentScene->sceneName == "game")
+        {
+            isDrawing = true;
+            interactables["canvas"].get()->HandleEvent(SDL_MOUSEBUTTONDOWN);
+        }
+
+        // Button
+        std::shared_ptr<Button> btnShared = std::dynamic_pointer_cast<Button>(GameManager::interactables["startButton"]);
+
+        if (btnShared)
+        {
+            Button *btn = btnShared.get();
+            btn->HandleEvent(SDL_MOUSEBUTTONDOWN);
+        }
+    }
+    else if (event.type == SDL_MOUSEBUTTONUP && currentScene->sceneName == "game")
+    {
+        isDrawing = false;
+        interactables["canvas"].get()->HandleEvent(SDL_MOUSEBUTTONUP);
+    }
+    else if (event.type == SDL_MOUSEMOTION && currentScene->sceneName == "game")
+    {
+        if (isDrawing)
+        {
+            interactables["canvas"].get()->HandleEvent(SDL_MOUSEMOTION);
+        }
+    }
+    else if (event.type == SDL_TEXTINPUT)
+    {
+        std::cout << event.text.text << std::endl;
+    }
+}
+
 void GameManager::Exit()
 {
     isRunning = false;
+    SDL_StopTextInput();
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
@@ -110,7 +129,8 @@ void GameManager::Exit()
 
 void GameManager::ChangeCurrentScene(const char *newScene)
 {
-    if (newScene == "game")
+    if (strcmp(newScene, "game") == 0)
     {
+        currentScene = CreateGameScene();
     }
 }

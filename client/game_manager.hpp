@@ -14,6 +14,7 @@ private:
     Scene *currentScene;
 
     bool isDrawing;
+    bool isTyping;
 
 public:
     SDL_Event event;
@@ -27,6 +28,7 @@ public:
 
     void Init(const char *title, int width, int height);
     void Run();
+    void HandleInput();
     void Exit();
 
     void ChangeCurrentScene(const char *newScene);
