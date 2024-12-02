@@ -5,6 +5,7 @@
 #include "interactable.hpp"
 #include <unordered_map>
 #include "player.hpp"
+#include "input_manager.hpp"
 
 class GameManager
 {
@@ -13,15 +14,14 @@ private:
 
     SDL_Window *window;
     Scene *currentScene;
+    InputManager *inputManager;
 
     bool isDrawing;
     bool isTyping;
 
 public:
-    SDL_Event event;
     Player *player;
     bool isRunning;
-    std::unordered_map<std::string, std::shared_ptr<Interactable>> interactables;
 
     static SDL_Renderer *renderer;
 
@@ -34,4 +34,6 @@ public:
     void Exit();
 
     void ChangeCurrentScene(const char *newScene);
+
+    void RegisterInteractable(std::string name, Interactable *interactable);
 };

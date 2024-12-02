@@ -12,6 +12,7 @@ SDL_Renderer *GameManager::renderer = nullptr;
 GameManager::GameManager()
 {
     player = nullptr;
+    inputManager = nullptr;
 }
 
 GameManager &GameManager::getInstance()
@@ -51,6 +52,8 @@ void GameManager::Init(const char *title, int width, int height)
 
     TextManager::getInstance().init();
 
+    inputManager = new InputManager(this);
+
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
     currentScene = CreateMainMenuScene();
@@ -71,7 +74,10 @@ void GameManager::Run()
 
         SDL_RenderClear(renderer);
 
-        HandleInput();
+        inputManager->HandleEvent();
+        // Stop running if quitted
+        if (!isRunning)
+            return;
 
         currentScene->Update();
 
@@ -88,48 +94,6 @@ void GameManager::Run()
 
 void GameManager::HandleInput()
 {
-    SDL_PollEvent(&event);
-    if (event.type == SDL_QUIT)
-    {
-        Exit();
-        return;
-    }
-    else if (event.type == SDL_MOUSEBUTTONDOWN)
-    {
-        // Canvas
-        if (currentScene->sceneName == "game")
-        {
-            isDrawing = true;
-            interactables["canvas"].get()->HandleEvent(SDL_MOUSEBUTTONDOWN);
-        }
-        else
-        {
-            // Button
-            std::shared_ptr<Button> btnShared = std::dynamic_pointer_cast<Button>(GameManager::interactables["startButton"]);
-
-            if (btnShared)
-            {
-                Button *btn = btnShared.get();
-                btn->HandleEvent(SDL_MOUSEBUTTONDOWN);
-            }
-        }
-    }
-    else if (event.type == SDL_MOUSEBUTTONUP && currentScene->sceneName == "game")
-    {
-        isDrawing = false;
-        interactables["canvas"].get()->HandleEvent(SDL_MOUSEBUTTONUP);
-    }
-    else if (event.type == SDL_MOUSEMOTION && currentScene->sceneName == "game")
-    {
-        if (isDrawing)
-        {
-            interactables["canvas"].get()->HandleEvent(SDL_MOUSEMOTION);
-        }
-    }
-    else if (event.type == SDL_TEXTINPUT)
-    {
-        std::cout << event.text.text << std::endl;
-    }
 }
 
 void GameManager::ChangeCurrentScene(const char *newScene)
@@ -140,6 +104,11 @@ void GameManager::ChangeCurrentScene(const char *newScene)
         player = new Player(1);
         player->ChangeGameMode(DRAW);
     }
+}
+
+void GameManager::RegisterInteractable(std::string name, Interactable *interactable)
+{
+    inputManager->AddInteractable(name, interactable);
 }
 
 void GameManager::Exit()

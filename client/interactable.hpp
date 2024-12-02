@@ -1,13 +1,15 @@
 #pragma once
 #include <SDL2/SDL.h>
 #include <iostream>
+#include "component.hpp"
 
-class Interactable
+class Interactable : public Component
 {
-private:
 public:
     Interactable() {}
     ~Interactable() {}
 
-    virtual void HandleEvent(Uint32 eventType) = 0;
+    virtual void HandleEvent(SDL_Event event) = 0;
+    virtual void Update() = 0;
+    virtual void Delete() = 0;
 };

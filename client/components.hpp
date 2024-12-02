@@ -1,6 +1,5 @@
 #pragma once
 
-#include "component.hpp"
 #include "interactable.hpp"
 #include "text.hpp"
 #include <iostream>
@@ -30,7 +29,10 @@ public:
     ~SpriteRenderer() {}
 
     void Update() override;
-    void Delete() override {};
+    void Delete() override
+    {
+        this->~SpriteRenderer();
+    };
 };
 
 class TextObject : public Component
@@ -44,16 +46,20 @@ public:
     TextObject();
     ~TextObject() {}
     void Update() override;
-    void Delete() override {};
+    void Delete() override
+    {
+        SDL_DestroyTexture(tex);
+        this->~TextObject();
+    };
 };
 
-class Button : public Component, public Interactable
+class Button : public Interactable
 {
 private:
     SDL_Rect rect;
     std::function<void()> onClick;
 
-    bool isClicked();
+    bool isClicked(SDL_Event event);
 
 public:
     Position pos;
@@ -65,12 +71,15 @@ public:
     }
     ~Button() {}
 
-    void HandleEvent(Uint32 eventType) override;
+    void HandleEvent(SDL_Event event) override;
     void Update() override;
-    void Delete() override {};
+    void Delete() override
+    {
+        this->~Button();
+    };
 };
 
-class Canvas : public Component, public Interactable
+class Canvas : public Interactable
 {
 private:
     SDL_Rect rect;
@@ -82,7 +91,11 @@ public:
     Canvas();
     ~Canvas() {}
 
-    void HandleEvent(Uint32 eventType) override;
+    void HandleEvent(SDL_Event event) override;
     void Update() override;
-    void Delete() override {};
+    void Delete() override
+    {
+        SDL_DestroyTexture(tex);
+        this->~Canvas();
+    };
 };

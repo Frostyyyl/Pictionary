@@ -25,14 +25,14 @@ void TextObject::Update()
     SDL_RenderCopy(GameManager::renderer, tex, NULL, &src);
 }
 
-bool Button::isClicked()
+bool Button::isClicked(SDL_Event event)
 {
-    return (GameManager::getInstance().event.button.x >= rect.x && GameManager::getInstance().event.button.x <= rect.x + rect.w && GameManager::getInstance().event.button.y >= rect.y && GameManager::getInstance().event.button.y <= rect.y + rect.h);
+    return (event.button.x >= rect.x && event.button.x <= rect.x + rect.w && event.button.y <= rect.y + rect.h);
 }
 
-void Button::HandleEvent(Uint32 eventType)
+void Button::HandleEvent(SDL_Event event)
 {
-    if (isClicked())
+    if (isClicked(event))
     {
         onClick();
     }
@@ -52,11 +52,11 @@ Canvas::Canvas()
     tex = TextureManager::CreateCanvas(400, 400);
 }
 
-void Canvas::HandleEvent(Uint32 eventType)
+void Canvas::HandleEvent(SDL_Event event)
 {
-    if (eventType == SDL_MOUSEBUTTONDOWN)
+    if (event.type == SDL_MOUSEBUTTONDOWN)
     {
-        prevPos = {GameManager::getInstance().event.motion.x - rect.x, GameManager::getInstance().event.motion.y - rect.y};
+        prevPos = {event.motion.x - rect.x, event.motion.y - rect.y};
 
         SDL_SetRenderTarget(GameManager::renderer, tex);
         filledCircleColor(GameManager::renderer, prevPos.x, prevPos.y, 3, 0xff00cc00);
@@ -66,9 +66,9 @@ void Canvas::HandleEvent(Uint32 eventType)
         return;
     }
 
-    int x = GameManager::getInstance().event.motion.x;
-    int y = GameManager::getInstance().event.motion.y;
-    if (eventType == SDL_MOUSEBUTTONUP)
+    int x = event.motion.x;
+    int y = event.motion.y;
+    if (event.type == SDL_MOUSEBUTTONUP)
     {
 
         SDL_SetRenderTarget(GameManager::renderer, tex);
