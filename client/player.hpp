@@ -1,5 +1,8 @@
 #pragma once
 
+#include "SDL2/SDL.h"
+#include <iostream>
+
 enum GameMode
 {
     STANDBY,
@@ -30,4 +33,10 @@ public:
     {
         gameMode = newGameMode;
     }
+
+    void HandleCanvasChange(SDL_Texture *tex)
+    {
+        // Here could be network canvas handling
+        std::cout << "Player got updated texture" << std::endl;
+    };
 };

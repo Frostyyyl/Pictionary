@@ -23,5 +23,8 @@ Scene *CreateGameScene()
     GameManager::getInstance().interactables.insert(
         std::make_pair("canvas", std::shared_ptr<Interactable>(cvs)));
 
+    TextObject *txt = new TextObject();
+    newScene->AddObject(txt);
+
     return newScene;
 }

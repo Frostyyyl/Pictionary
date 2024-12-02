@@ -2,6 +2,7 @@
 
 #include "component.hpp"
 #include "interactable.hpp"
+#include "text.hpp"
 #include <iostream>
 #include <functional>
 
@@ -32,15 +33,18 @@ public:
     void Delete() override {};
 };
 
-class Text : public Component
+class TextObject : public Component
 {
 private:
-    SDL_Rect rect;
+    Text text;
     SDL_Texture *tex;
+    SDL_Rect src;
 
 public:
-    Text(/* args */) {}
-    ~Text() {}
+    TextObject();
+    ~TextObject() {}
+    void Update() override;
+    void Delete() override {};
 };
 
 class Button : public Component, public Interactable

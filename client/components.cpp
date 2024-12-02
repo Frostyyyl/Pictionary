@@ -1,6 +1,7 @@
 #include "components.hpp"
 #include "game_manager.hpp"
 #include "texture_manager.hpp"
+#include "text_manager.hpp"
 
 #include "SDL2/SDL2_gfxPrimitives.h"
 
@@ -9,6 +10,19 @@ void SpriteRenderer::Update()
     SDL_SetRenderDrawColor(GameManager::getInstance().renderer, 255, 0, 0, 255);
     SDL_RenderDrawRect(GameManager::getInstance().renderer, &rect);
     SDL_SetRenderDrawColor(GameManager::getInstance().renderer, 255, 255, 255, 255);
+}
+
+TextObject::TextObject()
+{
+    text.text = {"hellooo"};
+    src = {400, 200, 200, 200};
+    TTF_SizeText(TextManager::getInstance().getFont(), text.text.c_str(), &text.dest.w, &text.dest.h);
+    tex = TextManager::getInstance().loadText(TextManager::getInstance().getFont(), text, src);
+}
+
+void TextObject::Update()
+{
+    SDL_RenderCopy(GameManager::renderer, tex, NULL, &src);
 }
 
 bool Button::isClicked()
@@ -79,8 +93,6 @@ void Canvas::HandleEvent(Uint32 eventType)
         int canvasY = y - rect.y;
 
         SDL_SetRenderDrawColor(GameManager::renderer, 255, 0, 0, 255);
-        // SDL_RenderDrawPoint(GameManager::renderer, canvasX, canvasY);
-        // SDL_RenderDrawLine(GameManager::renderer, prevPos.x, prevPos.y, canvasX, canvasY);
         thickLineColor(GameManager::renderer, prevPos.x, prevPos.y, canvasX, canvasY, 6, 0xff00cc00);
 
         SDL_SetRenderTarget(GameManager::renderer, nullptr);
@@ -88,6 +100,7 @@ void Canvas::HandleEvent(Uint32 eventType)
         prevPos.x = canvasX;
         prevPos.y = canvasY;
     }
+    GameManager::getInstance().player->HandleCanvasChange(tex);
 }
 
 void Canvas::Update()

@@ -4,6 +4,7 @@
 #include "SDL2/SDL.h"
 #include "interactable.hpp"
 #include <unordered_map>
+#include "player.hpp"
 
 class GameManager
 {
@@ -18,6 +19,7 @@ private:
 
 public:
     SDL_Event event;
+    Player *player;
     bool isRunning;
     std::unordered_map<std::string, std::shared_ptr<Interactable>> interactables;
 
