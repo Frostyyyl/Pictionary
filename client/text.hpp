@@ -5,7 +5,7 @@
 struct Text
 {
     std::string text;
-    SDL_Rect dest = {0, 0, 0, 0};
+    SDL_Rect src = {0, 0, 0, 0};
 
     Text() {}
 };

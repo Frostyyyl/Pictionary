@@ -59,8 +59,6 @@ void GameManager::Init(const char *title, int width, int height)
     currentScene = CreateMainMenuScene();
 
     isRunning = true;
-    isDrawing = false;
-    isTyping = false;
 }
 
 void GameManager::Run()
@@ -74,14 +72,14 @@ void GameManager::Run()
 
         SDL_RenderClear(renderer);
 
+        currentScene->Update();
+
+        SDL_RenderPresent(renderer);
+
         inputManager->HandleEvent();
         // Stop running if quitted
         if (!isRunning)
             return;
-
-        currentScene->Update();
-
-        SDL_RenderPresent(renderer);
 
         frameTime = SDL_GetTicks() - frameStart;
 
@@ -92,21 +90,19 @@ void GameManager::Run()
     }
 }
 
-void GameManager::HandleInput()
-{
-}
-
 void GameManager::ChangeCurrentScene(const char *newScene)
 {
     if (strcmp(newScene, "game") == 0)
     {
+        currentScene->DeleteScene();
+        inputManager->ClearInteractables();
         currentScene = CreateGameScene();
         player = new Player(1);
         player->ChangeGameMode(DRAW);
     }
 }
 
-void GameManager::RegisterInteractable(std::string name, Interactable *interactable)
+void GameManager::RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable)
 {
     inputManager->AddInteractable(name, interactable);
 }

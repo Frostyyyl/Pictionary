@@ -21,7 +21,7 @@ public:
     InputManager(GameManager *manager);
     ~InputManager() {}
 
-    void AddInteractable(std::string name, Interactable *object);
+    void AddInteractable(std::string name, std::shared_ptr<Interactable> object);
     void ClearInteractables();
 
     void HandleEvent();

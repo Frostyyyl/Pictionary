@@ -15,14 +15,15 @@ void SpriteRenderer::Update()
 TextObject::TextObject()
 {
     text.text = {"hellooo"};
-    src = {400, 200, 200, 200};
-    TTF_SizeText(TextManager::getInstance().getFont(), text.text.c_str(), &text.dest.w, &text.dest.h);
-    tex = TextManager::getInstance().loadText(TextManager::getInstance().getFont(), text, src);
+    dest = {400, 200, 200, 200};
+    TTF_SizeText(TextManager::getInstance().getFont(), text.text.c_str(), &text.src.w, &text.src.h);
+    std::cout << "Text: " << text.src.x << " : " << text.src.y << " : " << text.src.w << " : " << text.src.h << std::endl;
+    tex = TextManager::getInstance().loadText(TextManager::getInstance().getFont(), text, dest);
 }
 
 void TextObject::Update()
 {
-    SDL_RenderCopy(GameManager::renderer, tex, NULL, &src);
+    SDL_RenderCopy(GameManager::renderer, tex, NULL, &dest);
 }
 
 bool Button::isClicked(SDL_Event event)

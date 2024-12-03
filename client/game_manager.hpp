@@ -16,9 +16,6 @@ private:
     Scene *currentScene;
     InputManager *inputManager;
 
-    bool isDrawing;
-    bool isTyping;
-
 public:
     Player *player;
     bool isRunning;
@@ -30,10 +27,9 @@ public:
 
     void Init(const char *title, int width, int height);
     void Run();
-    void HandleInput();
     void Exit();
 
     void ChangeCurrentScene(const char *newScene);
 
-    void RegisterInteractable(std::string name, Interactable *interactable);
+    void RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable);
 };

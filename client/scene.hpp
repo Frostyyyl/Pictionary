@@ -4,6 +4,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <iostream>
 
 class Scene
 {
@@ -26,5 +27,10 @@ public:
     void AddObject(Component *component)
     {
         objects.insert(std::shared_ptr<Component>(component));
+    }
+
+    void DeleteScene()
+    {
+        objects.clear();
     }
 };

@@ -9,17 +9,14 @@ InputManager::InputManager(GameManager *manager)
     isTyping = false;
 }
 
-void InputManager::AddInteractable(std::string name, Interactable *object)
+void InputManager::AddInteractable(std::string name, std::shared_ptr<Interactable> object)
 {
-    interactables.insert(std::make_pair(name, object));
+    interactables[name] = object;
 }
 
 void InputManager::ClearInteractables()
 {
-    for (auto &[name, obj] : interactables)
-    {
-        obj.get()->Delete();
-    }
+    interactables.clear();
 }
 
 void InputManager::HandleEvent()
@@ -38,6 +35,7 @@ void InputManager::HandleEvent()
             {
                 isDrawing = true;
             }
+            std::cout << name << std::endl;
             obj.get()->HandleEvent(event);
         }
     }

@@ -8,7 +8,9 @@ Scene *CreateMainMenuScene()
     Button *btn = new Button(600, 400, 80, 80, []()
                              { GameManager::getInstance().ChangeCurrentScene("game"); });
     newScene->AddObject(btn);
-    GameManager::getInstance().RegisterInteractable("startButton", btn);
+
+    auto obj = std::shared_ptr<Interactable>(btn);
+    GameManager::getInstance().RegisterInteractable("startButton", obj);
 
     return newScene;
 }
@@ -19,7 +21,9 @@ Scene *CreateGameScene()
     newScene->sceneName = "game";
     Canvas *cvs = new Canvas();
     newScene->AddObject(cvs);
-    GameManager::getInstance().RegisterInteractable("canvas", cvs);
+
+    auto obj = std::shared_ptr<Interactable>(cvs);
+    GameManager::getInstance().RegisterInteractable("canvas", obj);
 
     TextObject *txt = new TextObject();
     newScene->AddObject(txt);
