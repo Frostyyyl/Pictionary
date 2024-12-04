@@ -5,6 +5,7 @@
 #include <iostream>
 #include <functional>
 
+// Do we need this though? (X, Y) is in SDL_Rect
 struct Position
 {
     int x, y;
@@ -13,17 +14,13 @@ struct Position
 class SpriteRenderer : public Component
 {
 private:
-    SDL_Rect rect;
-
 public:
-    Position pos;
     SpriteRenderer()
     {
         rect = {100, 100, 20, 20};
     }
     SpriteRenderer(int x, int y)
     {
-        pos = {x, y};
         rect = {x, y, 40, 40};
     }
     ~SpriteRenderer() {}
@@ -40,7 +37,6 @@ class TextObject : public Component
 private:
     Text text;
     SDL_Texture *tex;
-    SDL_Rect dest;
 
 public:
     TextObject();
@@ -53,13 +49,29 @@ public:
     };
 };
 
+class TextInput : public Interactable
+{
+private:
+    TextObject text;
+
+    bool isClicked(SDL_Event event);
+
+public:
+    TextInput(int x, int y, int w, int h)
+    {
+        rect = {x, y, w, h};
+    }
+    ~TextInput() {};
+
+    void HandleEvent(SDL_Event event) override;
+    void Update() override;
+    void Delete() override {};
+};
+
 class Button : public Interactable
 {
 private:
-    SDL_Rect rect;
     std::function<void()> onClick;
-
-    bool isClicked(SDL_Event event);
 
 public:
     Position pos;
@@ -82,7 +94,6 @@ public:
 class Canvas : public Interactable
 {
 private:
-    SDL_Rect rect;
     SDL_Texture *tex;
 
     Position prevPos;

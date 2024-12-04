@@ -1,7 +1,12 @@
 #pragma once
 
+#include <SDL2/SDL.h>
+
 class Component
 {
+protected:
+    SDL_Rect rect;
+
 public:
     Component() {}
     virtual ~Component() {}

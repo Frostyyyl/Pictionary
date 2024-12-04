@@ -16,6 +16,7 @@ public:
         static TextManager INSTANCE;
         return INSTANCE;
     }
+
     TTF_Font *loadFont(const char *fontFilename, int fontSize)
     {
         TTF_Font *font = TTF_OpenFont(fontFilename, fontSize);
@@ -25,32 +26,28 @@ public:
         }
         return font;
     }
-    SDL_Texture *loadText(TTF_Font *font, Text &contents, SDL_Rect &dest)
+
+    SDL_Texture *loadText(TTF_Font *font, const std::string &text, SDL_Rect &dest)
     {
-        SDL_Surface *tempSurface = SDL_CreateRGBSurface(0, dest.w, dest.h, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
-        SDL_Surface *textSurface = TTF_RenderText_Blended_Wrapped(font, contents.text.c_str(), {12, 15, 10}, contents.src.w);
-        if (!tempSurface)
-        {
-            std::cerr << "ERROR: Failed to render text surface: " << TTF_GetError() << std::endl;
-        }
+        // In {} is the color in RGB, later maybe we will loadText with color?
+        SDL_Surface *textSurface = TTF_RenderText_Blended_Wrapped(font, text.c_str(), {0, 0, 0}, 100);
         if (!textSurface)
         {
             std::cerr << "ERROR: Failed to render text surface: " << TTF_GetError() << std::endl;
+            return nullptr;
         }
-        if (SDL_BlitSurface(textSurface, NULL, tempSurface, &contents.src) == -1)
-        {
-            std::cerr << "ERROR: Failed to merge surfaces";
-        }
-        SDL_Texture *tex = SDL_CreateTextureFromSurface(GameManager::renderer, tempSurface);
-        if (!tex)
+        dest.w = textSurface->w;
+        dest.h = textSurface->h;
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(GameManager::renderer, textSurface);
+        if (!texture)
         {
             std::cerr << "ERROR: Failed to create text texture: " << SDL_GetError() << std::endl;
         }
-        SDL_FreeSurface(tempSurface);
         SDL_FreeSurface(textSurface);
 
-        return tex;
+        return texture;
     }
+
     void init()
     {
         font = loadFont(fontFilename, 16);

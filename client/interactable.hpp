@@ -1,5 +1,5 @@
 #pragma once
-#include <SDL2/SDL.h>
+
 #include <iostream>
 #include "component.hpp"
 
@@ -12,4 +12,8 @@ public:
     virtual void HandleEvent(SDL_Event event) = 0;
     virtual void Update() = 0;
     virtual void Delete() = 0;
+    bool isClicked(SDL_Event event)
+    {
+        return (event.button.x >= rect.x && event.button.x <= rect.x + rect.w && event.button.y <= rect.y + rect.h);
+    }
 };

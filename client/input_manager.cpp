@@ -31,6 +31,8 @@ void InputManager::HandleEvent()
     {
         for (auto &[name, obj] : interactables)
         {
+            if (!obj.get()->isClicked(event))
+                continue;
             if (name == "canvas")
             {
                 isDrawing = true;

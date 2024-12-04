@@ -5,6 +5,8 @@
 
 #include "SDL2/SDL2_gfxPrimitives.h"
 
+// Lots of functions (update mostly) are just placeholders
+
 void SpriteRenderer::Update()
 {
     SDL_SetRenderDrawColor(GameManager::getInstance().renderer, 255, 0, 0, 255);
@@ -14,29 +16,22 @@ void SpriteRenderer::Update()
 
 TextObject::TextObject()
 {
-    text.text = {"hellooo"};
-    dest = {400, 200, 200, 200};
-    TTF_SizeText(TextManager::getInstance().getFont(), text.text.c_str(), &text.src.w, &text.src.h);
-    std::cout << "Text: " << text.src.x << " : " << text.src.y << " : " << text.src.w << " : " << text.src.h << std::endl;
-    tex = TextManager::getInstance().loadText(TextManager::getInstance().getFont(), text, dest);
+    text.text = {"hellooo people meow meow"};
+    rect.x = 500;
+    rect.y = 200;
+    tex = TextManager::getInstance().loadText(TextManager::getInstance().getFont(), text.text, rect);
+    std::cout << rect.h << std::endl;
 }
 
 void TextObject::Update()
 {
-    SDL_RenderCopy(GameManager::renderer, tex, NULL, &dest);
-}
-
-bool Button::isClicked(SDL_Event event)
-{
-    return (event.button.x >= rect.x && event.button.x <= rect.x + rect.w && event.button.y <= rect.y + rect.h);
+    SDL_RenderCopy(GameManager::renderer, tex, NULL, &rect);
 }
 
 void Button::HandleEvent(SDL_Event event)
 {
-    if (isClicked(event))
-    {
+    if (event.type == SDL_MOUSEBUTTONDOWN)
         onClick();
-    }
 }
 
 void Button::Update()

@@ -94,7 +94,8 @@ void GameManager::ChangeCurrentScene(const char *newScene)
 {
     if (strcmp(newScene, "game") == 0)
     {
-        currentScene->DeleteScene();
+        // For now this cause segmentation fault in inputManager, maybe it's not important to have
+        // currentScene->DeleteScene();
         inputManager->ClearInteractables();
         currentScene = CreateGameScene();
         player = new Player(1);
