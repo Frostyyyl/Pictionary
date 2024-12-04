@@ -29,6 +29,8 @@ public:
 
     SDL_Texture *loadText(TTF_Font *font, const std::string &text, SDL_Rect &dest)
     {
+        if (text.empty())
+            return nullptr;
         // In {} is the color in RGB, later maybe we will loadText with color?
         SDL_Surface *textSurface = TTF_RenderText_Blended_Wrapped(font, text.c_str(), {0, 0, 0}, 100);
         if (!textSurface)

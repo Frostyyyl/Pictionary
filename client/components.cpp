@@ -14,18 +14,60 @@ void SpriteRenderer::Update()
     SDL_SetRenderDrawColor(GameManager::getInstance().renderer, 255, 255, 255, 255);
 }
 
-TextObject::TextObject()
+TextObject::TextObject(int x, int y, std::string content)
 {
-    text.text = {"hellooo people meow meow"};
-    rect.x = 500;
-    rect.y = 200;
+    text.text = content;
+    rect.x = x;
+    rect.y = y;
+    LoadText();
+}
+
+void TextObject::LoadText()
+{
     tex = TextManager::getInstance().loadText(TextManager::getInstance().getFont(), text.text, rect);
-    std::cout << rect.h << std::endl;
 }
 
 void TextObject::Update()
 {
     SDL_RenderCopy(GameManager::renderer, tex, NULL, &rect);
+}
+
+void TextInput::HandleEvent(SDL_Event event)
+{
+    if (event.type == SDL_TEXTINPUT)
+    {
+        text.text.text += event.text.text;
+        text.LoadText();
+    }
+    else if (event.type == SDL_KEYDOWN)
+    {
+        if (event.key.keysym.sym == SDLK_BACKSPACE && !text.text.text.empty())
+        {
+            text.text.text.pop_back();
+            text.LoadText();
+        }
+        else if (event.key.keysym.sym == SDLK_RETURN)
+        {
+            std::cout << "skkibidi" << std::endl;
+            if (!text.text.text.empty())
+                SendMessage();
+        }
+    }
+}
+
+void TextInput::Update()
+{
+    text.Update();
+}
+
+void TextInput::SendMessage()
+{
+    std::string msg = text.text.text;
+    msgWindow->AddMessage(msg);
+
+    text.text.text = "";
+    text.LoadText();
+    // do something else here?
 }
 
 void Button::HandleEvent(SDL_Event event)
@@ -42,6 +84,45 @@ void Button::Update()
     SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
 }
 
+void MessageWindow::Update()
+{
+    for (const auto &obj : messages)
+    {
+        obj.get()->Update();
+    }
+}
+
+void MessageWindow::AddMessage(std::string message)
+{
+    auto newMessage = std::make_shared<TextObject>(rect.x, 0, message);
+    int messageHeight = newMessage->GetHeight();
+
+    while (height + messageHeight > rect.h)
+    {
+        if (!messages.empty())
+        {
+            height -= messages.front()->GetHeight();
+            messages.pop_front();
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    messages.push_back(newMessage);
+    height += messageHeight;
+
+    int yOffset = rect.y + rect.h + msgOffset;
+
+    for (auto it = messages.rbegin(); it != messages.rend(); ++it)
+    {
+        auto &message = *it;
+        yOffset -= (message->GetHeight() + msgOffset);
+        message->SetPosition(rect.x, yOffset);
+    }
+}
+
 Canvas::Canvas()
 {
     rect = {20, 20, 400, 400};
@@ -50,6 +131,8 @@ Canvas::Canvas()
 
 void Canvas::HandleEvent(SDL_Event event)
 {
+    if (!isClicked(event))
+        return;
     if (event.type == SDL_MOUSEBUTTONDOWN)
     {
         prevPos = {event.motion.x - rect.x, event.motion.y - rect.y};
@@ -58,6 +141,8 @@ void Canvas::HandleEvent(SDL_Event event)
         filledCircleColor(GameManager::renderer, prevPos.x, prevPos.y, 3, 0xff00cc00);
         SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
         SDL_SetRenderTarget(GameManager::renderer, nullptr);
+
+        GameManager::getInstance().player->HandleCanvasChange(tex);
 
         return;
     }
@@ -77,6 +162,9 @@ void Canvas::HandleEvent(SDL_Event event)
         SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
         prevPos.x = canvasX;
         prevPos.y = canvasY;
+
+        GameManager::getInstance().player->HandleCanvasChange(tex);
+
         return;
     }
     if (x >= rect.x && x < rect.x + rect.w && y >= rect.y && y < rect.y + rect.h)
@@ -95,8 +183,9 @@ void Canvas::HandleEvent(SDL_Event event)
         SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
         prevPos.x = canvasX;
         prevPos.y = canvasY;
+
+        GameManager::getInstance().player->HandleCanvasChange(tex);
     }
-    GameManager::getInstance().player->HandleCanvasChange(tex);
 }
 
 void Canvas::Update()

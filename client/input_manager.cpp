@@ -37,7 +37,6 @@ void InputManager::HandleEvent()
             {
                 isDrawing = true;
             }
-            std::cout << name << std::endl;
             obj.get()->HandleEvent(event);
         }
     }
@@ -56,8 +55,13 @@ void InputManager::HandleEvent()
             interactables["canvas"].get()->HandleEvent(event);
         }
     }
-    else if (event.type == SDL_TEXTINPUT)
+    else if (event.type == SDL_TEXTINPUT ||
+             (event.type == SDL_KEYDOWN &&
+              (event.key.keysym.sym == SDLK_BACKSPACE || event.key.keysym.sym == SDLK_RETURN)))
     {
-        std::cout << event.text.text << std::endl;
+        if (interactables.find("textInput") != interactables.end())
+        {
+            interactables["textInput"].get()->HandleEvent(event);
+        }
     }
 }
