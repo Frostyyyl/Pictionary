@@ -11,7 +11,7 @@ SDL_Renderer *GameManager::renderer = nullptr;
 
 GameManager::GameManager()
 {
-    player = nullptr;
+    currentPlayer = nullptr;
     inputManager = nullptr;
 }
 
@@ -98,8 +98,13 @@ void GameManager::ChangeCurrentScene(const char *newScene)
         // currentScene->DeleteScene();
         inputManager->ClearInteractables();
         currentScene = CreateGameScene();
-        player = new Player(1);
-        player->ChangeGameMode(DRAW);
+        currentPlayer = new Player(1, "player");
+        currentPlayer->ChangeGameMode(DRAW);
+    }
+    if (strcmp(newScene, "lobby") == 0)
+    {
+        inputManager->ClearInteractables();
+        currentScene = CreateLobbyScene();
     }
 }
 

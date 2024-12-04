@@ -17,7 +17,7 @@ private:
     InputManager *inputManager;
 
 public:
-    Player *player;
+    Player *currentPlayer;
     bool isRunning;
 
     static SDL_Renderer *renderer;

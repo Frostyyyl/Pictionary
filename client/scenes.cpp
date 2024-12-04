@@ -10,6 +10,24 @@ Scene *CreateMainMenuScene()
     newScene->AddObject(txt);
 
     Button *btn = new Button(600, 400, 80, 80, []()
+                             { GameManager::getInstance().ChangeCurrentScene("lobby"); });
+    newScene->AddObject(btn);
+
+    auto obj = std::shared_ptr<Interactable>(btn);
+    GameManager::getInstance().RegisterInteractable("startButton", obj);
+
+    return newScene;
+}
+
+Scene *CreateLobbyScene()
+{
+    Scene *newScene = new Scene();
+    newScene->sceneName = "mainMenu";
+
+    TextObject *txt = new TextObject(300, 50, "LOBBY");
+    newScene->AddObject(txt);
+
+    Button *btn = new Button(300, 300, 80, 80, []()
                              { GameManager::getInstance().ChangeCurrentScene("game"); });
     newScene->AddObject(btn);
 

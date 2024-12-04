@@ -3,4 +3,5 @@
 #include "components.hpp"
 
 Scene *CreateMainMenuScene();
+Scene *CreateLobbyScene();
 Scene *CreateGameScene();

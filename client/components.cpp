@@ -2,6 +2,7 @@
 #include "game_manager.hpp"
 #include "texture_manager.hpp"
 #include "text_manager.hpp"
+#include "network_connector.hpp"
 
 #include "SDL2/SDL2_gfxPrimitives.h"
 
@@ -64,10 +65,10 @@ void TextInput::SendMessage()
 {
     std::string msg = text.text.text;
     msgWindow->AddMessage(msg);
+    NetworkConnector::getInstance().HandleNewMessage(GameManager::getInstance().currentPlayer->GetNickname(), msg);
 
     text.text.text = "";
     text.LoadText();
-    // do something else here?
 }
 
 void Button::HandleEvent(SDL_Event event)
@@ -142,7 +143,7 @@ void Canvas::HandleEvent(SDL_Event event)
         SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
         SDL_SetRenderTarget(GameManager::renderer, nullptr);
 
-        GameManager::getInstance().player->HandleCanvasChange(tex);
+        NetworkConnector::getInstance().HandleCanvasChange(tex);
 
         return;
     }
@@ -163,7 +164,7 @@ void Canvas::HandleEvent(SDL_Event event)
         prevPos.x = canvasX;
         prevPos.y = canvasY;
 
-        GameManager::getInstance().player->HandleCanvasChange(tex);
+        NetworkConnector::getInstance().HandleCanvasChange(tex);
 
         return;
     }
@@ -184,7 +185,7 @@ void Canvas::HandleEvent(SDL_Event event)
         prevPos.x = canvasX;
         prevPos.y = canvasY;
 
-        GameManager::getInstance().player->HandleCanvasChange(tex);
+        NetworkConnector::getInstance().HandleCanvasChange(tex);
     }
 }
 
