@@ -33,6 +33,7 @@ void InputManager::HandleEvent()
         {
             if (!obj.get()->isClicked(event))
                 continue;
+            std::cout << name << std::endl;
             if (name == "canvas")
             {
                 isDrawing = true;

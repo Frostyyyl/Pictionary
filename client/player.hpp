@@ -37,6 +37,11 @@ public:
         return nickname;
     }
 
+    GameMode GetGameMode()
+    {
+        return gameMode;
+    }
+
     void ChangeGameMode(GameMode newGameMode)
     {
         gameMode = newGameMode;

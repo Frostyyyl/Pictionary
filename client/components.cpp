@@ -30,7 +30,8 @@ void TextObject::LoadText()
 
 void TextObject::Update()
 {
-    SDL_RenderCopy(GameManager::renderer, tex, NULL, &rect);
+    TextureManager::Draw(tex, rect);
+    // SDL_RenderCopy(GameManager::renderer, tex, NULL, &rect);
 }
 
 void TextInput::HandleEvent(SDL_Event event)
@@ -49,7 +50,6 @@ void TextInput::HandleEvent(SDL_Event event)
         }
         else if (event.key.keysym.sym == SDLK_RETURN)
         {
-            std::cout << "skkibidi" << std::endl;
             if (!text.text.text.empty())
                 SendMessage();
         }
@@ -80,7 +80,6 @@ void Button::HandleEvent(SDL_Event event)
 void Button::Update()
 {
     SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 0, 255);
-    // SDL_RenderDrawRect(GameManager::renderer, &rect);
     roundedBoxColor(GameManager::renderer, rect.x, rect.y, (rect.x + rect.w), (rect.y + rect.h), 4, 0xff8f7b4a);
     SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
 }
@@ -170,8 +169,6 @@ void Canvas::HandleEvent(SDL_Event event)
     }
     if (x >= rect.x && x < rect.x + rect.w && y >= rect.y && y < rect.y + rect.h)
     {
-        std::cout << "Drawing at: " << x << " : " << y << std::endl;
-
         SDL_SetRenderTarget(GameManager::renderer, tex);
 
         int canvasX = x - rect.x;
@@ -191,5 +188,6 @@ void Canvas::HandleEvent(SDL_Event event)
 
 void Canvas::Update()
 {
-    SDL_RenderCopy(GameManager::renderer, tex, nullptr, &rect);
+    TextureManager::Draw(tex, rect);
+    // SDL_RenderCopy(GameManager::renderer, tex, nullptr, &rect);
 }

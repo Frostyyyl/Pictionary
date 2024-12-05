@@ -19,6 +19,7 @@ public:
 
         return tex;
     }
+
     static SDL_Texture *CreateCanvas(int w, int h)
     {
         SDL_Texture *canvas = SDL_CreateTexture(GameManager::renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
@@ -35,8 +36,13 @@ public:
 
         return canvas;
     }
+
     static void Draw(SDL_Texture *tex, SDL_Rect &src, SDL_Rect &dest)
     {
         SDL_RenderCopy(GameManager::renderer, tex, &src, &dest);
+    }
+    static void Draw(SDL_Texture *tex, SDL_Rect &dest)
+    {
+        SDL_RenderCopy(GameManager::renderer, tex, NULL, &dest);
     }
 };

@@ -97,9 +97,16 @@ void GameManager::ChangeCurrentScene(const char *newScene)
         // For now this cause segmentation fault in inputManager, maybe it's not important to have
         // currentScene->DeleteScene();
         inputManager->ClearInteractables();
-        currentScene = CreateGameScene();
         currentPlayer = new Player(1, "player");
         currentPlayer->ChangeGameMode(DRAW);
+
+        for (int i = 0; i < 10; i++)
+        {
+            // This loop does nothing but it prevents CreateGameScene() from crashing
+            // when it tries to acces newly created currentPlayer
+        }
+
+        currentScene = CreateGameScene();
     }
     if (strcmp(newScene, "lobby") == 0)
     {

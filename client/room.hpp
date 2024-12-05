@@ -19,6 +19,7 @@ public:
     }
     ~Room() {}
 
+    // I think this is not the best approach
     int AddPlayer(Player *player)
     {
         if (numberOfPlayers >= MAX_PLAYERS)
