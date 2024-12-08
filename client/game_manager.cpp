@@ -13,6 +13,7 @@ GameManager::GameManager()
 {
     currentPlayer = nullptr;
     inputManager = nullptr;
+    wasSceneChanged = false;
 }
 
 GameManager &GameManager::getInstance()
@@ -43,8 +44,6 @@ void GameManager::Init(const char *title, int width, int height)
         isRunning = false;
         exit(1);
     }
-
-    SDL_StartTextInput();
 
     window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
 
@@ -77,6 +76,11 @@ void GameManager::Run()
         SDL_RenderPresent(renderer);
 
         inputManager->HandleEvent();
+
+        if (wasSceneChanged)
+        {
+            wasSceneChanged = false;
+        }
         // Stop running if quitted
         if (!isRunning)
             return;
@@ -92,6 +96,7 @@ void GameManager::Run()
 
 void GameManager::ChangeCurrentScene(const char *newScene)
 {
+
     if (strcmp(newScene, "game") == 0)
     {
         // For now this cause segmentation fault in inputManager, maybe it's not important to have
@@ -111,8 +116,14 @@ void GameManager::ChangeCurrentScene(const char *newScene)
     if (strcmp(newScene, "lobby") == 0)
     {
         inputManager->ClearInteractables();
+        for (int i = 0; i < 10; i++)
+        {
+            // This loop does nothing but it prevents CreateGameScene() from crashing
+        }
+        // currentScene->DeleteScene();
         currentScene = CreateLobbyScene();
     }
+    wasSceneChanged = true;
 }
 
 void GameManager::RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable)

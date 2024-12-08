@@ -14,6 +14,6 @@ public:
     virtual void Delete() = 0;
     bool isClicked(SDL_Event event)
     {
-        return (event.button.x >= rect.x && event.button.x <= rect.x + rect.w && event.button.y <= rect.y + rect.h);
+        return (event.button.x >= rect.x && event.button.x <= rect.x + rect.w && event.button.y >= rect.y && event.button.y <= rect.y + rect.h);
     }
 };

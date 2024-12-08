@@ -24,9 +24,9 @@ public:
         }
     }
 
-    void AddObject(Component *component)
+    void AddObject(std::shared_ptr<Component> component)
     {
-        objects.insert(std::shared_ptr<Component>(component));
+        objects.insert(component);
     }
 
     void DeleteScene()

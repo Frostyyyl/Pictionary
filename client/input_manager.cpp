@@ -9,7 +9,7 @@ InputManager::InputManager(GameManager *manager)
     isTyping = false;
 }
 
-void InputManager::AddInteractable(std::string name, std::shared_ptr<Interactable> object)
+void InputManager::AddInteractable(std::string name, std::weak_ptr<Interactable> object)
 {
     interactables[name] = object;
 }
@@ -29,16 +29,22 @@ void InputManager::HandleEvent()
     }
     else if (event.type == SDL_MOUSEBUTTONDOWN)
     {
+        if (interactables.empty())
+            return;
         for (auto &[name, obj] : interactables)
         {
-            if (!obj.get()->isClicked(event))
+            if (gameManager->wasSceneChanged)
+                return;
+            if (!obj.lock())
+                continue;
+            if (!obj.lock().get()->isClicked(event))
                 continue;
             std::cout << name << std::endl;
             if (name == "canvas")
             {
                 isDrawing = true;
             }
-            obj.get()->HandleEvent(event);
+            obj.lock().get()->HandleEvent(event);
         }
     }
     else if (event.type == SDL_MOUSEBUTTONUP)
@@ -46,14 +52,14 @@ void InputManager::HandleEvent()
         if (interactables.find("canvas") != interactables.end())
         {
             isDrawing = false;
-            interactables["canvas"].get()->HandleEvent(event);
+            interactables["canvas"].lock().get()->HandleEvent(event);
         }
     }
     else if (event.type == SDL_MOUSEMOTION)
     {
         if (isDrawing) // probably won't give any error that canvas does not exist
         {
-            interactables["canvas"].get()->HandleEvent(event);
+            interactables["canvas"].lock().get()->HandleEvent(event);
         }
     }
     else if (event.type == SDL_TEXTINPUT ||
@@ -62,7 +68,7 @@ void InputManager::HandleEvent()
     {
         if (interactables.find("textInput") != interactables.end())
         {
-            interactables["textInput"].get()->HandleEvent(event);
+            interactables["textInput"].lock().get()->HandleEvent(event);
         }
     }
 }

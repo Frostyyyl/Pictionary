@@ -17,6 +17,7 @@ private:
     InputManager *inputManager;
 
 public:
+    bool wasSceneChanged;
     Player *currentPlayer;
     bool isRunning;
 

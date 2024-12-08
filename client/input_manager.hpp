@@ -12,7 +12,7 @@ private:
     GameManager *gameManager;
     SDL_Event event;
 
-    std::unordered_map<std::string, std::shared_ptr<Interactable>> interactables;
+    std::unordered_map<std::string, std::weak_ptr<Interactable>> interactables;
 
     bool isDrawing;
     bool isTyping;
@@ -21,7 +21,7 @@ public:
     InputManager(GameManager *manager);
     ~InputManager() {}
 
-    void AddInteractable(std::string name, std::shared_ptr<Interactable> object);
+    void AddInteractable(std::string name, std::weak_ptr<Interactable> object);
     void ClearInteractables();
 
     void HandleEvent();
