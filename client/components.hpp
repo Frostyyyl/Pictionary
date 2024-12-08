@@ -7,7 +7,7 @@
 #include <deque>
 #include <memory>
 
-// Do we need this though? (X, Y) is in SDL_Rect
+// Used in canvas
 struct Position
 {
     int x, y;
@@ -16,15 +16,14 @@ struct Position
 class SpriteRenderer : public Component
 {
 private:
+    SDL_Texture *tex;
+
 public:
     SpriteRenderer()
     {
         rect = {100, 100, 20, 20};
     }
-    SpriteRenderer(int x, int y)
-    {
-        rect = {x, y, 40, 40};
-    }
+    SpriteRenderer(int x, int y, const char *filename);
     ~SpriteRenderer() {}
 
     void Update() override;
@@ -66,14 +65,12 @@ public:
 class Button : public Interactable
 {
 private:
+    SDL_Texture *tex;
     std::function<void()> onClick;
 
 public:
-    Button(int x, int y, int w, int h, std::function<void()> func)
-    {
-        rect = {x, y, w, h};
-        onClick = func;
-    }
+    Button(int x, int y, int w, int h, const char *filename, std::function<void()> func);
+    Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func);
     ~Button() {}
 
     void HandleEvent(SDL_Event event) override;
@@ -133,6 +130,7 @@ class Canvas : public Interactable
 {
 private:
     SDL_Texture *tex;
+    Uint32 currentColor;
 
     Position prevPos;
 
@@ -147,4 +145,9 @@ public:
         SDL_DestroyTexture(tex);
         this->~Canvas();
     };
+
+    void ChangeColor(Uint32 newColor)
+    {
+        currentColor = newColor;
+    }
 };

@@ -3,7 +3,6 @@
 #include "scene.hpp"
 #include "SDL2/SDL.h"
 #include "interactable.hpp"
-#include <unordered_map>
 #include "player.hpp"
 #include "input_manager.hpp"
 

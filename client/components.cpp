@@ -8,11 +8,17 @@
 
 // Lots of functions (update mostly) are just placeholders
 
+SpriteRenderer::SpriteRenderer(int x, int y, const char *filename)
+{
+    tex = TextureManager::LoadTexture(filename);
+    int w, h;
+    SDL_QueryTexture(tex, NULL, NULL, &w, &h);
+    rect = {x, y, w, h};
+}
+
 void SpriteRenderer::Update()
 {
-    SDL_SetRenderDrawColor(GameManager::getInstance().renderer, 255, 0, 0, 255);
-    SDL_RenderDrawRect(GameManager::getInstance().renderer, &rect);
-    SDL_SetRenderDrawColor(GameManager::getInstance().renderer, 255, 255, 255, 255);
+    TextureManager::Draw(tex, rect);
 }
 
 TextObject::TextObject(int x, int y, std::string content)
@@ -71,6 +77,20 @@ void TextInput::SendMessage()
     text.LoadText();
 }
 
+Button::Button(int x, int y, int w, int h, const char *filename, std::function<void()> func)
+{
+    rect = {x, y, w, h};
+    tex = TextureManager::LoadTexture(filename);
+    onClick = func;
+}
+
+Button::Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func)
+{
+    rect = {x, y, w, h};
+    tex = TextureManager::LoadSolidColor(w, h, color);
+    onClick = func;
+}
+
 void Button::HandleEvent(SDL_Event event)
 {
     if (event.type == SDL_MOUSEBUTTONDOWN)
@@ -79,9 +99,7 @@ void Button::HandleEvent(SDL_Event event)
 
 void Button::Update()
 {
-    SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 0, 255);
-    roundedBoxColor(GameManager::renderer, rect.x, rect.y, (rect.x + rect.w), (rect.y + rect.h), 4, 0xff8f7b4a);
-    SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
+    TextureManager::Draw(tex, rect);
 }
 
 void MessageWindow::Update()
@@ -127,6 +145,7 @@ Canvas::Canvas()
 {
     rect = {20, 20, 400, 400};
     tex = TextureManager::CreateCanvas(400, 400);
+    currentColor = 0xff000000;
 }
 
 void Canvas::HandleEvent(SDL_Event event)
@@ -138,7 +157,7 @@ void Canvas::HandleEvent(SDL_Event event)
         prevPos = {event.motion.x - rect.x, event.motion.y - rect.y};
 
         SDL_SetRenderTarget(GameManager::renderer, tex);
-        filledCircleColor(GameManager::renderer, prevPos.x, prevPos.y, 3, 0xff00cc00);
+        filledCircleColor(GameManager::renderer, prevPos.x, prevPos.y, 3, currentColor);
         SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
         SDL_SetRenderTarget(GameManager::renderer, nullptr);
 
@@ -156,7 +175,7 @@ void Canvas::HandleEvent(SDL_Event event)
 
         int canvasX = x - rect.x;
         int canvasY = y - rect.y;
-        filledCircleColor(GameManager::renderer, canvasX, canvasY, 3, 0xff00cc00);
+        filledCircleColor(GameManager::renderer, canvasX, canvasY, 3, currentColor);
 
         SDL_SetRenderTarget(GameManager::renderer, nullptr);
         SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
@@ -175,7 +194,7 @@ void Canvas::HandleEvent(SDL_Event event)
         int canvasY = y - rect.y;
 
         SDL_SetRenderDrawColor(GameManager::renderer, 255, 0, 0, 255);
-        thickLineColor(GameManager::renderer, prevPos.x, prevPos.y, canvasX, canvasY, 6, 0xff00cc00);
+        thickLineColor(GameManager::renderer, prevPos.x, prevPos.y, canvasX, canvasY, 6, currentColor);
 
         SDL_SetRenderTarget(GameManager::renderer, nullptr);
         SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
@@ -189,5 +208,4 @@ void Canvas::HandleEvent(SDL_Event event)
 void Canvas::Update()
 {
     TextureManager::Draw(tex, rect);
-    // SDL_RenderCopy(GameManager::renderer, tex, nullptr, &rect);
 }
