@@ -1,5 +1,5 @@
 #pragma once
-#include "SDL2/SDL_TTF.h"
+#include <SDL2/SDL_ttf.h>
 #include "game_manager.hpp"
 #include "text.hpp"
 

@@ -47,7 +47,7 @@ void GameManager::Init(const char *title, int width, int height)
 
     window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
 
-    renderer = renderer = SDL_CreateRenderer(window, -1, 0);
+    renderer = SDL_CreateRenderer(window, -1, 0);
 
     TextManager::getInstance().init();
 

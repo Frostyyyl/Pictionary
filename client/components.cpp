@@ -4,7 +4,7 @@
 #include "text_manager.hpp"
 #include "network_connector.hpp"
 
-#include "SDL2/SDL2_gfxPrimitives.h"
+#include <SDL2/SDL2_gfxPrimitives.h>
 
 // Lots of functions (update mostly) are just placeholders
 

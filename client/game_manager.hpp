@@ -1,7 +1,7 @@
 #pragma once
 
 #include "scene.hpp"
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 #include "interactable.hpp"
 #include "player.hpp"
 #include "input_manager.hpp"
