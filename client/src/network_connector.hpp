@@ -2,20 +2,29 @@
 
 #include <SDL2/SDL.h>
 #include <iostream>
+#include <string>
+#include <cstring>
+#include <cstdlib>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
-// Here I think we should handle all networking
 class NetworkConnector
 {
 private:
-    NetworkConnector(/* args */) {}
-    /* data */
+    NetworkConnector();
+
+    int lobbySocket; 
+    int serverSocket;
 public:
-    static NetworkConnector &getInstance()
-    {
-        static NetworkConnector INSTANCE;
-        return INSTANCE;
-    }
-    ~NetworkConnector() {}
+    static NetworkConnector &getInstance();
+    ~NetworkConnector();
+
+    bool Init();
+    void Exit();
+    bool Connect(std::string address, int port);
+    void Disconnect();
 
     void HandleCanvasChange(SDL_Texture *tex)
     {
