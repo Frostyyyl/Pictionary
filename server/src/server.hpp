@@ -21,9 +21,9 @@ private:
     void Read(int socket);
     void Write(int socket);
     
-    const socklen_t SIZE = sizeof(struct sockaddr_in);
     const int MAX_QUEUE_SIZE = 10;
     const int BUFFER_SIZE = 1024;
+    socklen_t SIZE = sizeof(struct sockaddr_in);
     struct timeval timeout;
     std::map<int, Client> clients;
     struct sockaddr_in serverAddr;
@@ -33,7 +33,7 @@ private:
     fd_set reading; 
     fd_set writing;
 public:
-    static GameManager &getInstance();
+    static Server &getInstance();
     ~Server();
     
     void Init(int port);

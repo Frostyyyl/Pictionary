@@ -24,7 +24,7 @@ void Server::Accept()
     struct sockaddr_in clientAddr;
     memset(&clientAddr, 0, sizeof(clientAddr));
 
-    int clientSocket = accept(serverSocket, (struct sockaddr_in *)&clientAddr, &SIZE);
+    int clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddr, &SIZE);
     if (clientSocket == -1)
     {
         std::cerr << "ERROR: Accept failed" << std::endl;
@@ -37,7 +37,7 @@ void Server::Accept()
         return;
     }
 
-    std::cout << "Connected with " << inet_ntoa(clientAddr.sin_addr) ":" 
+    std::cout << "Connected with " << inet_ntoa(clientAddr.sin_addr) << ":" 
               << ntohs(clientAddr.sin_port) << std::endl;
 
     // Add the client to the descriptor set and clients map
@@ -82,7 +82,7 @@ void Server::Init(int port)
         exit(EXIT_FAILURE);
     }
 
-    if (bind(serverSocket, (struct sockaddr_in *)&serverAddr, sizeof(serverAddr)) == -1)
+    if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
     {
         std::cerr << "ERROR: Bind failed" << std::endl;
         close(serverSocket);
