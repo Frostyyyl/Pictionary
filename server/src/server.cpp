@@ -19,12 +19,28 @@ int Server::SetNonBlocking(int socket)
     return 0;
 }
 
+void Server::SendLobbiesList(int socket)
+{
+    MessageLobbiesList* lobbiesList = nullptr;
+
+    int rv = send(socket, lobbiesList, MessageLobbiesList::getSize(), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    if (rv == -1){
+        if (errno != EWOULDBLOCK){
+            std::cerr << "ERROR: Failed to send list of lobbies" << std::endl;
+        } else {
+            std::cerr << "INFO: The send buffer is full, resend of lobbies list NOT handled" << std::endl;
+        }
+    }
+    
+}
+
 void Server::Accept()
 {
     struct sockaddr_in clientAddr;
     memset(&clientAddr, 0, sizeof(clientAddr));
 
-    int clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddr, &SIZE);
+    int clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddr, &size);
     if (clientSocket == -1)
     {
         std::cerr << "ERROR: Accept failed" << std::endl;
@@ -37,12 +53,14 @@ void Server::Accept()
         return;
     }
 
+    // Log connection
     std::cout << "Connected with " << inet_ntoa(clientAddr.sin_addr) << ":" 
               << ntohs(clientAddr.sin_port) << std::endl;
 
-    // Add the client to the descriptor set and clients map
+    // Add the client to the descriptor set
     FD_SET(clientSocket, &descriptors);
-    clients.insert(std::pair<int, Client>(clientSocket, Client(clientAddr)));
+
+    SendLobbiesList(clientSocket);
 
     // Update the maximum socket value if necessary
     if (clientSocket > maxSocket)
@@ -53,7 +71,7 @@ void Server::Accept()
 
 void Server::Read(int socket)
 {
-
+    // int rv = recv(); # TODO:
 }
 
 void Server::Write(int socket)
@@ -125,10 +143,13 @@ void Server::Run()
             continue;
         }
 
-        // Accept connections if server socket is ready
+        // Accept connections if server socket is reading
         if (FD_ISSET(serverSocket, &reading))
         {
             Accept();
+
+            // Remove from reading to not get catched in the next step
+            FD_CLR(serverSocket, &reading);
         }
 
         // Handle all clients that are writing 
@@ -166,10 +187,6 @@ void Server::Run()
                 }
             }
         }
-    }
-
-    for (auto client : clients){
-        close(client.first);
     }
 
     close(serverSocket);
