@@ -21,11 +21,42 @@ int Server::SetNonBlocking(int socket)
 
 void Server::SendLobbiesList(int socket)
 {
-    MessageLobbiesList* lobbiesList = nullptr;
+    LobbiesList lobbiesList;
+    int counter = 1;
 
-    int rv = send(socket, lobbiesList, MessageLobbiesList::getSize(), MSG_NOSIGNAL | MSG_DONTWAIT);
+    // List MAX_LOBBIES_PER_PAGE lobbies
+    for (auto i : lobbies)
+    {
+        LobbyInfo info = LobbyInfo(i.first, i.second.clients.size(), (i.second.password.size() == 0) ? false : true );
+        
+        lobbiesList.lobbies.push_back(info);
 
-    if (rv == -1){
+        if (counter > LobbiesList::MAX_LOBBIES_PER_PAGE) { break; }
+
+        counter++; 
+    }
+
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_LOBBIES), sizeof(lobbiesList));
+
+    // Send the prepared lobbies list to client
+    int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        if (errno != EWOULDBLOCK){
+            std::cerr << "ERROR: Failed to send message type: UPLOAD_LOBBIES" << std::endl;
+        } else {
+            std::cerr << "INFO: The send buffer is full, resend of message type: UPLOAD_LOBBIES NOT handled" << std::endl;
+        }
+        return;
+    }
+
+    int rv = send(socket, &lobbiesList, sizeof(lobbiesList), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
         if (errno != EWOULDBLOCK){
             std::cerr << "ERROR: Failed to send list of lobbies" << std::endl;
         } else {
@@ -33,6 +64,17 @@ void Server::SendLobbiesList(int socket)
         }
     }
     
+}
+
+void Server::CreateLobby(int socket, int message_size)
+{
+    LobbyCreateInfo info;
+
+    int rv = recv(socket, &info, message_size, MSG_DONTWAIT);
+
+    lobbies.insert(std::pair<std::string, Lobby>(info.name, Lobby(info.password, socket)));
+
+    // TODO:
 }
 
 void Server::Accept()
@@ -50,6 +92,7 @@ void Server::Accept()
     if (SetNonBlocking(clientSocket) == -1)
     {
         std::cerr << "ERROR: Set non block failed" << std::endl;
+        close(clientSocket);
         return;
     }
 
@@ -71,7 +114,42 @@ void Server::Accept()
 
 void Server::Read(int socket)
 {
-    // int rv = recv(); # TODO:
+    Message message;
+
+    int rv = recv(socket, &message, sizeof(MessageToServer), MSG_DONTWAIT);
+
+    if (rv == -1)
+    {
+        if (errno != EWOULDBLOCK){
+            std::cerr << "ERROR: Failed to receive message type" << std::endl;
+        } else {
+            std::cout << "INFO: The receive buffer is full" << std::endl;
+        }
+        return;
+    }
+
+    switch (static_cast<MessageToServer>(message.type))
+    {
+    case MessageToServer::ENTER_HUB:
+        SendLobbiesList(socket);
+        break;
+    case MessageToServer::CREATE_LOBBY:
+        CreateLobby(socket, message.size);
+        break;
+    case MessageToServer::CONNECT_TO_LOBBY:
+        break;
+    case MessageToServer::START_ROUND:
+        break;
+    case MessageToServer::UPLOAD_CANVAS:
+        break;
+    case MessageToServer::UPLOAD_TEXT:
+        break;
+
+    default:
+        std::cout << "INFO: Received unhandled message type" << std::endl;
+        break;
+    }
+
 }
 
 void Server::Write(int socket)
@@ -130,7 +208,6 @@ void Server::Run()
     while (true)
     {
         FD_SET(serverSocket, &reading);
-        writing = descriptors;
 
         timeout.tv_sec = 60;
         timeout.tv_usec = 0;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 #include "message.hpp"
 
 class LobbyInfo
@@ -9,27 +10,33 @@ public:
     static const short MAX_LOBBY_SIZE = 8;
     static const short MAX_LOBBY_NAME_SIZE = 32;
 
-    char name[MAX_LOBBY_NAME_SIZE];
+    std::string name;
     short playerCount;
     bool hasPassword;
+
+    LobbyInfo(std::string name, short playerCount, bool hasPassword)
+    {
+        this->name = name;
+        this->playerCount = playerCount;
+        this->hasPassword = hasPassword;
+    }
+    ~LobbyInfo() {}
 };
 
-class MessageLobbiesList
+class LobbiesList
 {
 public:
-    static const int MAX_LOBBIES = 16;
+    static const int MAX_LOBBIES_PER_PAGE = 16;
     std::vector<LobbyInfo> lobbies;
 
-    MessageLobbiesList() { lobbies.reserve(MAX_LOBBIES); }
-    ~MessageLobbiesList() {}
+    LobbiesList() {}
+    ~LobbiesList() {}
+};
 
-    static int getSize()
-    { 
-        int size = sizeof(MessageLobbiesList);
-        size += sizeof(std::vector<LobbyInfo>);
-        size += MAX_LOBBIES * sizeof(LobbyInfo);
-
-        return size; 
-    }
-    static int getMessageType() { return static_cast<int>(MessageToClient::UPLOAD_LOBBIES); }
+class LobbyCreateInfo
+{
+public:
+    static const short MAX_LOBBY_NAME_SIZE = LobbyInfo::MAX_LOBBY_NAME_SIZE;
+    std::string name;
+    std::string password;
 };

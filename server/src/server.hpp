@@ -20,6 +20,7 @@ private:
     Server();
     int SetNonBlocking(int socket);
     void SendLobbiesList(int socket);
+    void CreateLobby(int socket, int message_size);
     void Accept();
     void Read(int socket);
     void Write(int socket);

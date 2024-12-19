@@ -1,8 +1,7 @@
 #pragma once
 
-#include <string>
-
-enum class MessageToServer {
+enum class MessageToServer 
+{
     ENTER_HUB,
     CREATE_LOBBY,
     CONNECT_TO_LOBBY,
@@ -11,11 +10,25 @@ enum class MessageToServer {
     START_ROUND,
 };
 
-enum class MessageToClient {
+enum class MessageToClient 
+{
     UPLOAD_LOBBIES,
     UPLOAD_CANVAS,
     UPLOAD_CHAT,
     PICK_PROMPT,
 };
 
-// TODO: Consider an alternative to current messages (perhaps a global message size higher than any message's actual size)
+class Message
+{
+public:
+    int type;
+    int size;
+
+    Message(int type, int size)
+    {
+        this->type = type;
+        this->size = size;
+    }
+    Message() {}
+    ~Message() {}
+};
