@@ -2,17 +2,19 @@
 
 #include <string>
 #include <vector>
+#include <array>
+#include "../../global/src/objects.hpp"
 
 class Lobby
 {
 public:
-    std::string password;
     std::vector<int> clients;
+    std::string password = {};
 
-    Lobby(std::string password, int client) 
+    Lobby(const std::string& password) 
     {
-        this->password = password;
-        this->clients.push_back(client);
+        password.copy(this->password.data(), LobbyInfo::MAX_LOBBY_PASSWORD_SIZE);
     }
-    ~Lobby() {}
+    Lobby() = default;
+    ~Lobby() noexcept = default;
 };

@@ -1,5 +1,6 @@
 #include "game_manager.hpp"
 #include "scenes.hpp"
+#include "network_connector.hpp"
 #include <string>
 
 Scene *CreateMainMenuScene()
@@ -32,16 +33,59 @@ Scene *CreateLobbyScene()
     // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
     // newScene->AddObject(bg);
 
-    auto txt = std::make_shared<TextObject>(300, 50, "LOBBY");
+    auto txt = std::make_shared<TextObject>(100, 30, "CREATE LOBBY");
     newScene->AddObject(txt);
 
-    std::string names[4] = {"lobby_1", "lobby_2", "lobby_3", "lobby_4"};
-    for (int i = 0; i < 4; i++)
+    // Create lobby functionality
+    auto obj = std::make_shared<Button>(100, 80, 100, 60, "images/button.png", [newScene]()                                    
+    { 
+
+        auto txt = std::make_shared<TextObject>(100, 140, "CONFIRM");
+        newScene->AddObject(txt); 
+
+        // Confirm button
+        auto obj = std::make_shared<Button>(100, 160, 100, 60, "images/button.png", [newScene]()                                    
+        { 
+            NetworkConnector::getInstance().CreateLobby("12345678901234567890123456789012", "");
+        });
+        newScene->AddObject(obj);
+        GameManager::getInstance().RegisterInteractable("createLobbyConfirmButton", obj);
+
+
+        txt = std::make_shared<TextObject>(220, 140, "CANCEL");
+        newScene->AddObject(txt); 
+
+        // Cancel button
+        obj = std::make_shared<Button>(220, 160, 100, 60, "images/button.png", [newScene]()                                    
+        { 
+        });
+        newScene->AddObject(obj);
+        GameManager::getInstance().RegisterInteractable("createLobbyCancelButton", obj);
+
+    });
+    newScene->AddObject(obj);
+    GameManager::getInstance().RegisterInteractable("createLobbyButton", obj);
+
+
+    txt = std::make_shared<TextObject>(100, 240, "LOBBIES");
+    newScene->AddObject(txt);
+
+    // Inicialize connection with server
+    NetworkConnector::getInstance().Init(1100, "127.0.0.1");
+
+    // Request list of lobbies
+    LobbiesList list = NetworkConnector::getInstance().RequestLobbies();
+    
+    // Display lobbies
+    for (int i = 0; i < list.size; i++) // TODO: Change lobbies to display their name
     {
-        auto obj = std::make_shared<Button>(100 + 500 * (i % 2), 80 + 300 * (int)(i / 2), 240, 180, "images/button.png", []()
+        auto obj = std::make_shared<Button>(100 + 120 * (i % 4), 260 + 80 * (i / 4), 100, 60, "images/button.png", []()
                                             { GameManager::getInstance().ChangeCurrentScene("game"); });
         newScene->AddObject(obj);
-        GameManager::getInstance().RegisterInteractable("lobby_" + std::to_string(i + 1), obj);
+        GameManager::getInstance().RegisterInteractable(list.lobbies[i].name.data(), obj);
+
+        auto txt = std::make_shared<TextObject>(100 + 120 * (i % 4), 260 + 80 * (i / 4), list.lobbies[i].name.data());
+        newScene->AddObject(txt);
     }
 
     return newScene;

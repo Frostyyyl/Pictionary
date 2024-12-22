@@ -3,28 +3,29 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <string>
-#include <cstring>
 #include <cstdlib>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include "../../global/src/objects.hpp"
 
 class NetworkConnector
 {
 private:
     NetworkConnector();
 
-    int lobbySocket; 
     int serverSocket;
 public:
     static NetworkConnector &getInstance();
     ~NetworkConnector();
 
-    bool Init();
+    void Init(int port, std::string address);
     void Exit();
-    bool Connect(std::string address, int port);
+    LobbiesList RequestLobbies();
+    void Connect(std::string lobbyName);
     void Disconnect();
+    void CreateLobby(std::string name, std::string password);
 
     void HandleCanvasChange(SDL_Texture *tex)
     {

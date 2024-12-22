@@ -11,7 +11,7 @@ COPY . ./
 RUN apt-get update && apt-get install -y \ 
     g++ \
     && rm -rf /var/lib/apt/lists/* \
-    && g++-13 -g src/*.cpp -Wall -o client.exe
+    && g++ -g src/*cpp -Wall -o server.exe
 
 # Specify the command to run your application
 CMD ["./client.exe"]

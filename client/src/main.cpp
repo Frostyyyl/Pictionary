@@ -1,4 +1,5 @@
 #include "game_manager.hpp"
+#include "network_connector.hpp"
 #include <iostream>
 
 int main(int argc, char *args[])

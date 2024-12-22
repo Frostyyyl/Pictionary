@@ -8,12 +8,19 @@ Server &Server::getInstance()
     return INSTANCE;
 }
 
-Server::~Server() {}
+Server::~Server() 
+{
+    // TODO: Add code for closing client sockets
+    close(serverSocket);
+    std::cout << "Closing server" << std::endl;
+}
 
 int Server::SetNonBlocking(int socket)
 {
+    // Read current flags
     int flags = fcntl(socket, F_GETFL, 0);
     if (flags == -1) return -1;
+    // Set non block
     if (fcntl(socket, F_SETFL, flags | O_NONBLOCK) == -1) return -1;
     
     return 0;
@@ -22,59 +29,118 @@ int Server::SetNonBlocking(int socket)
 void Server::SendLobbiesList(int socket)
 {
     LobbiesList lobbiesList;
-    int counter = 1;
 
     // List MAX_LOBBIES_PER_PAGE lobbies
     for (auto i : lobbies)
     {
         LobbyInfo info = LobbyInfo(i.first, i.second.clients.size(), (i.second.password.size() == 0) ? false : true );
         
-        lobbiesList.lobbies.push_back(info);
+        lobbiesList.lobbies[lobbiesList.size] = info;
 
-        if (counter > LobbiesList::MAX_LOBBIES_PER_PAGE) { break; }
-
-        counter++; 
+        lobbiesList.size++;
+        if (lobbiesList.size >= LobbiesList::MAX_LOBBIES_PER_PAGE) 
+        {
+            break; 
+        }
     }
 
     Message message = Message(static_cast<int>(MessageToClient::UPLOAD_LOBBIES), sizeof(lobbiesList));
 
-    // Send the prepared lobbies list to client
+    // Send the message type
     int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
 
     // Handle errors
     if (rv == -1)
     {
         if (errno != EWOULDBLOCK){
-            std::cerr << "ERROR: Failed to send message type: UPLOAD_LOBBIES" << std::endl;
+            std::cerr << "ERROR: Failed to send message of type: UPLOAD_LOBBIES" << std::endl;
         } else {
-            std::cerr << "INFO: The send buffer is full, resend of message type: UPLOAD_LOBBIES NOT handled" << std::endl;
+            std::cerr << "INFO: The send buffer is full, UPLOAD_LOBBIES NOT handled" << std::endl;
         }
         return;
     }
 
-    int rv = send(socket, &lobbiesList, sizeof(lobbiesList), MSG_NOSIGNAL | MSG_DONTWAIT);
+    // Send the lobbies list to client
+    rv = send(socket, &lobbiesList, sizeof(lobbiesList), MSG_NOSIGNAL | MSG_DONTWAIT);
 
     // Handle errors
     if (rv == -1)
     {
         if (errno != EWOULDBLOCK){
-            std::cerr << "ERROR: Failed to send list of lobbies" << std::endl;
+            std::cerr << "ERROR: Failed to send: LobbiesList" << std::endl;
         } else {
-            std::cerr << "INFO: The send buffer is full, resend of lobbies list NOT handled" << std::endl;
+            std::cerr << "INFO: The send buffer is full, LobbiesList NOT handled" << std::endl;
         }
     }
     
+}
+
+void Server::SendPlayerList(int socket)
+{
+    // TODO: Implement sending client list of a lobby
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_LOBBIES));
 }
 
 void Server::CreateLobby(int socket, int message_size)
 {
     LobbyCreateInfo info;
 
+    // Read the lobby info
     int rv = recv(socket, &info, message_size, MSG_DONTWAIT);
 
-    lobbies.insert(std::pair<std::string, Lobby>(info.name, Lobby(info.password, socket)));
+    // Handle errors
+    if (rv == -1)
+    {
+        if (errno != EWOULDBLOCK){
+            std::cerr << "ERROR: Failed to receive message of type: CREATE_LOBBY" << std::endl;
+        } else {
+            std::cerr << "INFO: The send buffer is full, CREATE_LOBBY NOT handled" << std::endl;
+        }
+        return;
+    }
 
-    // TODO:
+    // Check if the lobby name is unique
+    std::map<std::string, Lobby>::iterator it = lobbies.find(info.name.data());
+
+    if (it != lobbies.end()){
+        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
+
+        // Send information about non-unique lobby name
+        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+        // Handle errors
+        if (rv == -1)
+        {
+            if (errno != EWOULDBLOCK){
+                std::cerr << "ERROR: Failed to send message of type: INCORRECT_LOBBY_NAME" << std::endl;
+            } else {
+                std::cerr << "INFO: The send buffer is full, INCORRECT_LOBBY_NAME NOT handled" << std::endl;
+            }
+            return;
+        }
+        return;
+    }
+
+    lobbies.insert(std::pair<std::string, Lobby>(info.name.data(), Lobby(info.password.data())));
+    lobbies[info.name.data()].clients.push_back(socket);
+
+    std::cout << "Created lobby with name: " << info.name.data() << std::endl;
+
+    // Send information about successfully creating a lobby 
+    Message message = Message(static_cast<int>(MessageToClient::CONNECT_TO_LOBBY));
+
+    rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        if (errno != EWOULDBLOCK){
+            std::cerr << "ERROR: Failed to send message of type: CONNECT_TO_LOBBY" << std::endl;
+        } else {
+            std::cerr << "INFO: The send buffer is full, CONNECT_TO_LOBBY NOT handled" << std::endl;
+        }
+        return;
+    }
 }
 
 void Server::Accept()
@@ -96,14 +162,12 @@ void Server::Accept()
         return;
     }
 
-    // Log connection
+    // Log information about connecting
     std::cout << "Connected with " << inet_ntoa(clientAddr.sin_addr) << ":" 
               << ntohs(clientAddr.sin_port) << std::endl;
 
     // Add the client to the descriptor set
     FD_SET(clientSocket, &descriptors);
-
-    SendLobbiesList(clientSocket);
 
     // Update the maximum socket value if necessary
     if (clientSocket > maxSocket)
@@ -116,18 +180,19 @@ void Server::Read(int socket)
 {
     Message message;
 
-    int rv = recv(socket, &message, sizeof(MessageToServer), MSG_DONTWAIT);
+    int rv = recv(socket, &message, sizeof(Message), MSG_DONTWAIT);
 
+    // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK){
-            std::cerr << "ERROR: Failed to receive message type" << std::endl;
-        } else {
-            std::cout << "INFO: The receive buffer is full" << std::endl;
+        if (errno != EWOULDBLOCK)
+        {
+            std::cerr << "ERROR: Failed to read message type" << std::endl;
         }
         return;
     }
 
+    // Handle based on message type
     switch (static_cast<MessageToServer>(message.type))
     {
     case MessageToServer::ENTER_HUB:
@@ -145,11 +210,18 @@ void Server::Read(int socket)
     case MessageToServer::UPLOAD_TEXT:
         break;
 
+    // Remove from descriptors and close socket
+    case MessageToServer::INVALID:
+        FD_CLR(socket, &descriptors);
+        shutdown(socket, SHUT_RDWR);
+        close(socket);
+        std::cout << "Closed connection" << std::endl; // TODO: Modify to display who got disconnected
+        break;
+    // Unexpected behaviour
     default:
-        std::cout << "INFO: Received unhandled message type" << std::endl;
+        std::cerr << "ERROR: Received unexpected message type: " << message.type << std::endl;
         break;
     }
-
 }
 
 void Server::Write(int socket)
@@ -170,6 +242,8 @@ void Server::Init(int port)
         std::cerr << "ERROR: Could not create socket" << std::endl;
         exit(EXIT_FAILURE);
     }
+    int on = 1;
+    setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
     if (SetNonBlocking(serverSocket) == -1)
     {
@@ -207,9 +281,12 @@ void Server::Run()
 
     while (true)
     {
-        FD_SET(serverSocket, &reading);
+        sleep(1); // TODO: Remove later
 
-        timeout.tv_sec = 60;
+        FD_SET(serverSocket, &reading); // Set server socket for accepting connections
+        writing = descriptors; // Set all descriptors to handle messages
+
+        timeout.tv_sec = 10;
         timeout.tv_usec = 0;
 
         int rc = select(maxSocket++, &reading, &writing, NULL, &timeout);
@@ -217,6 +294,7 @@ void Server::Run()
             std::cerr << "ERROR: Select failed" << std::endl;
             continue;
         } else if (rc == 0){
+            std::cout << "Timed out" << std::endl;
             continue;
         }
 
@@ -225,7 +303,7 @@ void Server::Run()
         {
             Accept();
 
-            // Remove from reading to not get catched in the next step
+            // Remove server socket from reading set
             FD_CLR(serverSocket, &reading);
         }
 
@@ -238,6 +316,7 @@ void Server::Run()
                 
                 Read(socket);
 
+                // Update max socket if necessary
                 if (socket == maxSocket) 
                 {
                     while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors)) {
@@ -256,6 +335,7 @@ void Server::Run()
                 
                 Write(socket);
 
+                // Update max socket if necessary
                 if (socket == maxSocket) 
                 {
                     while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors)) {
@@ -265,7 +345,4 @@ void Server::Run()
             }
         }
     }
-
-    close(serverSocket);
-    exit(EXIT_SUCCESS);
 }

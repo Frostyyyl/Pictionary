@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
@@ -20,23 +21,23 @@ private:
     Server();
     int SetNonBlocking(int socket);
     void SendLobbiesList(int socket);
+    void SendPlayerList(int socket);
     void CreateLobby(int socket, int message_size);
     void Accept();
     void Read(int socket);
     void Write(int socket);
     
     const int MAX_QUEUE_SIZE = 10;
-    const int BUFFER_SIZE = 1024;
     socklen_t size = sizeof(struct sockaddr_in);
-    struct timeval timeout;
-    struct sockaddr_in serverAddr;
+    sockaddr_in serverAddr;
     int serverSocket;
     int maxSocket;
+    timeval timeout;
     fd_set descriptors; 
     fd_set reading; 
     fd_set writing;
-
     std::map<std::string, Lobby> lobbies;
+
 public:
     static Server &getInstance();
     ~Server();
