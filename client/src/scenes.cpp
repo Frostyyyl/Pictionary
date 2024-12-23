@@ -46,7 +46,7 @@ Scene *CreateLobbyScene()
         // Confirm button
         auto obj = std::make_shared<Button>(100, 160, 100, 60, "images/button.png", [newScene]()                                    
         { 
-            NetworkConnector::getInstance().CreateLobby("12345678901234567890123456789012", "");
+            NetworkConnector::getInstance().CreateLobby("lobby name", "bob", "");
         });
         newScene->AddObject(obj);
         GameManager::getInstance().RegisterInteractable("createLobbyConfirmButton", obj);
@@ -58,6 +58,7 @@ Scene *CreateLobbyScene()
         // Cancel button
         obj = std::make_shared<Button>(220, 160, 100, 60, "images/button.png", [newScene]()                                    
         { 
+            // TODO: Hide the creation lobby window
         });
         newScene->AddObject(obj);
         GameManager::getInstance().RegisterInteractable("createLobbyCancelButton", obj);
@@ -70,21 +71,32 @@ Scene *CreateLobbyScene()
     txt = std::make_shared<TextObject>(100, 240, "LOBBIES");
     newScene->AddObject(txt);
 
+
+
     // Inicialize connection with server
     NetworkConnector::getInstance().Init(1100, "127.0.0.1");
 
     // Request list of lobbies
-    LobbiesList list = NetworkConnector::getInstance().RequestLobbies();
+    LobbyInfoList list = NetworkConnector::getInstance().RequestLobbies();
+    std::cout << "here\n";
     
     // Display lobbies
-    for (int i = 0; i < list.size; i++) // TODO: Change lobbies to display their name
+    for (int i = 0; i < list.getSize(); i++) // TODO: Change lobbies to display their name
     {
-        auto obj = std::make_shared<Button>(100 + 120 * (i % 4), 260 + 80 * (i / 4), 100, 60, "images/button.png", []()
-                                            { GameManager::getInstance().ChangeCurrentScene("game"); });
-        newScene->AddObject(obj);
-        GameManager::getInstance().RegisterInteractable(list.lobbies[i].name.data(), obj);
+        std::cout << "read size: "<< list.getSize()<< "\n";
+        std::string lobby = list.getLobbyInfo(i).getLobbyName();
+        std::cout << "read name\n"; // FIXME: Segmentation fault (core dumper) 
 
-        auto txt = std::make_shared<TextObject>(100 + 120 * (i % 4), 260 + 80 * (i / 4), list.lobbies[i].name.data());
+        auto obj = std::make_shared<Button>(100 + 120 * (i % 4), 260 + 80 * (i / 4), 100, 60, "images/button.png", [lobby]()
+        { 
+            // TODO: Change to request password only if lobby has one
+            NetworkConnector::getInstance().ConnectToLobby(lobby, "alex", "");
+            GameManager::getInstance().ChangeCurrentScene("game"); 
+        });
+        newScene->AddObject(obj);
+        GameManager::getInstance().RegisterInteractable(lobby, obj);
+
+        auto txt = std::make_shared<TextObject>(100 + 120 * (i % 4), 260 + 80 * (i / 4), lobby);
         newScene->AddObject(txt);
     }
 
@@ -99,6 +111,13 @@ Scene *CreateGameScene()
     // For now backgrounds have unstable Z-index
     // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
     // newScene->AddObject(bg);
+
+    // TODO: Replace this button with a place to 
+    // auto obj = std::make_shared<Button>(100 + 120 * (i % 4), 260 + 80 * (i / 4), 100, 60, "images/button.png", [list, i]()
+    // {
+
+    // }
+
 
     auto cvs = std::make_shared<Canvas>();
     newScene->AddObject(cvs);

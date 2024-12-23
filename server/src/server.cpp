@@ -26,25 +26,19 @@ int Server::SetNonBlocking(int socket)
     return 0;
 }
 
-void Server::SendLobbiesList(int socket)
+void Server::SendLobbyList(int socket)
 {
-    LobbiesList lobbiesList;
+    LobbyInfoList list;
 
     // List MAX_LOBBIES_PER_PAGE lobbies
-    for (auto i : lobbies)
+    for (auto i : lobbies.getLobbyNames(LobbyInfoList::MAX_LOBBIES_PER_PAGE))
     {
-        LobbyInfo info = LobbyInfo(i.first, i.second.clients.size(), (i.second.password.size() == 0) ? false : true );
+        LobbyInfo info = LobbyInfo(i, lobbies.getLobby(i).getSize(), lobbies.getLobby(i).hasPassword());
         
-        lobbiesList.lobbies[lobbiesList.size] = info;
-
-        lobbiesList.size++;
-        if (lobbiesList.size >= LobbiesList::MAX_LOBBIES_PER_PAGE) 
-        {
-            break; 
-        }
+        list.addLobbyInfo(info);
     }
 
-    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_LOBBIES), sizeof(lobbiesList));
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_LOBBIES), sizeof(list));
 
     // Send the message type
     int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
@@ -61,15 +55,15 @@ void Server::SendLobbiesList(int socket)
     }
 
     // Send the lobbies list to client
-    rv = send(socket, &lobbiesList, sizeof(lobbiesList), MSG_NOSIGNAL | MSG_DONTWAIT);
+    rv = send(socket, &list, sizeof(list), MSG_NOSIGNAL | MSG_DONTWAIT);
 
     // Handle errors
     if (rv == -1)
     {
         if (errno != EWOULDBLOCK){
-            std::cerr << "ERROR: Failed to send: LobbiesList" << std::endl;
+            std::cerr << "ERROR: Failed to send: LobbyInfoList" << std::endl;
         } else {
-            std::cerr << "INFO: The send buffer is full, LobbiesList NOT handled" << std::endl;
+            std::cerr << "INFO: The send buffer is full, LobbyInfoList NOT handled" << std::endl;
         }
     }
     
@@ -83,7 +77,7 @@ void Server::SendPlayerList(int socket)
 
 void Server::CreateLobby(int socket, int message_size)
 {
-    LobbyCreateInfo info;
+    LobbyConnectInfo info;
 
     // Read the lobby info
     int rv = recv(socket, &info, message_size, MSG_DONTWAIT);
@@ -99,13 +93,15 @@ void Server::CreateLobby(int socket, int message_size)
         return;
     }
 
-    // Check if the lobby name is unique
-    std::map<std::string, Lobby>::iterator it = lobbies.find(info.name.data());
+    std::string lobby = info.getLobbyName();
+    std::string name = info.getPlayerName();
+    std::string password = info.getPassword();
 
-    if (it != lobbies.end()){
+    // Check if the lobby name is unique/correct
+    if (lobbies.hasLobby(lobby) || lobby.empty() || lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE){
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
 
-        // Send information about non-unique lobby name
+        // Send information about non-unique/incorrect lobby name
         int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
 
         // Handle errors
@@ -121,13 +117,55 @@ void Server::CreateLobby(int socket, int message_size)
         return;
     }
 
-    lobbies.insert(std::pair<std::string, Lobby>(info.name.data(), Lobby(info.password.data())));
-    lobbies[info.name.data()].clients.push_back(socket);
+    // Make sure that player name is correct
+    if (name.empty() || name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE){
+        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PLAYER_NAME));
 
-    std::cout << "Created lobby with name: " << info.name.data() << std::endl;
+        // Send information about incorrect player name
+        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+        // Handle errors
+        if (rv == -1)
+        {
+            if (errno != EWOULDBLOCK){
+                std::cerr << "ERROR: Failed to send message of type: INCORRECT_PLAYER_NAME" << std::endl;
+            } else {
+                std::cerr << "INFO: The send buffer is full, INCORRECT_PLAYER_NAME NOT handled" << std::endl;
+            }
+            return;
+        }
+        return;
+    }
+
+    // Make sure that password is correct
+    if (password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE){
+        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PASSWORD));
+
+        // Send information about incorrect password
+        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+        // Handle errors
+        if (rv == -1)
+        {
+            if (errno != EWOULDBLOCK){
+                std::cerr << "ERROR: Failed to send message of type: INCORRECT_PASSWORD" << std::endl;
+            } else {
+                std::cerr << "INFO: The send buffer is full, INCORRECT_PASSWORD NOT handled" << std::endl;
+            }
+            return;
+        }
+        return;
+    }
+
+    // Create lobby
+    lobbies.addLobby(lobby, password);
+    std::cout << "Created lobby with name: " << lobby << std::endl;
+
+    // Add client do lobby
+    EnterLobby(socket, lobby, name);
 
     // Send information about successfully creating a lobby 
-    Message message = Message(static_cast<int>(MessageToClient::CONNECT_TO_LOBBY));
+    Message message = Message(static_cast<int>(MessageToClient::CONNECT));
 
     rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
 
@@ -135,44 +173,114 @@ void Server::CreateLobby(int socket, int message_size)
     if (rv == -1)
     {
         if (errno != EWOULDBLOCK){
-            std::cerr << "ERROR: Failed to send message of type: CONNECT_TO_LOBBY" << std::endl;
+            std::cerr << "ERROR: Failed to send message of type: CONNECT" << std::endl;
         } else {
-            std::cerr << "INFO: The send buffer is full, CONNECT_TO_LOBBY NOT handled" << std::endl;
+            std::cerr << "INFO: The send buffer is full, CONNECT NOT handled" << std::endl;
         }
         return;
     }
 }
 
-void Server::Accept()
+void Server::ConnectToLobby(int socket, int message_size)
 {
-    struct sockaddr_in clientAddr;
-    memset(&clientAddr, 0, sizeof(clientAddr));
+    LobbyConnectInfo info;
 
-    int clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddr, &size);
-    if (clientSocket == -1)
+    // Read the client info
+    int rv = recv(socket, &info, message_size, MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
     {
-        std::cerr << "ERROR: Accept failed" << std::endl;
+        if (errno != EWOULDBLOCK){
+            std::cerr << "ERROR: Failed to receive message of type: CONNECT_TO_LOBBY" << std::endl;
+        } else {
+            std::cerr << "INFO: The send buffer is full, CONNECT_TO_LOBBY NOT handled" << std::endl;
+        }
         return;
     }
 
-    if (SetNonBlocking(clientSocket) == -1)
-    {
-        std::cerr << "ERROR: Set non block failed" << std::endl;
-        close(clientSocket);
+    std::string password = info.getPassword();
+    std::string lobby = info.getLobbyName();
+    std::string name = info.getPlayerName();
+
+
+    // Make sure that lobby name is correct
+    if (lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE){
+        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
+
+        // Send information about incorrect lobby name
+        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+        // Handle errors
+        if (rv == -1)
+        {
+            if (errno != EWOULDBLOCK){
+                std::cerr << "ERROR: Failed to send message of type: INCORRECT_LOBBY_NAME" << std::endl;
+            } else {
+                std::cerr << "INFO: The send buffer is full, INCORRECT_LOBBY_NAME NOT handled" << std::endl;
+            }
+            return;
+        }
         return;
     }
 
-    // Log information about connecting
-    std::cout << "Connected with " << inet_ntoa(clientAddr.sin_addr) << ":" 
-              << ntohs(clientAddr.sin_port) << std::endl;
+    // Check if password is correct
+    if (lobbies.getLobby(lobby).getPassword() != password || password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE){
+        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PASSWORD));
 
-    // Add the client to the descriptor set
-    FD_SET(clientSocket, &descriptors);
+        // Send information about incorrect password
+        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
 
-    // Update the maximum socket value if necessary
-    if (clientSocket > maxSocket)
+        // Handle errors
+        if (rv == -1)
+        {
+            if (errno != EWOULDBLOCK){
+                std::cerr << "ERROR: Failed to send message of type: INCORRECT_PASSWORD" << std::endl;
+            } else {
+                std::cerr << "INFO: The send buffer is full, INCORRECT_PASSWORD NOT handled" << std::endl;
+            }
+            return;
+        }
+        return;
+    }
+
+    // Check if player name is unique/correct
+    if (lobbies.getLobby(lobby).hasPlayerName(name) || name.empty() || name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE){
+        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PLAYER_NAME));
+
+        // Send information about non-unique/incorrect player name
+        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+        // Handle errors
+        if (rv == -1)
+        {
+            if (errno != EWOULDBLOCK){
+                std::cerr << "ERROR: Failed to send message of type: INCORRECT_PLAYER_NAME" << std::endl;
+            } else {
+                std::cerr << "INFO: The send buffer is full, INCORRECT_PLAYER_NAME NOT handled" << std::endl;
+            }
+            return;
+        }
+        return;
+    }
+
+    // Add client do lobby
+    EnterLobby(socket, lobby, name);
+
+    // Send information about successfully adding to lobby 
+    Message message = Message(static_cast<int>(MessageToClient::CONNECT));
+
+    rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
     {
-        maxSocket = clientSocket;
+        if (errno != EWOULDBLOCK){
+            std::cerr << "ERROR: Failed to send message of type: CONNECT" << std::endl;
+        } else {
+            std::cerr << "INFO: The send buffer is full, CONNECT NOT handled" << std::endl;
+        }
+        return;
     }
 }
 
@@ -193,15 +301,16 @@ void Server::Read(int socket)
     }
 
     // Handle based on message type
-    switch (static_cast<MessageToServer>(message.type))
+    switch (static_cast<MessageToServer>(message.getType()))
     {
-    case MessageToServer::ENTER_HUB:
-        SendLobbiesList(socket);
+    case MessageToServer::REQUEST_LOBBIES:
+        SendLobbyList(socket);
         break;
     case MessageToServer::CREATE_LOBBY:
-        CreateLobby(socket, message.size);
+        CreateLobby(socket, message.getSize());
         break;
     case MessageToServer::CONNECT_TO_LOBBY:
+        ConnectToLobby(socket, message.getSize());
         break;
     case MessageToServer::START_ROUND:
         break;
@@ -210,16 +319,18 @@ void Server::Read(int socket)
     case MessageToServer::UPLOAD_TEXT:
         break;
 
-    // Remove from descriptors and close socket
+    // Remove from descriptors and lobby, close socket
     case MessageToServer::INVALID:
-        FD_CLR(socket, &descriptors);
-        shutdown(socket, SHUT_RDWR);
-        close(socket);
-        std::cout << "Closed connection" << std::endl; // TODO: Modify to display who got disconnected
+        std::cout << "Closed connection with: " << clients.getClient(socket).getAddress() 
+                  << clients.getClient(socket).getPort() << std::endl;
+        Disconnect(socket);
         break;
     // Unexpected behaviour
     default:
-        std::cerr << "ERROR: Received unexpected message type: " << message.type << std::endl;
+        std::cerr << "ERROR: Received unexpected message type: " << message.getType() << std::endl;
+        std::cout << "Closed connection with: " << clients.getClient(socket).getAddress() 
+                  << clients.getClient(socket).getPort() << std::endl;
+        Disconnect(socket);
         break;
     }
 }
@@ -227,6 +338,72 @@ void Server::Read(int socket)
 void Server::Write(int socket)
 {
     
+}
+
+void Server::ExitLobby(int socket)
+{
+    std::string lobby = clients.getClient(socket).getLobby();
+    lobbies.getLobby(lobby).removePlayer(socket);
+
+    if (lobbies.getLobby(lobby).getSize() == 0)
+    {
+        lobbies.removeLobby(lobby);
+    }
+
+    clients.getClient(socket).setLobby("");
+}
+
+void Server::EnterLobby(int socket, const std::string& lobby, const std::string& name)
+{
+    clients.getClient(socket).setLobby(lobby);
+    lobbies.getLobby(lobby).addPlayer(socket, name);
+
+    std::cout << "Client: " << clients.getClient(socket).getAddress() << ":" << clients.getClient(socket).getPort() 
+              << ", connected as: " << name << ", with: " << lobby << std::endl;
+}
+
+void Server::Disconnect(int socket)
+{
+    ExitLobby(socket);
+    clients.removeClient(socket);
+    FD_CLR(socket, &descriptors);
+    shutdown(socket, SHUT_RDWR);
+    close(socket);
+}
+
+void Server::Accept()
+{
+    sockaddr_in clientAddr;
+    memset(&clientAddr, 0, sizeof(clientAddr));
+
+    int clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddr, &size);
+    if (clientSocket == -1)
+    {
+        std::cerr << "ERROR: Accept failed" << std::endl;
+        return;
+    }
+
+    if (SetNonBlocking(clientSocket) == -1)
+    {
+        std::cerr << "ERROR: Set non block failed" << std::endl;
+        close(clientSocket);
+        return;
+    }
+
+    Client client = Client(clientAddr);
+    clients.addClient(clientSocket, client);
+
+    // Log information about connecting
+    std::cout << "Connected with " << client.getAddress() << ":" << client.getPort() << std::endl;
+
+    // Add the client to the descriptor set
+    FD_SET(clientSocket, &descriptors);
+
+    // Update the maximum socket value if necessary
+    if (clientSocket > maxSocket)
+    {
+        maxSocket = clientSocket;
+    }
 }
 
 void Server::Init(int port)

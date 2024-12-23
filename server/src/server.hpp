@@ -13,6 +13,7 @@
 #include <fcntl.h> 
 #include <unistd.h>
 #include "lobby.hpp"
+#include "client.hpp"
 #include "../../global/src/objects.hpp"
 
 class Server
@@ -20,12 +21,16 @@ class Server
 private:
     Server();
     int SetNonBlocking(int socket);
-    void SendLobbiesList(int socket);
+    void SendLobbyList(int socket);
     void SendPlayerList(int socket);
     void CreateLobby(int socket, int message_size);
-    void Accept();
+    void ConnectToLobby(int socket, int message_size);
     void Read(int socket);
     void Write(int socket);
+    void ExitLobby(int socket);
+    void EnterLobby(int socket, const std::string& lobby, const std::string& name);
+    void Disconnect(int socket);
+    void Accept();
     
     const int MAX_QUEUE_SIZE = 10;
     socklen_t size = sizeof(struct sockaddr_in);
@@ -36,7 +41,9 @@ private:
     fd_set descriptors; 
     fd_set reading; 
     fd_set writing;
-    std::map<std::string, Lobby> lobbies;
+
+    LobbyManager lobbies;
+    ClientManager clients;
 
 public:
     static Server &getInstance();

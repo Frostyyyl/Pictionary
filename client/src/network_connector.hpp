@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include "../../global/src/objects.hpp"
+#include "game_manager.hpp"
 
 class NetworkConnector
 {
@@ -22,16 +23,16 @@ public:
 
     void Init(int port, std::string address);
     void Exit();
-    LobbiesList RequestLobbies();
-    void Connect(std::string lobbyName);
-    void Disconnect();
-    void CreateLobby(std::string name, std::string password);
+    LobbyInfoList RequestLobbies();
+    bool ValidateData(const std::string& lobby, const std::string& name, const std::string& password);
+    void CreateLobby(const std::string& lobby, const std::string& name, const std::string& password);
+    void ConnectToLobby(const std::string& lobby, const std::string& name, const std::string& password);
 
     void HandleCanvasChange(SDL_Texture *tex)
     {
         // Here could be network canvas handling
         std::cout << "Network got updated texture" << std::endl;
-    };
+    }
 
     void HandleNewMessage(std::string nickname, std::string message)
     {
