@@ -16,5 +16,5 @@ RUN apt-get update && apt-get install -y \
 # Specify the command to run your application
 CMD ["./client.exe"]
 
-# docker build -t pictionary-client .
-# docker run -it --rm pictionary-client
+# docker build -t pictionary-server .
+# docker run -it --rm pictionary-server

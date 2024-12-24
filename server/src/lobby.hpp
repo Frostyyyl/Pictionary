@@ -35,6 +35,7 @@ public:
 
         return tmp; 
     }
+    std::string getPlayerName(int socket) { return players[socket]; }
     std::string getPassword() { return password; }
     int getSize(){ return players.size(); }
     bool hasPassword() { return password.empty() ? false : true; }

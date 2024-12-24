@@ -321,15 +321,11 @@ void Server::Read(int socket)
 
     // Remove from descriptors and lobby, close socket
     case MessageToServer::INVALID:
-        std::cout << "Closed connection with: " << clients.getClient(socket).getAddress() 
-                  << clients.getClient(socket).getPort() << std::endl;
         Disconnect(socket);
         break;
     // Unexpected behaviour
     default:
         std::cerr << "ERROR: Received unexpected message type: " << message.getType() << std::endl;
-        std::cout << "Closed connection with: " << clients.getClient(socket).getAddress() 
-                  << clients.getClient(socket).getPort() << std::endl;
         Disconnect(socket);
         break;
     }
@@ -343,11 +339,15 @@ void Server::Write(int socket)
 void Server::ExitLobby(int socket)
 {
     std::string lobby = clients.getClient(socket).getLobby();
+    std::cout << "Client: " << clients.getClient(socket).getAddress() << ":" << clients.getClient(socket).getPort() 
+              << " (" << lobbies.getLobby(lobby).getPlayerName(socket) << "), disconnected from: " << lobby << std::endl;
+
     lobbies.getLobby(lobby).removePlayer(socket);
 
     if (lobbies.getLobby(lobby).getSize() == 0)
     {
         lobbies.removeLobby(lobby);
+        std::cout << "Closed lobby: " << lobby << std::endl; 
     }
 
     clients.getClient(socket).setLobby("");
@@ -365,6 +365,8 @@ void Server::EnterLobby(int socket, const std::string& lobby, const std::string&
 void Server::Disconnect(int socket)
 {
     ExitLobby(socket);
+    std::cout << "Closed connection with: " << clients.getClient(socket).getAddress() 
+                << clients.getClient(socket).getPort() << std::endl;
     clients.removeClient(socket);
     FD_CLR(socket, &descriptors);
     shutdown(socket, SHUT_RDWR);
