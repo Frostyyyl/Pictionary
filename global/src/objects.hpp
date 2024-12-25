@@ -5,52 +5,6 @@
 #include <vector>
 #include "message.hpp"
 
-class LobbyInfo
-{
-public:
-    static constexpr short MAX_PLAYERS_PER_LOBBY = 8; // Currently fixed for all lobbies
-
-    LobbyInfo(const std::string& name, short playerCount, bool hasPassword) 
-        : name(name), playerCount(playerCount), password(hasPassword) {}
-    LobbyInfo() = default;
-    ~LobbyInfo() noexcept = default;
-
-    short getPlayerCount() const { return playerCount;}
-    std::string getLobbyName() const { return name;}
-    bool hasPassword() const { return password;}
-
-private:
-    std::string name = "";
-    short playerCount = 0;
-    bool password = false;
-};
-
-class LobbyInfoList
-{
-public:
-    static constexpr short MAX_LOBBIES_PER_PAGE = 16;
-
-    LobbyInfoList() = default;
-    ~LobbyInfoList() noexcept = default;
-
-    bool addLobbyInfo(LobbyInfo info) 
-    { 
-        if (list.size() < MAX_LOBBIES_PER_PAGE){
-            list.push_back(info);
-
-            return true;
-        }
-        return false;
-    }
-    LobbyInfo getLobbyInfo(int index) const
-    { 
-        return list[index];
-    }
-    int getSize() const { return list.size(); }
-
-private:
-    std::vector<LobbyInfo> list = {};
-};
 
 class LobbyConnectInfo 
 {
@@ -73,12 +27,55 @@ public:
     LobbyConnectInfo() = default;
     ~LobbyConnectInfo() noexcept = default;
 
-    std::string getLobbyName() const { return lobby.data(); }
-    std::string getPassword() const { return password.data(); }
-    std::string getPlayerName() const { return name.data(); }
+    std::string getLobbyName() { return lobby.data(); }
+    std::string getPassword() { return password.data(); }
+    std::string getPlayerName() { return name.data(); }
 
 private:
     std::array<char, MAX_LOBBY_NAME_SIZE + 1> lobby = {};
     std::array<char, MAX_LOBBY_PASSWORD_SIZE + 1> password = {};
     std::array<char, MAX_CLIENT_NAME_SIZE + 1> name = {};
+};
+
+class LobbyInfo
+{
+public:
+    static constexpr short MAX_PLAYERS_PER_LOBBY = 8; // Currently fixed for all lobbies
+
+    LobbyInfo(const std::string& name, short playerCount, bool hasPassword) 
+        : playerCount(playerCount), password(hasPassword) 
+    {
+        name.copy(this->name.data(), LobbyConnectInfo::MAX_LOBBY_NAME_SIZE);
+        this->name[LobbyConnectInfo::MAX_LOBBY_NAME_SIZE] = '\0';
+    }
+    LobbyInfo() = default;
+    ~LobbyInfo() noexcept = default;
+
+    short getPlayerCount() { return playerCount; }
+    std::string getLobbyName() { return name.data(); }
+    bool hasPassword() { return password; }
+
+private:
+    std::array<char, LobbyConnectInfo::MAX_LOBBY_NAME_SIZE + 1> name = {};
+    short playerCount = 0;
+    bool password = false;
+};
+
+class LobbyInfoList
+{
+public:
+    static constexpr short MAX_LOBBIES_PER_PAGE = 16;
+
+    LobbyInfoList() = default;
+    ~LobbyInfoList() noexcept = default;
+
+    void addLobbyInfo(LobbyInfo info) { list[size++] = info; }
+
+    LobbyInfo& getLobbyInfo(int index) { return list[index]; }
+
+    int getSize() const { return size; }
+
+private:
+    short size = 0;
+    std::array<LobbyInfo, MAX_LOBBIES_PER_PAGE> list = {};
 };

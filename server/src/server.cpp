@@ -341,8 +341,8 @@ void Server::ExitLobby(int socket)
     std::string lobby = clients.getClient(socket).getLobbyName();
     std::cout << "Client: " << clients.getClient(socket).getAddress() 
               << ":" << clients.getClient(socket).getPort() 
-              << " (" << lobbies.getLobby(lobby).getPlayerName(socket) 
-              << "), disconnected from lobby : " << lobby << std::endl;
+              << " (\"" << lobbies.getLobby(lobby).getPlayerName(socket) 
+              << "\"), disconnected from lobby: \"" << lobby << "\"" << std::endl;
 
     lobbies.getLobby(lobby).removePlayer(socket);
 
@@ -362,7 +362,7 @@ void Server::EnterLobby(int socket, const std::string& lobby, const std::string&
 
     std::cout << "Client: " << clients.getClient(socket).getAddress() 
               << ":" << clients.getClient(socket).getPort() 
-              << ", connected as: " << name << ", with lobby: " << lobby << std::endl;
+              << ", connected as: \"" << name << "\", with lobby: \"" << lobby << "\"" << std::endl;
 }
 
 void Server::Disconnect(int socket)

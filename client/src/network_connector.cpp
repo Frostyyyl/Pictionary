@@ -160,8 +160,8 @@ void NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
         std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PASSWORD" << std::endl; // TODO:
         break;
     case MessageToClient::CONNECT:
-        std::cout << "Succesfully created lobby: " << lobby << std::endl;
-        std::cout << "Connected with lobby: " << lobby << ", as: " << name << std::endl;
+        std::cout << "Succesfully created lobby: \"" << lobby << "\"" << std::endl;
+        std::cout << "Connected with lobby: \"" << lobby << "\", as: \"" << name << "\"" << std::endl;
         GameManager::getInstance().ChangeCurrentScene("game");
         break;
 
@@ -230,7 +230,7 @@ void NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
         std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PASSWORD" << std::endl; // TODO:
         break;
     case MessageToClient::CONNECT:
-        std::cout << "Connected with lobby: " << lobby << ", as: " << name << std::endl;
+        std::cout << "Connected with lobby: \"" << lobby << "\", as: \"" << name << "\"" << std::endl;
         GameManager::getInstance().ChangeCurrentScene("game");
         break;
 

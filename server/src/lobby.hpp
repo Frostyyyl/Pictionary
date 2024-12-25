@@ -75,6 +75,8 @@ public:
             if (counter < count){
                 names.push_back(pair.first);
                 counter++;
+            } else {
+                break;
             }
         }
 
