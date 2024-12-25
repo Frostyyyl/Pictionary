@@ -17,6 +17,7 @@ private:
 
     bool isInit;
     int serverSocket;
+    std::string error;
 public:
 
     static NetworkConnector &getInstance();
@@ -29,6 +30,7 @@ public:
     bool ValidateData(const std::string& lobby, const std::string& name, const std::string& password);
     bool CreateLobby(const std::string& lobby, const std::string& name, const std::string& password);
     bool ConnectToLobby(const std::string& lobby, const std::string& name, const std::string& password);
+    std::string GetError();
 
     void HandleCanvasChange(SDL_Texture *tex)
     {

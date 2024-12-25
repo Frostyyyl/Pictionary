@@ -10,6 +10,11 @@ NetworkConnector &NetworkConnector::getInstance()
 
 NetworkConnector::~NetworkConnector() {}
 
+std::string NetworkConnector::GetError()
+{
+    return error;
+}
+
 void NetworkConnector::Init(int port, std::string address)
 {
     struct sockaddr_in serverAddr;
@@ -34,6 +39,7 @@ void NetworkConnector::Init(int port, std::string address)
         exit(EXIT_FAILURE);
     }
     
+    std::cout << "Connected with server: " << address << ":" << port << std::endl;
     isInit = true;
 }
 
@@ -41,7 +47,7 @@ void NetworkConnector::Exit()
 {
     shutdown(serverSocket, SHUT_RDWR);
     close(serverSocket);
-    std::cout << "Closing connection due to server error" << std::endl;
+    std::cout << "Closing due to server error" << std::endl;
     exit(EXIT_FAILURE);
 }
 
@@ -80,36 +86,31 @@ LobbyInfoList NetworkConnector::RequestLobbies()
         return list;
     }
 
+    std::cout << "Received lobbies" << std::endl;
     return list;
 }
 
 bool NetworkConnector::ValidateData(const std::string& lobby, const std::string& name, const std::string& password)
 {
-    // TODO: Implement displaying the information about incorrect data size to the user 
-    // Alternatively fix the maximum name size, which user can enter, to match the restrictions
     if (lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE){
-        std::cout << "Lobby name is too long" << std::endl;
-        return false;
+        error = "Given lobby name is too long, please try again";
     } else if (lobby.empty()){
-        std::cout << "Lobby name cannot be empty" << std::endl;
-        return false;
+        error = "Lobby name must be non-empty, please try again";
     } else if (name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE){
-        std::cout << "Player name is too long" << std::endl;
-        return false;
+        error = "Given player name is too long, please try again";
     } else if (name.empty()){
-        std::cout << "Player name cannot be empty" << std::endl;
-        return false;
+        error = "Player name must be non-empty, please try again";
     } else if (password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE){
-        std::cout << "Lobby password is too long" << std::endl;
-        return false;
-    } 
-    return true;
+        error = "Given password is too long, please try again";
+    } else {
+        return true;
+    }
+
+    return false;
 }
 
 bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& name, const std::string& password)
 {
-    // TODO: Implement handling write/read errors
-
     if (!ValidateData(lobby, name, password))
     {
         return false;
@@ -117,6 +118,9 @@ bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
 
     LobbyConnectInfo info = LobbyConnectInfo(lobby, name, password);
     Message message = Message(static_cast<int>(MessageToServer::CREATE_LOBBY), sizeof(info));
+
+    // Prepare error message in case of failure
+    error = "Failed to create lobby, please try again";
 
     // Send the message type
     int rv = write(serverSocket, &message, sizeof(Message));
@@ -148,20 +152,18 @@ bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
         return false;
     }
     
+
     // Handle based on response
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
-        std::cout << "IMPLEMENT HANDLING PASSING AN ALREADY EXISTING/INCORRECT LOBBY NAME" << std::endl; // TODO:
-        return false;
+        error = "Unfortunately this lobby name is taken, please pick another (non-empty) one";
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
-        std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PLAYER NAME" << std::endl; // TODO:
-        return false;
+        error = "Player name must be non-empty, please try again";
         break;
     case MessageToClient::INCORRECT_PASSWORD:
-        std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PASSWORD" << std::endl; // TODO:
-        return false;
+        error = "Given password is too long, please try again";
         break;
     case MessageToClient::CONNECT:
         std::cout << "Succesfully created lobby: \"" << lobby << "\"" << std::endl;
@@ -183,8 +185,6 @@ bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
 
 bool NetworkConnector::ConnectToLobby(const std::string& lobby, const std::string& name, const std::string& password)
 {
-    // TODO: Implement handling write/read errors
-
     if (!ValidateData(lobby, name, password))
     {
         return false;
@@ -192,6 +192,8 @@ bool NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
 
     LobbyConnectInfo info = LobbyConnectInfo(lobby, name, password);
     Message message = Message(static_cast<int>(MessageToServer::CONNECT_TO_LOBBY), sizeof(info));
+
+    error = "Failed to connect with lobby, please try again";
 
     // Send the message type
     int rv = write(serverSocket, &message, sizeof(Message));
@@ -226,16 +228,13 @@ bool NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
-        std::cout << "IMPLEMENT HANDLING PASSING AN ALREADY EXISTING/INCORRECT LOBBY NAME" << std::endl; // TODO:
-        return false;
+        error = "Unexpected error occured, please try again";
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
-        std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PLAYER NAME" << std::endl; // TODO:
-        return false;
+        error = "Unfortunately someone already took this name, please pick another (non-empty) one";
         break;
     case MessageToClient::INCORRECT_PASSWORD:
-        std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PASSWORD" << std::endl; // TODO:
-        return false;
+        error = "Given password is incorrect, try again";
         break;
     case MessageToClient::CONNECT:
         std::cout << "Connected with lobby: \"" << lobby << "\", as: \"" << name << "\"" << std::endl;

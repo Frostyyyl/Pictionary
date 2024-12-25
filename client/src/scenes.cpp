@@ -50,6 +50,9 @@ Scene *CreateLobbyScene()
             if (NetworkConnector::getInstance().CreateLobby("LobbyName", "bob", ""))
             {
                 GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
+            } else {
+                auto txt = std::make_shared<TextObject>(200, 30, NetworkConnector::getInstance().GetError());
+                newScene->AddObject(txt);
             }
         }, "ConfirmButton");
         newScene->AddObject(obj);
@@ -60,7 +63,7 @@ Scene *CreateLobbyScene()
         newScene->AddObject(txt); 
 
         // Cancel button
-        obj = std::make_shared<Button>(220, 160, 100, 60, "images/button.png", [newScene]()                                    
+        obj = std::make_shared<Button>(220, 160, 100, 60, "images/button.png", []()                                    
         { 
             // TODO: Hide the creation lobby window
         }, "CancelButton");
@@ -84,12 +87,15 @@ Scene *CreateLobbyScene()
     {
         std::string lobby = list.GetLobbyInfo(i).GetLobbyName();
 
-        auto obj = std::make_shared<Button>(100 + 120 * (i % 4), 260 + 80 * (i / 4), 100, 60, "images/button.png", [lobby]()
+        auto obj = std::make_shared<Button>(100 + 120 * (i % 4), 260 + 80 * (i / 4), 100, 60, "images/button.png", [lobby, newScene]()
         { 
             // TODO: Change to request password only if lobby has one
             if (NetworkConnector::getInstance().ConnectToLobby(lobby, "alex", ""))
             {
                 GameManager::getInstance().ChangeCurrentScene(SceneType::GAME); 
+            } else {
+                auto txt = std::make_shared<TextObject>(200, 240, NetworkConnector::getInstance().GetError());
+                newScene->AddObject(txt);
             }
         }, "LobbyButton" + i);
         newScene->AddObject(obj);
