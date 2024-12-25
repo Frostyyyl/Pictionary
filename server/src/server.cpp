@@ -338,9 +338,11 @@ void Server::Write(int socket)
 
 void Server::ExitLobby(int socket)
 {
-    std::string lobby = clients.getClient(socket).getLobby();
-    std::cout << "Client: " << clients.getClient(socket).getAddress() << ":" << clients.getClient(socket).getPort() 
-              << " (" << lobbies.getLobby(lobby).getPlayerName(socket) << "), disconnected from: " << lobby << std::endl;
+    std::string lobby = clients.getClient(socket).getLobbyName();
+    std::cout << "Client: " << clients.getClient(socket).getAddress() 
+              << ":" << clients.getClient(socket).getPort() 
+              << " (" << lobbies.getLobby(lobby).getPlayerName(socket) 
+              << "), disconnected from lobby : " << lobby << std::endl;
 
     lobbies.getLobby(lobby).removePlayer(socket);
 
@@ -358,13 +360,16 @@ void Server::EnterLobby(int socket, const std::string& lobby, const std::string&
     clients.getClient(socket).setLobby(lobby);
     lobbies.getLobby(lobby).addPlayer(socket, name);
 
-    std::cout << "Client: " << clients.getClient(socket).getAddress() << ":" << clients.getClient(socket).getPort() 
-              << ", connected as: " << name << ", with: " << lobby << std::endl;
+    std::cout << "Client: " << clients.getClient(socket).getAddress() 
+              << ":" << clients.getClient(socket).getPort() 
+              << ", connected as: " << name << ", with lobby: " << lobby << std::endl;
 }
 
 void Server::Disconnect(int socket)
 {
-    ExitLobby(socket);
+    if (!clients.getClient(socket).getLobbyName().empty()){
+        ExitLobby(socket);
+    }
     std::cout << "Closed connection with: " << clients.getClient(socket).getAddress() 
                 << clients.getClient(socket).getPort() << std::endl;
     clients.removeClient(socket);
@@ -465,7 +470,7 @@ void Server::Run()
         FD_SET(serverSocket, &reading); // Set server socket for accepting connections
         writing = descriptors; // Set all descriptors to handle messages
 
-        timeout.tv_sec = 10;
+        timeout.tv_sec = 5;
         timeout.tv_usec = 0;
 
         int rc = select(maxSocket++, &reading, &writing, NULL, &timeout);

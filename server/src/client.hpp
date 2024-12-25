@@ -16,7 +16,7 @@ public:
 
     int getPort() { return ntohs(address.sin_port); }
     std::string getAddress() { return inet_ntoa(address.sin_addr); }
-    std::string getLobby() { return lobby; }
+    std::string getLobbyName() { return lobby; }
     void setLobby(const std::string& lobby) { this->lobby = lobby; }
 
 private:
@@ -30,7 +30,7 @@ public:
     ClientManager() = default;
     ~ClientManager() noexcept = default;
 
-    Client getClient(int socket){ return clients[socket]; }
+    Client& getClient(int socket){ return clients[socket]; }
     void addClient(int socket, Client client) { clients.insert({socket, client}); }
     void removeClient(int socket) { clients.erase(socket); }
 

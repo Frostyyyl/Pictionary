@@ -60,7 +60,7 @@ public:
     LobbyManager() = default;
     ~LobbyManager() noexcept = default;
 
-    Lobby getLobby(const std::string& name) { return lobbies[name]; }
+    Lobby& getLobby(const std::string& name) { return lobbies[name]; }
     void addLobby(const std::string& name, Lobby lobby) { lobbies.insert({name, lobby}).second; }
     void removeLobby(const std::string& name) { lobbies.erase(name); }
     /**
