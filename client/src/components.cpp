@@ -1,10 +1,11 @@
+#include <SDL2/SDL2_gfxPrimitives.h>
+
 #include "components.hpp"
 #include "game_manager.hpp"
 #include "texture_manager.hpp"
 #include "text_manager.hpp"
 #include "network_connector.hpp"
 
-#include <SDL2/SDL2_gfxPrimitives.h>
 
 // Lots of functions (update mostly) are just placeholders
 
@@ -31,7 +32,7 @@ TextObject::TextObject(int x, int y, const std::string& content, const std::stri
 
 void TextObject::LoadText()
 {
-    tex = TextManager::getInstance().loadText(TextManager::getInstance().getFont(), text.text, rect);
+    tex = TextManager::getInstance().LoadText(TextManager::getInstance().getFont(), text.text, rect);
 }
 
 void TextObject::Update()

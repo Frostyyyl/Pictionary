@@ -1,11 +1,12 @@
 #pragma once
 
-#include "interactable.hpp"
-#include "text.hpp"
 #include <iostream>
 #include <functional>
 #include <deque>
 #include <memory>
+
+#include "interactable.hpp"
+#include "text.hpp"
 
 // Used in canvas
 struct Position

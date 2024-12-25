@@ -71,7 +71,7 @@ LobbyInfoList NetworkConnector::RequestLobbies()
     }
 
     // Read the list of lobbies
-    rv = read(serverSocket, &list, message.getSize());
+    rv = read(serverSocket, &list, message.GetSize());
 
     // Handle errors
     if (rv == -1)
@@ -149,7 +149,7 @@ bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
     }
     
     // Handle based on response
-    switch (static_cast<MessageToClient>(message.getType()))
+    switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
         std::cout << "IMPLEMENT HANDLING PASSING AN ALREADY EXISTING/INCORRECT LOBBY NAME" << std::endl; // TODO:
@@ -173,7 +173,7 @@ bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
         Exit();
         break;
     default:
-        std::cerr << "ERROR: While creating lobby received unexpected message type: " << message.getType() << std::endl;
+        std::cerr << "ERROR: While creating lobby received unexpected message type: " << message.GetMessageType() << std::endl;
         Exit();
         break;
     }
@@ -223,7 +223,7 @@ bool NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
     }
 
     // Handle based on response
-    switch (static_cast<MessageToClient>(message.getType()))
+    switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
         std::cout << "IMPLEMENT HANDLING PASSING AN ALREADY EXISTING/INCORRECT LOBBY NAME" << std::endl; // TODO:
@@ -246,7 +246,7 @@ bool NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
         Exit();
         break;
     default:
-        std::cerr << "ERROR: While connecting to lobby received unexpected message type: " << message.getType() << std::endl;
+        std::cerr << "ERROR: While connecting to lobby received unexpected message type: " << message.GetMessageType() << std::endl;
         Exit();
         break;
     }

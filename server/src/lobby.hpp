@@ -1,9 +1,9 @@
 #pragma once
 
 #include <string>
-#include <array>
 #include <vector>
 #include <map>
+
 #include "client.hpp"
 
 class Lobby
@@ -13,9 +13,9 @@ public:
     Lobby() {}
     ~Lobby() noexcept = default;
 
-    void addPlayer(int socket, std::string name) { players.insert({socket, name}); }
-    void removePlayer(int socket) { players.erase(socket); }
-    std::vector<int> getSockets()
+    void AddPlayer(int socket, std::string name) { players.insert({socket, name}); }
+    void RemovePlayer(int socket) { players.erase(socket); }
+    std::vector<int> GetSockets()
     { 
         std::vector<int> tmp;
     
@@ -25,7 +25,7 @@ public:
 
         return tmp; 
     }
-    std::vector<std::string> getPlayerNames() 
+    std::vector<std::string> GetNames() 
     { 
         std::vector<std::string> tmp;
     
@@ -35,10 +35,9 @@ public:
 
         return tmp; 
     }
-    std::string getPlayerName(int socket) { return players[socket]; }
-    std::string getPassword() { return password; }
-    int getSize(){ return players.size(); }
-    bool hasPassword() { return password.empty() ? false : true; }
+    std::string GetPlayerName(int socket) { return players[socket]; }
+    std::string GetPassword() { return password; }
+    int GetSize(){ return players.size(); }
     bool hasPlayerName(const std::string& name)
     {
         for (const auto& pair : players) {
@@ -60,13 +59,13 @@ public:
     LobbyManager() = default;
     ~LobbyManager() noexcept = default;
 
-    Lobby& getLobby(const std::string& name) { return lobbies[name]; }
-    void addLobby(const std::string& name, Lobby lobby) { lobbies.insert({name, lobby}).second; }
-    void removeLobby(const std::string& name) { lobbies.erase(name); }
+    Lobby& GetLobby(const std::string& name) { return lobbies[name]; }
+    void AddLobby(const std::string& name, Lobby lobby) { lobbies.insert({name, lobby}).second; }
+    void RemoveLobby(const std::string& name) { lobbies.erase(name); }
     /**
      * Return 'count' of lobby names
      */
-    std::vector<std::string> getLobbyNames(int count)
+    std::vector<std::string> GetLobbyNames(int count)
     { 
         std::vector<std::string> names;
         int counter = 0;

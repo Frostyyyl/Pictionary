@@ -34,8 +34,8 @@ public:
     Message() = default;
     ~Message() noexcept = default;
 
-    int getType() { return type; }
-    int getSize() { return size; }
+    int GetMessageType() { return type; }
+    int GetSize() { return size; }
 
 private:
     int type = -1;

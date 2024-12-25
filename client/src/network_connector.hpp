@@ -3,12 +3,12 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <string>
-#include <cstdlib>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include "../../global/src/objects.hpp"
+
+#include "../../global/src/messages.hpp"
 
 class NetworkConnector
 {

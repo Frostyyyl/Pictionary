@@ -1,8 +1,9 @@
 #pragma once
 
-#include "interactable.hpp"
 #include <memory>
 #include <unordered_map>
+
+#include "interactable.hpp"
 
 class GameManager;
 

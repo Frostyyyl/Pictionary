@@ -14,5 +14,5 @@ public:
     virtual ~Component() {}
     virtual void Update() = 0;
     virtual void Delete() = 0;
-    std::string GetName() { return name; }
+    std::string GetCurrentLobby() { return name; }
 };

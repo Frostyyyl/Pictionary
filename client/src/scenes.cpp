@@ -1,7 +1,8 @@
+#include <string>
+
 #include "game_manager.hpp"
 #include "scenes.hpp"
 #include "network_connector.hpp"
-#include <string>
 
 Scene *CreateMainMenuScene()
 {
@@ -79,9 +80,9 @@ Scene *CreateLobbyScene()
     LobbyInfoList list = NetworkConnector::getInstance().RequestLobbies();
     
     // Display lobbies
-    for (int i = 0; i < list.getSize(); i++) // TODO: Change lobbies to display their name
+    for (int i = 0; i < list.GetSize(); i++) // TODO: Change lobbies to display their name
     {
-        std::string lobby = list.getLobbyInfo(i).getLobbyName();
+        std::string lobby = list.GetLobbyInfo(i).GetLobbyName();
 
         auto obj = std::make_shared<Button>(100 + 120 * (i % 4), 260 + 80 * (i / 4), 100, 60, "images/button.png", [lobby]()
         { 

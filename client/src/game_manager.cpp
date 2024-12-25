@@ -1,7 +1,8 @@
-#include "game_manager.hpp"
-#include "scenes.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+
+#include "game_manager.hpp"
+#include "scenes.hpp"
 #include "text_manager.hpp"
 #include "network_connector.hpp"
 

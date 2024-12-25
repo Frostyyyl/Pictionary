@@ -1,10 +1,11 @@
 #pragma once
 
-#include "component.hpp"
 #include <memory>
 #include <set>
 #include <string>
 #include <iostream>
+
+#include "component.hpp"
 
 enum class SceneType
 {

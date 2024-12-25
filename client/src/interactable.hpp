@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+
 #include "component.hpp"
 
 class Interactable : public Component
