@@ -6,20 +6,20 @@
 Scene *CreateMainMenuScene()
 {
     Scene *newScene = new Scene();
-    newScene->sceneName = "mainMenu";
+    newScene->sceneType = SceneType::MAIN_MENU;
 
     // For now backgrounds have unstable Z-index
     // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
     // newScene->AddObject(bg);
 
-    auto txt = std::make_shared<TextObject>(600, 500, "GAME");
+    auto txt = std::make_shared<TextObject>(600, 500, "Play");
     newScene->AddObject(txt);
 
     auto btn = std::make_shared<Button>(600, 400, 80, 80, "images/button.png", []()
-                                        { GameManager::getInstance().ChangeCurrentScene("lobby"); });
+                                        { GameManager::getInstance().ChangeCurrentScene(SceneType::LOBBY); });
     newScene->AddObject(btn);
 
-    GameManager::getInstance().RegisterInteractable("START BUTTON", btn);
+    GameManager::getInstance().RegisterInteractable("PlayButton", btn);
 
     return newScene;
 }
@@ -27,54 +27,53 @@ Scene *CreateMainMenuScene()
 Scene *CreateLobbyScene()
 {
     Scene *newScene = new Scene();
-    newScene->sceneName = "lobby";
+    newScene->sceneType = SceneType::LOBBY;
 
     // For now backgrounds have unstable Z-index
     // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
     // newScene->AddObject(bg);
 
-    auto txt = std::make_shared<TextObject>(100, 30, "CREATE LOBBY");
+    auto txt = std::make_shared<TextObject>(100, 30, "Create Lobby", "CreateLobbyText");
     newScene->AddObject(txt);
 
     // Create lobby functionality
     auto obj = std::make_shared<Button>(100, 80, 100, 60, "images/button.png", [newScene]()                                    
     { 
 
-        auto txt = std::make_shared<TextObject>(100, 140, "CONFIRM");
+        auto txt = std::make_shared<TextObject>(100, 140, "Confirm", "ConfirmText");
         newScene->AddObject(txt); 
 
         // Confirm button
         auto obj = std::make_shared<Button>(100, 160, 100, 60, "images/button.png", [newScene]()                                    
         { 
-            NetworkConnector::getInstance().CreateLobby("lobby name", "bob", "");
-        });
+            if (NetworkConnector::getInstance().CreateLobby("LobbyName", "bob", ""))
+            {
+                GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
+            }
+        }, "ConfirmButton");
         newScene->AddObject(obj);
-        GameManager::getInstance().RegisterInteractable("CONFIRM LOBBY CREATION BUTTON", obj);
+        GameManager::getInstance().RegisterInteractable("ConfirmLobbyCreationButton", obj);
 
 
-        txt = std::make_shared<TextObject>(220, 140, "CANCEL");
+        txt = std::make_shared<TextObject>(220, 140, "Cancel", "CancelText");
         newScene->AddObject(txt); 
 
         // Cancel button
         obj = std::make_shared<Button>(220, 160, 100, 60, "images/button.png", [newScene]()                                    
         { 
             // TODO: Hide the creation lobby window
-        });
+        }, "CancelButton");
         newScene->AddObject(obj);
-        GameManager::getInstance().RegisterInteractable("CANCEL LOBBY CREATION BUTTON", obj);
+        GameManager::getInstance().RegisterInteractable("CancelLobbyCreationButton", obj);
 
-    });
+    }, "CreateLobbyButton");
     newScene->AddObject(obj);
-    GameManager::getInstance().RegisterInteractable("CREATE LOBBY BUTTON", obj);
+    GameManager::getInstance().RegisterInteractable("CreateLobbyButton", obj);
 
 
-    txt = std::make_shared<TextObject>(100, 240, "LOBBIES");
+    txt = std::make_shared<TextObject>(100, 240, "Lobbies");
     newScene->AddObject(txt);
 
-
-
-    // Inicialize connection with server
-    NetworkConnector::getInstance().Init(1100, "127.0.0.1");
 
     // Request list of lobbies
     LobbyInfoList list = NetworkConnector::getInstance().RequestLobbies();
@@ -87,13 +86,15 @@ Scene *CreateLobbyScene()
         auto obj = std::make_shared<Button>(100 + 120 * (i % 4), 260 + 80 * (i / 4), 100, 60, "images/button.png", [lobby]()
         { 
             // TODO: Change to request password only if lobby has one
-            NetworkConnector::getInstance().ConnectToLobby(lobby, "alex", "");
-            GameManager::getInstance().ChangeCurrentScene("game"); 
-        });
+            if (NetworkConnector::getInstance().ConnectToLobby(lobby, "alex", ""))
+            {
+                GameManager::getInstance().ChangeCurrentScene(SceneType::GAME); 
+            }
+        }, "LobbyButton" + i);
         newScene->AddObject(obj);
-        GameManager::getInstance().RegisterInteractable("ENTER " + lobby + " BUTTON", obj);
+        GameManager::getInstance().RegisterInteractable("Lobby" + i, obj);
 
-        auto txt = std::make_shared<TextObject>(100 + 120 * (i % 4), 260 + 80 * (i / 4), lobby);
+        auto txt = std::make_shared<TextObject>(100 + 120 * (i % 4), 260 + 80 * (i / 4), lobby, "LobbyText" + i);
         newScene->AddObject(txt);
     }
 
@@ -103,7 +104,7 @@ Scene *CreateLobbyScene()
 Scene *CreateGameScene()
 {
     Scene *newScene = new Scene();
-    newScene->sceneName = "game";
+    newScene->sceneType = SceneType::GAME;
 
     // For now backgrounds have unstable Z-index
     // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
@@ -116,13 +117,13 @@ Scene *CreateGameScene()
     // }
 
 
-    auto cvs = std::make_shared<Canvas>();
+    auto cvs = std::make_shared<Canvas>("Canvas");
     newScene->AddObject(cvs);
 
     // if the player is the one drawing, add canvas to interactables
     if (GameManager::getInstance().currentPlayer->GetGameMode() == DRAW)
     {
-        GameManager::getInstance().RegisterInteractable("canvas", cvs);
+        GameManager::getInstance().RegisterInteractable("Canvas", cvs);
 
         // This is a little tricky in creating color it's RRGGBBAA
         // But in ChangeColor() it's AABBGGRR (and also FF is solid, 00 is transparent for alpha)
@@ -131,13 +132,13 @@ Scene *CreateGameScene()
                                                     { cvs.get()->ChangeColor(0xff000000); });
 
         newScene->AddObject(blackButton);
-        GameManager::getInstance().RegisterInteractable("BLACK BUTTON", blackButton);
+        GameManager::getInstance().RegisterInteractable("BlackButton", blackButton);
 
         auto whiteButton = std::make_shared<Button>(150, 500, 30, 30, 0xf0f0f000, [cvs]()
                                                     { cvs.get()->ChangeColor(0xffffffff); });
 
         newScene->AddObject(whiteButton);
-        GameManager::getInstance().RegisterInteractable("WHITE BUTTON", whiteButton);
+        GameManager::getInstance().RegisterInteractable("WhiteButton", whiteButton);
     }
 
     auto msgWindow = std::make_shared<MessageWindow>(600, 100, 200, 300);
@@ -151,12 +152,12 @@ Scene *CreateGameScene()
     {
         SDL_StartTextInput();
 
-        GameManager::getInstance().RegisterInteractable("TEXT INPUT", txtInput);
+        GameManager::getInstance().RegisterInteractable("TextInput", txtInput);
 
         auto enterButton = std::make_shared<Button>(720, 10, 30, 30, "images/button.png", [txtInput]()
                                                     { txtInput->SendMessage(); });
         newScene->AddObject(enterButton);
-        GameManager::getInstance().RegisterInteractable("ENTER BUTTON", enterButton);
+        GameManager::getInstance().RegisterInteractable("EnterTextButton", enterButton);
     }
 
     return newScene;

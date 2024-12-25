@@ -6,13 +6,20 @@
 #include <string>
 #include <iostream>
 
+enum class SceneType
+{
+    MAIN_MENU,
+    LOBBY,
+    GAME,
+};
+
 class Scene
 {
 private:
     std::set<std::shared_ptr<Component>> objects;
 
 public:
-    std::string sceneName;
+    SceneType sceneType;
 
     Scene() {}
     ~Scene() {}

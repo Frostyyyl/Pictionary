@@ -8,7 +8,7 @@
 
 // Lots of functions (update mostly) are just placeholders
 
-SpriteRenderer::SpriteRenderer(int x, int y, const char *filename)
+SpriteRenderer::SpriteRenderer(int x, int y, const char *filename, const std::string& name) : Component(name)
 {
     tex = TextureManager::LoadTexture(filename);
     int w, h;
@@ -21,7 +21,7 @@ void SpriteRenderer::Update()
     TextureManager::Draw(tex, rect);
 }
 
-TextObject::TextObject(int x, int y, std::string content)
+TextObject::TextObject(int x, int y, const std::string& content, const std::string& name) : Component(name)
 {
     text.text = content;
     rect.x = x;
@@ -77,14 +77,14 @@ void TextInput::SendMessage()
     text.LoadText();
 }
 
-Button::Button(int x, int y, int w, int h, const char *filename, std::function<void()> func)
+Button::Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string& name) : Interactable(name)
 {
     rect = {x, y, w, h};
     tex = TextureManager::LoadTexture(filename);
     onClick = func;
 }
 
-Button::Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func)
+Button::Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func, const std::string& name) : Interactable(name)
 {
     rect = {x, y, w, h};
     tex = TextureManager::LoadSolidColor(w, h, color);
@@ -141,7 +141,7 @@ void MessageWindow::AddMessage(std::string message)
     }
 }
 
-Canvas::Canvas()
+Canvas::Canvas(const std::string& name) : Interactable(name)
 {
     rect = {20, 20, 400, 400};
     tex = TextureManager::CreateCanvas(400, 400);

@@ -33,6 +33,8 @@ void NetworkConnector::Init(int port, std::string address)
         close(serverSocket);
         exit(EXIT_FAILURE);
     }
+    
+    isInit = true;
 }
 
 void NetworkConnector::Exit()
@@ -104,14 +106,13 @@ bool NetworkConnector::ValidateData(const std::string& lobby, const std::string&
     return true;
 }
 
-void NetworkConnector::CreateLobby(const std::string& lobby, const std::string& name, const std::string& password)
+bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& name, const std::string& password)
 {
     // TODO: Implement handling write/read errors
 
     if (!ValidateData(lobby, name, password))
     {
-        Exit();
-        return;
+        return false;
     }
 
     LobbyConnectInfo info = LobbyConnectInfo(lobby, name, password);
@@ -124,7 +125,7 @@ void NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
     if (rv == -1)
     {
         std::cerr << "ERROR: Failed to send message of type: CREATE_LOBBY" << std::endl;
-        return;
+        return false;
     }
 
     // Send the lobby information
@@ -134,7 +135,7 @@ void NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
     if (rv == -1)
     {
         std::cerr << "ERROR: While creating lobby failed to send: LobbyConnectInfo" << std::endl;
-        return;
+        return false;
     }
 
     // Receive the response
@@ -144,7 +145,7 @@ void NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
     if (rv == -1)
     {
         std::cerr << "ERROR: Failed to receive message in method: CreateLobby" << std::endl;
-        return;
+        return false;
     }
     
     // Handle based on response
@@ -152,17 +153,20 @@ void NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
         std::cout << "IMPLEMENT HANDLING PASSING AN ALREADY EXISTING/INCORRECT LOBBY NAME" << std::endl; // TODO:
+        return false;
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
         std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PLAYER NAME" << std::endl; // TODO:
+        return false;
         break;
     case MessageToClient::INCORRECT_PASSWORD:
         std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PASSWORD" << std::endl; // TODO:
+        return false;
         break;
     case MessageToClient::CONNECT:
         std::cout << "Succesfully created lobby: \"" << lobby << "\"" << std::endl;
         std::cout << "Connected with lobby: \"" << lobby << "\", as: \"" << name << "\"" << std::endl;
-        GameManager::getInstance().ChangeCurrentScene("game");
+        return true;
         break;
 
     case MessageToClient::INVALID:
@@ -173,16 +177,17 @@ void NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
         Exit();
         break;
     }
+
+    return false;
 }
 
-void NetworkConnector::ConnectToLobby(const std::string& lobby, const std::string& name, const std::string& password)
+bool NetworkConnector::ConnectToLobby(const std::string& lobby, const std::string& name, const std::string& password)
 {
     // TODO: Implement handling write/read errors
 
     if (!ValidateData(lobby, name, password))
     {
-        Exit();
-        return;
+        return false;
     }
 
     LobbyConnectInfo info = LobbyConnectInfo(lobby, name, password);
@@ -195,7 +200,7 @@ void NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
     if (rv == -1)
     {
         std::cerr << "ERROR: Failed to send message of type: CONNECT_TO_LOBBY" << std::endl;
-        return;
+        return false;
     }
 
     // Send the lobby information
@@ -205,7 +210,7 @@ void NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
     if (rv == -1)
     {
         std::cerr << "ERROR: While connecting to lobby failed to send: LobbyConnectInfo" << std::endl;
-        return;
+        return false;
     }
     // Receive the response
     rv = read(serverSocket, &message, sizeof(Message));
@@ -214,7 +219,7 @@ void NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
     if (rv == -1)
     {
         std::cerr << "ERROR: Failed to receive message in method: ConnectToLobby" << std::endl;
-        return;
+        return false;
     }
 
     // Handle based on response
@@ -222,16 +227,19 @@ void NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
         std::cout << "IMPLEMENT HANDLING PASSING AN ALREADY EXISTING/INCORRECT LOBBY NAME" << std::endl; // TODO:
+        return false;
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
         std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PLAYER NAME" << std::endl; // TODO:
+        return false;
         break;
     case MessageToClient::INCORRECT_PASSWORD:
         std::cout << "IMPLEMENT HANDLING PASSING AN INCORRECT PASSWORD" << std::endl; // TODO:
+        return false;
         break;
     case MessageToClient::CONNECT:
         std::cout << "Connected with lobby: \"" << lobby << "\", as: \"" << name << "\"" << std::endl;
-        GameManager::getInstance().ChangeCurrentScene("game");
+        return true;
         break;
 
     case MessageToClient::INVALID:
@@ -242,4 +250,6 @@ void NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
         Exit();
         break;
     }
+
+    return false;
 } 

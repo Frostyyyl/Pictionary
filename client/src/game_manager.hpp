@@ -29,7 +29,7 @@ public:
     void Run();
     void Exit();
 
-    void ChangeCurrentScene(const char *newScene);
+    void ChangeCurrentScene(SceneType newScene);
 
     void RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable);
 };

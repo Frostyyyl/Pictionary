@@ -19,11 +19,11 @@ private:
     SDL_Texture *tex;
 
 public:
-    SpriteRenderer()
+    SpriteRenderer(const std::string& name = "") : Component(name)
     {
         rect = {100, 100, 20, 20};
     }
-    SpriteRenderer(int x, int y, const char *filename);
+    SpriteRenderer(int x, int y, const char *filename, const std::string& name = "");
     ~SpriteRenderer() {}
 
     void Update() override;
@@ -42,7 +42,7 @@ public:
     // here because text input wants to access it
     Text text;
 
-    TextObject(int x, int y, std::string content = "");
+    TextObject(int x, int y, const std::string& content = "", const std::string& name = "");
     ~TextObject() {}
 
     void LoadText();
@@ -69,8 +69,8 @@ private:
     std::function<void()> onClick;
 
 public:
-    Button(int x, int y, int w, int h, const char *filename, std::function<void()> func);
-    Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func);
+    Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string& name = "");
+    Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func, const std::string& name = "");
     ~Button() {}
 
     void HandleEvent(SDL_Event event) override;
@@ -90,7 +90,7 @@ private:
     const int msgOffset = 6;
 
 public:
-    MessageWindow(int x, int y, int w, int h)
+    MessageWindow(int x, int y, int w, int h, const std::string& name = "") : Component(name)
     {
         rect = {x, y, w, h};
     }
@@ -111,7 +111,7 @@ private:
     bool isClicked(SDL_Event event);
 
 public:
-    TextInput(int x, int y, int w, int h, MessageWindow *window) : text(x, y)
+    TextInput(int x, int y, int w, int h, MessageWindow *window, const std::string& name = "") : Interactable(name), text(x, y)
     {
         rect = {x, y, w, h};
         msgWindow = window;
@@ -135,7 +135,7 @@ private:
     Position prevPos;
 
 public:
-    Canvas();
+    Canvas(const std::string& name = "");
     ~Canvas() {}
 
     void HandleEvent(SDL_Event event) override;

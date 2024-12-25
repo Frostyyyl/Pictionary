@@ -40,7 +40,7 @@ void InputManager::HandleEvent()
             if (!obj.lock().get()->isClicked(event))
                 continue;
             std::cout << name << std::endl;
-            if (name == "canvas")
+            if (name == "Canvas")
             {
                 isDrawing = true;
             }
@@ -49,26 +49,26 @@ void InputManager::HandleEvent()
     }
     else if (event.type == SDL_MOUSEBUTTONUP)
     {
-        if (interactables.find("canvas") != interactables.end())
+        if (interactables.find("Canvas") != interactables.end())
         {
             isDrawing = false;
-            interactables["canvas"].lock().get()->HandleEvent(event);
+            interactables["Canvas"].lock().get()->HandleEvent(event);
         }
     }
     else if (event.type == SDL_MOUSEMOTION)
     {
         if (isDrawing) // probably won't give any error that canvas does not exist
         {
-            interactables["canvas"].lock().get()->HandleEvent(event);
+            interactables["Canvas"].lock().get()->HandleEvent(event);
         }
     }
     else if (event.type == SDL_TEXTINPUT ||
              (event.type == SDL_KEYDOWN &&
               (event.key.keysym.sym == SDLK_BACKSPACE || event.key.keysym.sym == SDLK_RETURN)))
     {
-        if (interactables.find("textInput") != interactables.end())
+        if (interactables.find("TextInput") != interactables.end())
         {
-            interactables["textInput"].lock().get()->HandleEvent(event);
+            interactables["TextInput"].lock().get()->HandleEvent(event);
         }
     }
 }

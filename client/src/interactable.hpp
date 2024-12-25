@@ -6,7 +6,7 @@
 class Interactable : public Component
 {
 public:
-    Interactable() {}
+    Interactable(const std::string& name) : Component(name) {}
     ~Interactable() {}
 
     virtual void HandleEvent(SDL_Event event) = 0;

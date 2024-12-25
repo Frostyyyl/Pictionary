@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "text_manager.hpp"
+#include "network_connector.hpp"
 
 const int FRAMES_PER_SECOND = 60;
 const int FRAME_DELAY = 1000 / FRAMES_PER_SECOND;
@@ -77,6 +78,11 @@ void GameManager::Run()
 
         inputManager->HandleEvent();
 
+        if (currentScene->sceneType == SceneType::GAME)
+        {
+
+        }
+
         if (wasSceneChanged)
         {
             wasSceneChanged = false;
@@ -94,12 +100,12 @@ void GameManager::Run()
     }
 }
 
-void GameManager::ChangeCurrentScene(const char *newScene)
+void GameManager::ChangeCurrentScene(SceneType newScene)
 {
 
-    if (strcmp(newScene, "game") == 0)
+    if (newScene == SceneType::GAME)
     {
-        // For now this cause segmentation fault in inputManager, maybe it's not important to have
+        // For now this causes segmentation fault in inputManager, maybe it's not important to have
         inputManager->ClearInteractables();
 
         // BE CAREFUL WITH THIS FUNCTION FOR NOW
@@ -108,22 +114,18 @@ void GameManager::ChangeCurrentScene(const char *newScene)
         currentPlayer = new Player(1, "player");
         currentPlayer->ChangeGameMode(DRAW);
 
-        for (int i = 0; i < 10; i++)
-        {
-            // This loop does nothing but it prevents CreateGameScene() from crashing
-            // when it tries to acces newly created currentPlayer
-        }
-
         currentScene = CreateGameScene();
     }
-    if (strcmp(newScene, "lobby") == 0)
+    if (newScene == SceneType::LOBBY)
     {
         inputManager->ClearInteractables();
-        for (int i = 0; i < 10; i++)
-        {
-            // This loop does nothing but it prevents CreateGameScene() from crashing
+        currentScene->DeleteScene();
+
+        // Inicialize connection with server
+        if (!NetworkConnector::getInstance().isInitialized()){
+            NetworkConnector::getInstance().Init(1100, "127.0.0.1");
         }
-        // currentScene->DeleteScene();
+        
         currentScene = CreateLobbyScene();
     }
     wasSceneChanged = true;

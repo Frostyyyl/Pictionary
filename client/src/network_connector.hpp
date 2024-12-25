@@ -9,24 +9,26 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include "../../global/src/objects.hpp"
-#include "game_manager.hpp"
 
 class NetworkConnector
 {
 private:
     NetworkConnector();
 
+    bool isInit;
     int serverSocket;
 public:
+
     static NetworkConnector &getInstance();
     ~NetworkConnector();
 
+    bool isInitialized() { return isInit; }
     void Init(int port, std::string address);
     void Exit();
     LobbyInfoList RequestLobbies();
     bool ValidateData(const std::string& lobby, const std::string& name, const std::string& password);
-    void CreateLobby(const std::string& lobby, const std::string& name, const std::string& password);
-    void ConnectToLobby(const std::string& lobby, const std::string& name, const std::string& password);
+    bool CreateLobby(const std::string& lobby, const std::string& name, const std::string& password);
+    bool ConnectToLobby(const std::string& lobby, const std::string& name, const std::string& password);
 
     void HandleCanvasChange(SDL_Texture *tex)
     {
