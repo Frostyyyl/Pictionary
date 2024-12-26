@@ -92,25 +92,13 @@ LobbyInfoList NetworkConnector::RequestLobbies()
 
 bool NetworkConnector::ValidateData(const std::string &lobby, const std::string &name, const std::string &password)
 {
-    if (lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE)
-    {
-        error = "Given lobby name is too long, please try again";
-    }
-    else if (lobby.empty())
+    if (lobby.empty())
     {
         error = "Lobby name must be non-empty, please try again";
-    }
-    else if (name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE)
-    {
-        error = "Given player name is too long, please try again";
     }
     else if (name.empty())
     {
         error = "Player name must be non-empty, please try again";
-    }
-    else if (password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
-    {
-        error = "Given password is too long, please try again";
     }
     else
     {
@@ -167,13 +155,10 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
-        error = "Unfortunately this lobby name is taken, please pick another (non-empty) one";
+        error = "Unfortunately this lobby name is taken, please pick another one";
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
         error = "Player name must be non-empty, please try again";
-        break;
-    case MessageToClient::INCORRECT_PASSWORD:
-        error = "Given password is too long, please try again";
         break;
     case MessageToClient::CONNECT:
         std::cout << "Succesfully created lobby: \"" << lobby << "\"" << std::endl;
@@ -241,7 +226,7 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
         error = "This lobby no longer exists, please try refreshing";
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
-        error = "Unfortunately someone already took this name, please pick another (non-empty) one";
+        error = "Unfortunately someone already took this name, please pick another one";
         break;
     case MessageToClient::INCORRECT_PASSWORD:
         error = "Given password is incorrect, try again";
