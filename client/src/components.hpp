@@ -70,26 +70,24 @@ public:
 
 class Button : public Interactable
 {
-private:
+protected:
     SDL_Texture *tex;
     std::function<void()> onClick;
 
 public:
     Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string& name = "");
     Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func, const std::string& name = "");
-    ~Button() {}
+    virtual ~Button() {}
 
-    void HandleEvent(SDL_Event event) override;
-    void Update() override;
+    virtual void HandleEvent(SDL_Event event) override;
+    virtual void Update() override;
 };
 
-class TextButton : public Interactable
+class TextButton : public Button
 {
 private:
     Padding padding;
     TextObject text;
-    SDL_Texture *tex;
-    std::function<void()> onClick;
 
 public:
     TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, const char *filename, 
@@ -98,7 +96,6 @@ public:
         std::function<void()> func, const std::string& name = "");
     ~TextButton() {}
 
-    void HandleEvent(SDL_Event event) override;
     void Update() override;
 };
 

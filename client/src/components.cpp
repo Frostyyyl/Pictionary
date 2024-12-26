@@ -139,31 +139,15 @@ void Button::Update()
 
 TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, 
     const char *filename, std::function<void()> func, const std::string& name) 
-    : Interactable(name), text(x + padding.x, (y + h / 2) + padding.y, text, name, w)
-{
-    rect = {x, y, w, h};
-    tex = TextureManager::LoadTexture(filename);
-    onClick = func;
-}
+    : Button(x, y, w, h, filename, func, name), text(x + padding.x, (y + h / 2) + padding.y, text, name, w - padding.x) {}
 
 TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, 
     Uint32 color, std::function<void()> func, const std::string& name) 
-    : Interactable(name), text(x + padding.x, (y + h / 2) + padding.y, text, name, w - padding.x)
-{
-    rect = {x, y, w, h};
-    tex = TextureManager::LoadSolidColor(w, h, color);
-    onClick = func;
-}
-
-void TextButton::HandleEvent(SDL_Event event)
-{
-    if (event.type == SDL_MOUSEBUTTONDOWN)
-        onClick();
-}
+    : Button(x, y, w, h, color, func, name), text(x + padding.x, (y + h / 2) + padding.y, text, name, w - padding.x) {}
 
 void TextButton::Update()
 {
-    TextureManager::Draw(tex, rect);
+    Button::Update();
     text.Update();
 }
 
