@@ -28,10 +28,6 @@ public:
     ~SpriteRenderer() {}
 
     void Update() override;
-    void Delete() override
-    {
-        this->~SpriteRenderer();
-    };
 };
 
 class TextObject : public Component
@@ -44,7 +40,10 @@ public:
     Text text;
 
     TextObject(int x, int y, const std::string& content = "", const std::string& name = "");
-    ~TextObject() {}
+    ~TextObject() 
+    {
+        SDL_DestroyTexture(tex);
+    }
 
     void LoadText();
 
@@ -56,11 +55,6 @@ public:
     }
 
     void Update() override;
-    void Delete() override
-    {
-        SDL_DestroyTexture(tex);
-        this->~TextObject();
-    };
 };
 
 class Button : public Interactable
@@ -76,10 +70,6 @@ public:
 
     void HandleEvent(SDL_Event event) override;
     void Update() override;
-    void Delete() override
-    {
-        this->~Button();
-    };
 };
 
 // if we want scroll we need Interactable though
@@ -98,7 +88,6 @@ public:
     ~MessageWindow() {}
 
     void Update() override;
-    void Delete() override {};
 
     void AddMessage(std::string message);
 };
@@ -124,7 +113,6 @@ public:
 
     void HandleEvent(SDL_Event event) override;
     void Update() override;
-    void Delete() override {};
 };
 
 class Canvas : public Interactable
@@ -137,15 +125,13 @@ private:
 
 public:
     Canvas(const std::string& name = "");
-    ~Canvas() {}
+    ~Canvas() 
+    {
+        SDL_DestroyTexture(tex);
+    }
 
     void HandleEvent(SDL_Event event) override;
     void Update() override;
-    void Delete() override
-    {
-        SDL_DestroyTexture(tex);
-        this->~Canvas();
-    };
 
     void ChangeColor(Uint32 newColor)
     {

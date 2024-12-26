@@ -37,6 +37,16 @@ public:
         objects.insert(component);
     }
 
+    void DeleteObject(const std::string& name)
+    {
+        for (const auto& obj : objects) {
+            if (obj->GetName() == name) {
+                objects.erase(obj);
+                break;
+            }
+        }
+    }
+
     void DeleteScene()
     {
         objects.clear();

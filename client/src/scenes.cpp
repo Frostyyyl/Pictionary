@@ -51,7 +51,7 @@ Scene *CreateLobbyScene()
             {
                 GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
             } else {
-                auto txt = std::make_shared<TextObject>(200, 30, NetworkConnector::getInstance().GetError());
+                auto txt = std::make_shared<TextObject>(200, 30, NetworkConnector::getInstance().GetError(), "CreateErrorText");
                 newScene->AddObject(txt);
             }
         }, "ConfirmButton");
@@ -63,9 +63,13 @@ Scene *CreateLobbyScene()
         newScene->AddObject(txt); 
 
         // Cancel button
-        obj = std::make_shared<Button>(220, 160, 100, 60, "images/button.png", []()                                    
+        obj = std::make_shared<Button>(220, 160, 100, 60, "images/button.png", [newScene]()                                    
         { 
-            // TODO: Hide the creation lobby window
+            newScene->DeleteObject("ConfirmText");
+            newScene->DeleteObject("ConfirmButton");
+            newScene->DeleteObject("CancelText");
+            newScene->DeleteObject("CancelButton");
+            newScene->DeleteObject("CreateErrorText");
         }, "CancelButton");
         newScene->AddObject(obj);
         GameManager::getInstance().RegisterInteractable("CancelLobbyCreationButton", obj);
