@@ -15,12 +15,19 @@
 #include "lobby.hpp"
 #include "client.hpp"
 #include "../../global/src/messages.hpp"
+#include "../../global/src/message_types.hpp"
 
 class Server
 {
 private:
     Server();
     int SetNonBlocking(int socket);
+    template <typename T>
+    void DisplayError(const T& message);
+    void SendIncorrectLobbyName(int socket);
+    void SendIncorrectPlayerName(int socket);
+    void SendIncorrectPassword(int socket);
+    void ConfirmConnect(int socket);
     void SendLobbyList(int socket);
     void SendPlayerList(int socket);
     void CreateLobby(int socket, int message_size);

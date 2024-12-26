@@ -3,8 +3,6 @@
 #include <string>
 #include <array>
 
-#include "message_types.hpp"
-
 class ConnectInfo
 {
 public:

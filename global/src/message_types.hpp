@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 enum class MessageToServer : int
 {
     INVALID = -1,
@@ -43,3 +45,6 @@ private:
     int type = -1;
     int size = 0;
 };
+
+std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType);
+std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType);

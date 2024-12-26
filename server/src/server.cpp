@@ -31,6 +31,74 @@ int Server::SetNonBlocking(int socket)
     return 0;
 }
 
+template <typename T>
+void Server::DisplayError(const T& message)
+{
+    if (errno != EWOULDBLOCK)
+    {
+        std::cerr << "ERROR: Failed to send message of type: \"" << message << "\"" << std::endl;
+    }
+    else
+    {
+        std::cerr << "INFO: Send would block, \"" << message << "\" NOT handled" << std::endl;
+    }
+}
+
+void Server::SendIncorrectLobbyName(int socket)
+{
+    Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
+
+    // Send information about non-unique/incorrect lobby name
+    int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplayError(MessageToClient::INCORRECT_LOBBY_NAME);
+    }
+}
+
+void Server::SendIncorrectPlayerName(int socket)
+{
+    Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PLAYER_NAME));
+
+    // Send information about incorrect player name
+    int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplayError(MessageToClient::INCORRECT_PLAYER_NAME);
+    }
+}
+
+void Server::SendIncorrectPassword(int socket)
+{
+    Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PASSWORD));
+
+    // Send information about incorrect player name
+    int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplayError(MessageToClient::INCORRECT_PLAYER_NAME);
+    }
+}
+
+void Server::ConfirmConnect(int socket)
+{
+    Message message = Message(static_cast<int>(MessageToClient::CONNECT));
+
+    int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplayError(MessageToClient::CONNECT);
+    }
+}
+
 void Server::SendLobbyList(int socket)
 {
     LobbyInfoList list;
@@ -51,14 +119,7 @@ void Server::SendLobbyList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK)
-        {
-            std::cerr << "ERROR: Failed to send message of type: UPLOAD_LOBBIES" << std::endl;
-        }
-        else
-        {
-            std::cerr << "INFO: The send buffer is full, UPLOAD_LOBBIES NOT handled" << std::endl;
-        }
+        DisplayError(MessageToClient::UPLOAD_LOBBIES);
         return;
     }
 
@@ -68,14 +129,8 @@ void Server::SendLobbyList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK)
-        {
-            std::cerr << "ERROR: Failed to send: LobbyInfoList" << std::endl;
-        }
-        else
-        {
-            std::cerr << "INFO: The send buffer is full, SendLobbyList NOT handled" << std::endl;
-        }
+        DisplayError("LobbyInfoList");
+        return;
     }
 }
 
@@ -100,14 +155,7 @@ void Server::SendPlayerList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK)
-        {
-            std::cerr << "ERROR: Failed to send message of type: UPLOAD_PLAYERS" << std::endl;
-        }
-        else
-        {
-            std::cerr << "INFO: The send buffer is full, UPLOAD_PLAYERS NOT handled" << std::endl;
-        }
+        DisplayError(MessageToClient::UPLOAD_PLAYERS);
         return;
     }
 
@@ -117,14 +165,8 @@ void Server::SendPlayerList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK)
-        {
-            std::cerr << "ERROR: Failed to send: PlayerInfoList" << std::endl;
-        }
-        else
-        {
-            std::cerr << "INFO: The send buffer is full, SendPlayerList NOT handled" << std::endl;
-        }
+        DisplayError("PlayerInfoList");
+        return;
     }
 
 }
@@ -139,14 +181,7 @@ void Server::CreateLobby(int socket, int message_size)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK)
-        {
-            std::cerr << "ERROR: Failed to receive message of type: CREATE_LOBBY" << std::endl;
-        }
-        else
-        {
-            std::cerr << "INFO: The send buffer is full, CREATE_LOBBY NOT handled" << std::endl;
-        }
+        DisplayError(MessageToServer::CREATE_LOBBY);
         return;
     }
 
@@ -157,72 +192,21 @@ void Server::CreateLobby(int socket, int message_size)
     // Check if the lobby name is unique/correct
     if (lobbies.hasLobby(lobby) || lobby.empty() || lobby.size() > ConnectInfo::MAX_LOBBY_NAME_SIZE)
     {
-        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
-
-        // Send information about non-unique/incorrect lobby name
-        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
-
-        // Handle errors
-        if (rv == -1)
-        {
-            if (errno != EWOULDBLOCK)
-            {
-                std::cerr << "ERROR: Failed to send message of type: INCORRECT_LOBBY_NAME" << std::endl;
-            }
-            else
-            {
-                std::cerr << "INFO: The send buffer is full, INCORRECT_LOBBY_NAME NOT handled" << std::endl;
-            }
-            return;
-        }
+        SendIncorrectLobbyName(socket);
         return;
     }
 
     // Make sure that player name is correct
     if (name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE)
     {
-        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PLAYER_NAME));
-
-        // Send information about incorrect player name
-        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
-
-        // Handle errors
-        if (rv == -1)
-        {
-            if (errno != EWOULDBLOCK)
-            {
-                std::cerr << "ERROR: Failed to send message of type: INCORRECT_PLAYER_NAME" << std::endl;
-            }
-            else
-            {
-                std::cerr << "INFO: The send buffer is full, INCORRECT_PLAYER_NAME NOT handled" << std::endl;
-            }
-            return;
-        }
+        SendIncorrectPlayerName(socket);
         return;
     }
 
     // Make sure that password is correct
     if (password.size() > ConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
     {
-        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PASSWORD));
-
-        // Send information about incorrect password
-        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
-
-        // Handle errors
-        if (rv == -1)
-        {
-            if (errno != EWOULDBLOCK)
-            {
-                std::cerr << "ERROR: Failed to send message of type: INCORRECT_PASSWORD" << std::endl;
-            }
-            else
-            {
-                std::cerr << "INFO: The send buffer is full, INCORRECT_PASSWORD NOT handled" << std::endl;
-            }
-            return;
-        }
+        SendIncorrectPassword(socket);
         return;
     }
 
@@ -234,23 +218,7 @@ void Server::CreateLobby(int socket, int message_size)
     EnterLobby(socket, lobby, name);
 
     // Send information about successfully creating a lobby
-    Message message = Message(static_cast<int>(MessageToClient::CONNECT));
-
-    rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
-
-    // Handle errors
-    if (rv == -1)
-    {
-        if (errno != EWOULDBLOCK)
-        {
-            std::cerr << "ERROR: Failed to send message of type: CONNECT" << std::endl;
-        }
-        else
-        {
-            std::cerr << "INFO: The send buffer is full, CONNECT NOT handled" << std::endl;
-        }
-        return;
-    }
+    ConfirmConnect(socket);
 }
 
 void Server::ConnectToLobby(int socket, int message_size)
@@ -263,14 +231,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK)
-        {
-            std::cerr << "ERROR: Failed to receive message of type: CONNECT_TO_LOBBY" << std::endl;
-        }
-        else
-        {
-            std::cerr << "INFO: The send buffer is full, CONNECT_TO_LOBBY NOT handled" << std::endl;
-        }
+        DisplayError(MessageToServer::CONNECT_TO_LOBBY);
         return;
     }
 
@@ -281,72 +242,21 @@ void Server::ConnectToLobby(int socket, int message_size)
     // Make sure that lobby name is correct
     if (!lobbies.hasLobby(lobby) || lobby.size() > ConnectInfo::MAX_LOBBY_NAME_SIZE)
     {
-        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
-
-        // Send information about incorrect lobby name
-        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
-
-        // Handle errors
-        if (rv == -1)
-        {
-            if (errno != EWOULDBLOCK)
-            {
-                std::cerr << "ERROR: Failed to send message of type: INCORRECT_LOBBY_NAME" << std::endl;
-            }
-            else
-            {
-                std::cerr << "INFO: The send buffer is full, INCORRECT_LOBBY_NAME NOT handled" << std::endl;
-            }
-            return;
-        }
+        SendIncorrectLobbyName(socket);
         return;
     }
 
     // Check if password is correct
     if (lobbies.GetLobby(lobby).GetPassword() != password || password.size() > ConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
     {
-        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PASSWORD));
-
-        // Send information about incorrect password
-        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
-
-        // Handle errors
-        if (rv == -1)
-        {
-            if (errno != EWOULDBLOCK)
-            {
-                std::cerr << "ERROR: Failed to send message of type: INCORRECT_PASSWORD" << std::endl;
-            }
-            else
-            {
-                std::cerr << "INFO: The send buffer is full, INCORRECT_PASSWORD NOT handled" << std::endl;
-            }
-            return;
-        }
+        SendIncorrectPassword(socket);
         return;
     }
 
     // Check if player name is unique/correct
     if (lobbies.GetLobby(lobby).hasPlayerName(name) || name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE)
     {
-        Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PLAYER_NAME));
-
-        // Send information about non-unique/incorrect player name
-        int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
-
-        // Handle errors
-        if (rv == -1)
-        {
-            if (errno != EWOULDBLOCK)
-            {
-                std::cerr << "ERROR: Failed to send message of type: INCORRECT_PLAYER_NAME" << std::endl;
-            }
-            else
-            {
-                std::cerr << "INFO: The send buffer is full, INCORRECT_PLAYER_NAME NOT handled" << std::endl;
-            }
-            return;
-        }
+        SendIncorrectPlayerName(socket);
         return;
     }
 
@@ -354,23 +264,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     EnterLobby(socket, lobby, name);
 
     // Send information about successfully adding to lobby
-    Message message = Message(static_cast<int>(MessageToClient::CONNECT));
-
-    rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
-
-    // Handle errors
-    if (rv == -1)
-    {
-        if (errno != EWOULDBLOCK)
-        {
-            std::cerr << "ERROR: Failed to send message of type: CONNECT" << std::endl;
-        }
-        else
-        {
-            std::cerr << "INFO: The send buffer is full, CONNECT NOT handled" << std::endl;
-        }
-        return;
-    }
+    ConfirmConnect(socket);
 }
 
 void Server::Read(int socket)
@@ -561,6 +455,7 @@ void Server::Run()
 
     while (true)
     {
+        sleep(1);
         FD_SET(serverSocket, &reading); // Set server socket for accepting connections
         writing = descriptors;          // Set all descriptors to handle messages
 
