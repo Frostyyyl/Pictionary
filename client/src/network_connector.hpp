@@ -35,13 +35,13 @@ public:
     void HandleCanvasChange(SDL_Texture *tex)
     {
         // Here could be network canvas handling
-        std::cout << "Network got updated texture" << std::endl;
+        //std::cout << "Network got updated texture" << std::endl;
     }
 
-    void HandleNewMessage(std::string nickname, std::string message)
+    void HandleNewMessage(std::string message)
     {
         // Here could be network messages handling
-        std::cout << "Network got new message from: " << nickname
-                  << "; content: " << message << std::endl;
+        //std::cout << "Network got new message from: " << nickname
+        //          << "; content: " << message << std::endl;
     }
 };

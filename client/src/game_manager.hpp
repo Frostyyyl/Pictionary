@@ -15,10 +15,10 @@ private:
     SDL_Window *window;
     Scene *currentScene;
     InputManager *inputManager;
+    GameMode mode = GameMode::STANDBY;
 
 public:
     bool wasSceneChanged;
-    Player *currentPlayer;
     bool isRunning;
 
     static SDL_Renderer *renderer;
@@ -31,6 +31,7 @@ public:
     void Exit();
 
     void ChangeCurrentScene(SceneType newScene);
-
     void RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable);
+    void SetGameMode(GameMode mode) { this->mode = mode; }
+    GameMode GetGameMode() { return mode; }
 };

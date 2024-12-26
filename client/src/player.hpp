@@ -4,46 +4,9 @@
 #include <iostream>
 #include <string>
 
-enum GameMode
+enum class GameMode
 {
     STANDBY,
     DRAW,
     GUESS
-};
-
-class Player
-{
-private:
-    int ID;
-    std::string nickname;
-    GameMode gameMode;
-
-public:
-    Player(int id, std::string name)
-    {
-        ID = id;
-        nickname = name;
-        gameMode = STANDBY;
-    }
-    ~Player() {}
-
-    int getID()
-    {
-        return ID;
-    }
-
-    std::string GetNickname()
-    {
-        return nickname;
-    }
-
-    GameMode GetGameMode()
-    {
-        return gameMode;
-    }
-
-    void ChangeGameMode(GameMode newGameMode)
-    {
-        gameMode = newGameMode;
-    }
 };

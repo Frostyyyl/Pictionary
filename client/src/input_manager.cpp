@@ -39,7 +39,6 @@ void InputManager::HandleEvent()
                 continue;
             if (!obj.lock().get()->isClicked(event))
                 continue;
-            std::cout << name << std::endl;
             if (name == "Canvas")
             {
                 isDrawing = true;
@@ -69,6 +68,10 @@ void InputManager::HandleEvent()
         if (interactables.find("TextInput") != interactables.end())
         {
             interactables["TextInput"].lock().get()->HandleEvent(event);
+        } 
+        else if (interactables.find("LobbyNameInput") != interactables.end())
+        {
+            interactables["LobbyNameInput"].lock().get()->HandleEvent(event);
         }
     }
 }

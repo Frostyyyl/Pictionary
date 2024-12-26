@@ -8,11 +8,11 @@
 class LobbyConnectInfo 
 {
 public:
-    static constexpr short MAX_LOBBY_NAME_SIZE = 32;
-    static constexpr short MAX_LOBBY_PASSWORD_SIZE = 64;
-    static constexpr short MAX_CLIENT_NAME_SIZE = 32;
+    static constexpr short MAX_LOBBY_NAME_SIZE = 16;
+    static constexpr short MAX_LOBBY_PASSWORD_SIZE = 16;
+    static constexpr short MAX_CLIENT_NAME_SIZE = 16;
 
-    LobbyConnectInfo(const std::string& lobby, const std::string& name, const std::string& password) 
+    LobbyConnectInfo(const std::string& lobby, const std::string& name, const std::string& password)
     {
         lobby.copy(this->lobby.data(), MAX_LOBBY_NAME_SIZE);
         this->lobby[MAX_LOBBY_NAME_SIZE] = '\0';

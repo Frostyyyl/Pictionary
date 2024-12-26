@@ -13,7 +13,6 @@ SDL_Renderer *GameManager::renderer = nullptr;
 
 GameManager::GameManager()
 {
-    currentPlayer = nullptr;
     inputManager = nullptr;
     wasSceneChanged = false;
 }
@@ -112,8 +111,7 @@ void GameManager::ChangeCurrentScene(SceneType newScene)
         // BE CAREFUL WITH THIS FUNCTION FOR NOW
         currentScene->DeleteScene();
 
-        currentPlayer = new Player(1, "player");
-        currentPlayer->ChangeGameMode(DRAW);
+        GameManager::getInstance().SetGameMode(GameMode::GUESS);
 
         currentScene = CreateGameScene();
     }

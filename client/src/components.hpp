@@ -11,7 +11,16 @@
 // Used in canvas
 struct Position
 {
-    int x, y;
+    int x = {}, y = {};
+};
+
+class Padding
+{
+public:
+    int x = {}, y = {};
+
+    Padding(int x, int y = -14) : x(x), y(y) {}
+    Padding() {}
 };
 
 class SpriteRenderer : public Component
@@ -34,12 +43,14 @@ class TextObject : public Component
 {
 private:
     SDL_Texture *tex;
+    int wrapLength;
 
 public:
     // here because text input wants to access it
     Text text;
 
-    TextObject(int x, int y, const std::string& content = "", const std::string& name = "");
+    TextObject(int x, int y, const std::string& content = "", const std::string& name = "", int wrapLength = 500);
+    TextObject(int x, int y, int wrapLength = 500);
     ~TextObject() 
     {
         SDL_DestroyTexture(tex);
@@ -67,6 +78,25 @@ public:
     Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string& name = "");
     Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func, const std::string& name = "");
     ~Button() {}
+
+    void HandleEvent(SDL_Event event) override;
+    void Update() override;
+};
+
+class TextButton : public Interactable
+{
+private:
+    Padding padding;
+    TextObject text;
+    SDL_Texture *tex;
+    std::function<void()> onClick;
+
+public:
+    TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, const char *filename, 
+        std::function<void()> func, const std::string& name = "");
+    TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, Uint32 color, 
+        std::function<void()> func, const std::string& name = "");
+    ~TextButton() {}
 
     void HandleEvent(SDL_Event event) override;
     void Update() override;
@@ -101,7 +131,8 @@ private:
     bool isClicked(SDL_Event event);
 
 public:
-    TextInput(int x, int y, int w, int h, MessageWindow *window, const std::string& name = "") : Interactable(name), text(x, y)
+    TextInput(int x, int y, int w, int h, MessageWindow *window, const std::string& name = "") 
+        : Interactable(name), text(x, y, 100)
     {
         rect = {x, y, w, h};
         msgWindow = window;
@@ -110,6 +141,28 @@ public:
 
     std::string GetText() { return text.text.text; }
     void SendMessage();
+
+    void HandleEvent(SDL_Event event) override;
+    void Update() override;
+};
+
+class FixedTextInput : public Interactable
+{
+private:
+    TextObject text;
+    int maxSize;
+
+    bool isClicked(SDL_Event event);
+
+public:
+    FixedTextInput(int x, int y, int w, int h, int maxSize, const std::string& name = "") 
+        : Interactable(name), text(x, y, 400), maxSize(maxSize)
+    {
+        rect = {x, y, w, h};
+    }
+    ~FixedTextInput() {};
+
+    std::string GetText() { return text.text.text; }
 
     void HandleEvent(SDL_Event event) override;
     void Update() override;

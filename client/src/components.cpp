@@ -22,9 +22,18 @@ void SpriteRenderer::Update()
     TextureManager::Draw(tex, rect);
 }
 
-TextObject::TextObject(int x, int y, const std::string& content, const std::string& name) : Component(name)
+TextObject::TextObject(int x, int y, const std::string& content, const std::string& name, int wrapLength) 
+    : Component(name), wrapLength(wrapLength)
 {
     text.text = content;
+    rect.x = x;
+    rect.y = y;
+    LoadText();
+}
+TextObject::TextObject(int x, int y, int wrapLength) 
+    : Component(""), wrapLength(wrapLength)
+{
+    text.text = "";
     rect.x = x;
     rect.y = y;
     LoadText();
@@ -32,7 +41,7 @@ TextObject::TextObject(int x, int y, const std::string& content, const std::stri
 
 void TextObject::LoadText()
 {
-    tex = TextManager::getInstance().LoadText(TextManager::getInstance().getFont(), text.text, rect);
+    tex = TextManager::getInstance().LoadText(TextManager::getInstance().getFont(), text.text, rect, wrapLength);
 }
 
 void TextObject::Update()
@@ -72,10 +81,35 @@ void TextInput::SendMessage()
 {
     std::string msg = text.text.text;
     msgWindow->AddMessage(msg);
-    NetworkConnector::getInstance().HandleNewMessage(GameManager::getInstance().currentPlayer->GetNickname(), msg);
+    NetworkConnector::getInstance().HandleNewMessage(msg);
 
     text.text.text = "";
     text.LoadText();
+}
+
+void FixedTextInput::HandleEvent(SDL_Event event)
+{
+    if (event.type == SDL_TEXTINPUT)
+    {
+        if ((int)text.text.text.size() < maxSize) 
+        {
+            text.text.text += event.text.text;
+            text.LoadText();
+        }
+    }
+    else if (event.type == SDL_KEYDOWN)
+    {
+        if (event.key.keysym.sym == SDLK_BACKSPACE && !text.text.text.empty())
+        {
+            text.text.text.pop_back();
+            text.LoadText();
+        }
+    }
+}
+
+void FixedTextInput::Update()
+{
+    text.Update();
 }
 
 Button::Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string& name) : Interactable(name)
@@ -101,6 +135,36 @@ void Button::HandleEvent(SDL_Event event)
 void Button::Update()
 {
     TextureManager::Draw(tex, rect);
+}
+
+TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, 
+    const char *filename, std::function<void()> func, const std::string& name) 
+    : Interactable(name), text(x + padding.x, (y + h / 2) + padding.y, text, name, w)
+{
+    rect = {x, y, w, h};
+    tex = TextureManager::LoadTexture(filename);
+    onClick = func;
+}
+
+TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, 
+    Uint32 color, std::function<void()> func, const std::string& name) 
+    : Interactable(name), text(x + padding.x, (y + h / 2) + padding.y, text, name, w - padding.x)
+{
+    rect = {x, y, w, h};
+    tex = TextureManager::LoadSolidColor(w, h, color);
+    onClick = func;
+}
+
+void TextButton::HandleEvent(SDL_Event event)
+{
+    if (event.type == SDL_MOUSEBUTTONDOWN)
+        onClick();
+}
+
+void TextButton::Update()
+{
+    TextureManager::Draw(tex, rect);
+    text.Update();
 }
 
 void MessageWindow::Update()

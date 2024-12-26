@@ -228,7 +228,7 @@ bool NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
-        error = "Unexpected error occured, please try again";
+        error = "This lobby no longer exists, please try refreshing";
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
         error = "Unfortunately someone already took this name, please pick another (non-empty) one";

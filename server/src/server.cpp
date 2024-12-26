@@ -208,7 +208,7 @@ void Server::ConnectToLobby(int socket, int message_size)
 
 
     // Make sure that lobby name is correct
-    if (lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE){
+    if (!lobbies.hasLobby(lobby) || lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE){
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
 
         // Send information about incorrect lobby name
