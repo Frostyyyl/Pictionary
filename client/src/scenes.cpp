@@ -41,21 +41,21 @@ Scene *CreateLobbyScene()
                 // Lobby name input
                 auto txt = std::make_shared<TextObject>(220, 80, "Enter Lobby Name", "LobbyNameText");
                 newScene->AddObject(txt);
-                auto txtInput = std::make_shared<FixedTextInput>(220, 100, 200, 20, LobbyConnectInfo::MAX_LOBBY_NAME_SIZE, "LobbyNameInput");
+                auto txtInput = std::make_shared<FixedTextInput>(220, 100, 200, 20, ConnectInfo::MAX_LOBBY_NAME_SIZE, "LobbyNameInput");
                 newScene->AddObject(txtInput);
                 GameManager::getInstance().RegisterInteractable("LobbyNameInput", txtInput);
 
                 // Password input
                 txt = std::make_shared<TextObject>(220, 120, "Add Password", "PasswordText");
                 newScene->AddObject(txt);
-                txtInput = std::make_shared<FixedTextInput>(220, 140, 200, 20, LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput");
+                txtInput = std::make_shared<FixedTextInput>(220, 140, 200, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput");
                 newScene->AddObject(txtInput);
                 GameManager::getInstance().RegisterInteractable("PasswordInput", txtInput);
 
                 // Player name input
                 txt = std::make_shared<TextObject>(220, 160, "Enter Player Name", "PlayerNameText");
                 newScene->AddObject(txt);
-                txtInput = std::make_shared<FixedTextInput>(220, 180, 200, 20, LobbyConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput");
+                txtInput = std::make_shared<FixedTextInput>(220, 180, 200, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput");
                 newScene->AddObject(txtInput);
                 GameManager::getInstance().RegisterInteractable("PlayerNameInput", txtInput);
 
@@ -130,7 +130,7 @@ Scene *CreateLobbyScene()
                     auto txt = std::make_shared<TextObject>(220, 320, "Enter Player Name", "PlayerNameText2");
                     newScene->AddObject(txt); 
                     auto txtInput = std::make_shared<FixedTextInput>(420, 320, 200, 20, 
-                        LobbyConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2");
+                        ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2");
                     newScene->AddObject(txtInput);
                     GameManager::getInstance().RegisterInteractable("PlayerNameInput2", txtInput);
 
@@ -141,7 +141,7 @@ Scene *CreateLobbyScene()
                         txt = std::make_shared<TextObject>(220, 340, "Enter Password", "PasswordText2");
                         newScene->AddObject(txt); 
                         txtInput = std::make_shared<FixedTextInput>(420, 340, 200, 20, 
-                            LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2");
+                            ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2");
                         newScene->AddObject(txtInput);
                         GameManager::getInstance().RegisterInteractable("PasswordInput2", txtInput);
                     }

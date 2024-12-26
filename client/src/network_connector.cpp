@@ -115,7 +115,7 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
         return false;
     }
 
-    LobbyConnectInfo info = LobbyConnectInfo(lobby, name, password);
+    ConnectInfo info = ConnectInfo(lobby, name, password);
     Message message = Message(static_cast<int>(MessageToServer::CREATE_LOBBY), sizeof(info));
 
     // Prepare error message in case of failure
@@ -137,7 +137,7 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
     // Handle errors
     if (rv == -1)
     {
-        std::cerr << "ERROR: While creating lobby failed to send: LobbyConnectInfo" << std::endl;
+        std::cerr << "ERROR: While creating lobby failed to send: ConnectInfo" << std::endl;
         return false;
     }
 
@@ -185,7 +185,7 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
         return false;
     }
 
-    LobbyConnectInfo info = LobbyConnectInfo(lobby, name, password);
+    ConnectInfo info = ConnectInfo(lobby, name, password);
     Message message = Message(static_cast<int>(MessageToServer::CONNECT_TO_LOBBY), sizeof(info));
 
     error = "Failed to connect with lobby, please try again";
@@ -206,7 +206,7 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
     // Handle errors
     if (rv == -1)
     {
-        std::cerr << "ERROR: While connecting to lobby failed to send: LobbyConnectInfo" << std::endl;
+        std::cerr << "ERROR: While connecting to lobby failed to send: ConnectInfo" << std::endl;
         return false;
     }
     // Receive the response

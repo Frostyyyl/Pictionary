@@ -74,20 +74,64 @@ void Server::SendLobbyList(int socket)
         }
         else
         {
-            std::cerr << "INFO: The send buffer is full, LobbyInfoList NOT handled" << std::endl;
+            std::cerr << "INFO: The send buffer is full, SendLobbyList NOT handled" << std::endl;
         }
     }
 }
 
 void Server::SendPlayerList(int socket)
 {
-    // TODO: Implement sending client list of a lobby
-    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_LOBBIES));
+    PlayerInfoList list;
+    std::string lobby = clients.GetClient(socket).GetCurrentLobby(); 
+
+    // List player names
+    for (auto i : lobbies.GetLobby(lobby).GetNames())
+    {
+        PlayerInfo info = PlayerInfo(i);
+
+        list.AddPlayerInfo(info);
+    }
+
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_PLAYERS), sizeof(list));
+
+    // Send the message type
+    int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        if (errno != EWOULDBLOCK)
+        {
+            std::cerr << "ERROR: Failed to send message of type: UPLOAD_PLAYERS" << std::endl;
+        }
+        else
+        {
+            std::cerr << "INFO: The send buffer is full, UPLOAD_PLAYERS NOT handled" << std::endl;
+        }
+        return;
+    }
+
+    // Send the lobbies list to client
+    rv = send(socket, &list, sizeof(list), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        if (errno != EWOULDBLOCK)
+        {
+            std::cerr << "ERROR: Failed to send: PlayerInfoList" << std::endl;
+        }
+        else
+        {
+            std::cerr << "INFO: The send buffer is full, SendPlayerList NOT handled" << std::endl;
+        }
+    }
+
 }
 
 void Server::CreateLobby(int socket, int message_size)
 {
-    LobbyConnectInfo info;
+    ConnectInfo info;
 
     // Read the lobby info
     int rv = recv(socket, &info, message_size, MSG_DONTWAIT);
@@ -111,7 +155,7 @@ void Server::CreateLobby(int socket, int message_size)
     std::string password = info.GetPassword();
 
     // Check if the lobby name is unique/correct
-    if (lobbies.hasLobby(lobby) || lobby.empty() || lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE)
+    if (lobbies.hasLobby(lobby) || lobby.empty() || lobby.size() > ConnectInfo::MAX_LOBBY_NAME_SIZE)
     {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
 
@@ -135,7 +179,7 @@ void Server::CreateLobby(int socket, int message_size)
     }
 
     // Make sure that player name is correct
-    if (name.empty() || name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE)
+    if (name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE)
     {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PLAYER_NAME));
 
@@ -159,7 +203,7 @@ void Server::CreateLobby(int socket, int message_size)
     }
 
     // Make sure that password is correct
-    if (password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
+    if (password.size() > ConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
     {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PASSWORD));
 
@@ -211,7 +255,7 @@ void Server::CreateLobby(int socket, int message_size)
 
 void Server::ConnectToLobby(int socket, int message_size)
 {
-    LobbyConnectInfo info;
+    ConnectInfo info;
 
     // Read the client info
     int rv = recv(socket, &info, message_size, MSG_DONTWAIT);
@@ -235,7 +279,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     std::string name = info.GetPlayerName();
 
     // Make sure that lobby name is correct
-    if (!lobbies.hasLobby(lobby) || lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE)
+    if (!lobbies.hasLobby(lobby) || lobby.size() > ConnectInfo::MAX_LOBBY_NAME_SIZE)
     {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
 
@@ -259,7 +303,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     }
 
     // Check if password is correct
-    if (lobbies.GetLobby(lobby).GetPassword() != password || password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
+    if (lobbies.GetLobby(lobby).GetPassword() != password || password.size() > ConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
     {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PASSWORD));
 
@@ -283,7 +327,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     }
 
     // Check if player name is unique/correct
-    if (lobbies.GetLobby(lobby).hasPlayerName(name) || name.empty() || name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE)
+    if (lobbies.GetLobby(lobby).hasPlayerName(name) || name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE)
     {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PLAYER_NAME));
 
@@ -357,11 +401,18 @@ void Server::Read(int socket)
     case MessageToServer::CONNECT_TO_LOBBY:
         ConnectToLobby(socket, message.GetSize());
         break;
-    case MessageToServer::START_ROUND:
+    case MessageToServer::REQUEST_PLAYERS:
+        SendPlayerList(socket);
         break;
     case MessageToServer::UPLOAD_CANVAS:
         break;
+    case MessageToServer::REQUEST_CANVAS:
+        break;
     case MessageToServer::UPLOAD_TEXT:
+        break;
+    case MessageToServer::REQUEST_CHAT:
+        break;
+    case MessageToServer::START_ROUND:
         break;
 
     // Remove from descriptors and lobby, close socket
@@ -510,8 +561,6 @@ void Server::Run()
 
     while (true)
     {
-        sleep(1); // TODO: Remove later
-
         FD_SET(serverSocket, &reading); // Set server socket for accepting connections
         writing = descriptors;          // Set all descriptors to handle messages
 
