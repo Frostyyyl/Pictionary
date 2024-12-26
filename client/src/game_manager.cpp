@@ -80,7 +80,6 @@ void GameManager::Run()
 
         if (currentScene->sceneType == SceneType::GAME)
         {
-
         }
 
         if (wasSceneChanged)
@@ -121,10 +120,11 @@ void GameManager::ChangeCurrentScene(SceneType newScene)
         currentScene->DeleteScene();
 
         // Inicialize connection with server
-        if (!NetworkConnector::getInstance().isInitialized()){
+        if (!NetworkConnector::getInstance().isInitialized())
+        {
             NetworkConnector::getInstance().Init(1100, "127.0.0.1");
         }
-        
+
         currentScene = CreateLobbyScene();
     }
     wasSceneChanged = true;

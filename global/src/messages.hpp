@@ -5,14 +5,14 @@
 
 #include "message_types.hpp"
 
-class LobbyConnectInfo 
+class LobbyConnectInfo
 {
 public:
     static constexpr short MAX_LOBBY_NAME_SIZE = 16;
     static constexpr short MAX_LOBBY_PASSWORD_SIZE = 16;
     static constexpr short MAX_CLIENT_NAME_SIZE = 16;
 
-    LobbyConnectInfo(const std::string& lobby, const std::string& name, const std::string& password)
+    LobbyConnectInfo(const std::string &lobby, const std::string &name, const std::string &password)
     {
         lobby.copy(this->lobby.data(), MAX_LOBBY_NAME_SIZE);
         this->lobby[MAX_LOBBY_NAME_SIZE] = '\0';
@@ -41,24 +41,27 @@ class LobbyInfo
 public:
     static constexpr short MAX_PLAYERS_PER_LOBBY = 8; // Currently fixed for all lobbies
 
-    LobbyInfo(const std::string& name, int playerCount, std::string password) 
-        : playerCount(playerCount) 
+    LobbyInfo(const std::string &name, int playerCount, std::string password)
+        : playerCount(playerCount)
     {
         name.copy(this->name.data(), LobbyConnectInfo::MAX_LOBBY_NAME_SIZE);
         this->name[LobbyConnectInfo::MAX_LOBBY_NAME_SIZE] = '\0';
 
-        if (password.empty()){
+        if (password.empty())
+        {
             this->password = false;
-        } else {
+        }
+        else
+        {
             this->password = true;
         }
     }
     LobbyInfo() = default;
     ~LobbyInfo() noexcept = default;
 
-    int GetPlayerCount() { return playerCount; }
-    std::string GetLobbyName() { return name.data(); }
-    bool hasPassword() { return password; }
+    int GetPlayerCount() const { return playerCount; }
+    std::string GetLobbyName() const { return name.data(); }
+    bool hasPassword() const { return password; }
 
 private:
     std::array<char, LobbyConnectInfo::MAX_LOBBY_NAME_SIZE + 1> name = {};
@@ -75,7 +78,7 @@ public:
     ~LobbyInfoList() noexcept = default;
 
     void AddLobbyInfo(LobbyInfo info) { list[size++] = info; }
-    LobbyInfo& GetLobbyInfo(int index) { return list[index]; }
+    LobbyInfo &GetLobbyInfo(int index) { return list[index]; }
     int GetSize() const { return size; }
 
 private:

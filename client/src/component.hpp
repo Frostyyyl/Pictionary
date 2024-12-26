@@ -10,7 +10,7 @@ protected:
     std::string name;
 
 public:
-    Component(const std::string& name) : name(name) {}
+    Component(const std::string &name) : name(name) {}
     virtual ~Component() {}
     virtual void Update() = 0;
     std::string GetName() { return name; }

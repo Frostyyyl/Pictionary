@@ -65,13 +65,9 @@ void InputManager::HandleEvent()
              (event.type == SDL_KEYDOWN &&
               (event.key.keysym.sym == SDLK_BACKSPACE || event.key.keysym.sym == SDLK_RETURN)))
     {
-        if (interactables.find("TextInput") != interactables.end())
+        if (interactables.find(GameManager::getInstance().GetCurrentTextInput()) != interactables.end())
         {
-            interactables["TextInput"].lock().get()->HandleEvent(event);
-        } 
-        else if (interactables.find("LobbyNameInput") != interactables.end())
-        {
-            interactables["LobbyNameInput"].lock().get()->HandleEvent(event);
+            interactables[GameManager::getInstance().GetCurrentTextInput()].lock().get()->HandleEvent(event);
         }
     }
 }

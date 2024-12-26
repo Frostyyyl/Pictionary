@@ -38,7 +38,7 @@ void NetworkConnector::Init(int port, std::string address)
         close(serverSocket);
         exit(EXIT_FAILURE);
     }
-    
+
     std::cout << "Connected with server: " << address << ":" << port << std::endl;
     isInit = true;
 }
@@ -68,7 +68,7 @@ LobbyInfoList NetworkConnector::RequestLobbies()
 
     // Read the message type alongside the size of lobbies
     rv = read(serverSocket, &message, sizeof(Message));
-    
+
     // Handle errors
     if (rv == -1)
     {
@@ -90,26 +90,37 @@ LobbyInfoList NetworkConnector::RequestLobbies()
     return list;
 }
 
-bool NetworkConnector::ValidateData(const std::string& lobby, const std::string& name, const std::string& password)
+bool NetworkConnector::ValidateData(const std::string &lobby, const std::string &name, const std::string &password)
 {
-    if (lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE){
+    if (lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE)
+    {
         error = "Given lobby name is too long, please try again";
-    } else if (lobby.empty()){
+    }
+    else if (lobby.empty())
+    {
         error = "Lobby name must be non-empty, please try again";
-    } else if (name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE){
+    }
+    else if (name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE)
+    {
         error = "Given player name is too long, please try again";
-    } else if (name.empty()){
+    }
+    else if (name.empty())
+    {
         error = "Player name must be non-empty, please try again";
-    } else if (password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE){
+    }
+    else if (password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
+    {
         error = "Given password is too long, please try again";
-    } else {
+    }
+    else
+    {
         return true;
     }
 
     return false;
 }
 
-bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& name, const std::string& password)
+bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &name, const std::string &password)
 {
     if (!ValidateData(lobby, name, password))
     {
@@ -151,7 +162,6 @@ bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
         std::cerr << "ERROR: Failed to receive message in method: CreateLobby" << std::endl;
         return false;
     }
-    
 
     // Handle based on response
     switch (static_cast<MessageToClient>(message.GetMessageType()))
@@ -183,7 +193,7 @@ bool NetworkConnector::CreateLobby(const std::string& lobby, const std::string& 
     return false;
 }
 
-bool NetworkConnector::ConnectToLobby(const std::string& lobby, const std::string& name, const std::string& password)
+bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::string &name, const std::string &password)
 {
     if (!ValidateData(lobby, name, password))
     {
@@ -251,4 +261,4 @@ bool NetworkConnector::ConnectToLobby(const std::string& lobby, const std::strin
     }
 
     return false;
-} 
+}

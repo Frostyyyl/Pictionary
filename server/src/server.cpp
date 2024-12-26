@@ -8,9 +8,9 @@ Server &Server::getInstance()
     return INSTANCE;
 }
 
-Server::~Server() 
+Server::~Server()
 {
-    for (auto& socket : clients.GetSockets())
+    for (auto &socket : clients.GetSockets())
     {
         close(socket);
     }
@@ -22,10 +22,12 @@ int Server::SetNonBlocking(int socket)
 {
     // Read current flags
     int flags = fcntl(socket, F_GETFL, 0);
-    if (flags == -1) return -1;
+    if (flags == -1)
+        return -1;
     // Set non block
-    if (fcntl(socket, F_SETFL, flags | O_NONBLOCK) == -1) return -1;
-    
+    if (fcntl(socket, F_SETFL, flags | O_NONBLOCK) == -1)
+        return -1;
+
     return 0;
 }
 
@@ -37,7 +39,7 @@ void Server::SendLobbyList(int socket)
     for (auto i : lobbies.GetLobbyNames(LobbyInfoList::MAX_LOBBIES_PER_PAGE))
     {
         LobbyInfo info = LobbyInfo(i, lobbies.GetLobby(i).GetSize(), lobbies.GetLobby(i).GetPassword());
-        
+
         list.AddLobbyInfo(info);
     }
 
@@ -49,9 +51,12 @@ void Server::SendLobbyList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK){
+        if (errno != EWOULDBLOCK)
+        {
             std::cerr << "ERROR: Failed to send message of type: UPLOAD_LOBBIES" << std::endl;
-        } else {
+        }
+        else
+        {
             std::cerr << "INFO: The send buffer is full, UPLOAD_LOBBIES NOT handled" << std::endl;
         }
         return;
@@ -63,13 +68,15 @@ void Server::SendLobbyList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK){
+        if (errno != EWOULDBLOCK)
+        {
             std::cerr << "ERROR: Failed to send: LobbyInfoList" << std::endl;
-        } else {
+        }
+        else
+        {
             std::cerr << "INFO: The send buffer is full, LobbyInfoList NOT handled" << std::endl;
         }
     }
-    
 }
 
 void Server::SendPlayerList(int socket)
@@ -88,9 +95,12 @@ void Server::CreateLobby(int socket, int message_size)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK){
+        if (errno != EWOULDBLOCK)
+        {
             std::cerr << "ERROR: Failed to receive message of type: CREATE_LOBBY" << std::endl;
-        } else {
+        }
+        else
+        {
             std::cerr << "INFO: The send buffer is full, CREATE_LOBBY NOT handled" << std::endl;
         }
         return;
@@ -101,7 +111,8 @@ void Server::CreateLobby(int socket, int message_size)
     std::string password = info.GetPassword();
 
     // Check if the lobby name is unique/correct
-    if (lobbies.hasLobby(lobby) || lobby.empty() || lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE){
+    if (lobbies.hasLobby(lobby) || lobby.empty() || lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE)
+    {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
 
         // Send information about non-unique/incorrect lobby name
@@ -110,9 +121,12 @@ void Server::CreateLobby(int socket, int message_size)
         // Handle errors
         if (rv == -1)
         {
-            if (errno != EWOULDBLOCK){
+            if (errno != EWOULDBLOCK)
+            {
                 std::cerr << "ERROR: Failed to send message of type: INCORRECT_LOBBY_NAME" << std::endl;
-            } else {
+            }
+            else
+            {
                 std::cerr << "INFO: The send buffer is full, INCORRECT_LOBBY_NAME NOT handled" << std::endl;
             }
             return;
@@ -121,7 +135,8 @@ void Server::CreateLobby(int socket, int message_size)
     }
 
     // Make sure that player name is correct
-    if (name.empty() || name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE){
+    if (name.empty() || name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE)
+    {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PLAYER_NAME));
 
         // Send information about incorrect player name
@@ -130,9 +145,12 @@ void Server::CreateLobby(int socket, int message_size)
         // Handle errors
         if (rv == -1)
         {
-            if (errno != EWOULDBLOCK){
+            if (errno != EWOULDBLOCK)
+            {
                 std::cerr << "ERROR: Failed to send message of type: INCORRECT_PLAYER_NAME" << std::endl;
-            } else {
+            }
+            else
+            {
                 std::cerr << "INFO: The send buffer is full, INCORRECT_PLAYER_NAME NOT handled" << std::endl;
             }
             return;
@@ -141,7 +159,8 @@ void Server::CreateLobby(int socket, int message_size)
     }
 
     // Make sure that password is correct
-    if (password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE){
+    if (password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
+    {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PASSWORD));
 
         // Send information about incorrect password
@@ -150,9 +169,12 @@ void Server::CreateLobby(int socket, int message_size)
         // Handle errors
         if (rv == -1)
         {
-            if (errno != EWOULDBLOCK){
+            if (errno != EWOULDBLOCK)
+            {
                 std::cerr << "ERROR: Failed to send message of type: INCORRECT_PASSWORD" << std::endl;
-            } else {
+            }
+            else
+            {
                 std::cerr << "INFO: The send buffer is full, INCORRECT_PASSWORD NOT handled" << std::endl;
             }
             return;
@@ -167,7 +189,7 @@ void Server::CreateLobby(int socket, int message_size)
     // Add client do lobby
     EnterLobby(socket, lobby, name);
 
-    // Send information about successfully creating a lobby 
+    // Send information about successfully creating a lobby
     Message message = Message(static_cast<int>(MessageToClient::CONNECT));
 
     rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
@@ -175,9 +197,12 @@ void Server::CreateLobby(int socket, int message_size)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK){
+        if (errno != EWOULDBLOCK)
+        {
             std::cerr << "ERROR: Failed to send message of type: CONNECT" << std::endl;
-        } else {
+        }
+        else
+        {
             std::cerr << "INFO: The send buffer is full, CONNECT NOT handled" << std::endl;
         }
         return;
@@ -194,9 +219,12 @@ void Server::ConnectToLobby(int socket, int message_size)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK){
+        if (errno != EWOULDBLOCK)
+        {
             std::cerr << "ERROR: Failed to receive message of type: CONNECT_TO_LOBBY" << std::endl;
-        } else {
+        }
+        else
+        {
             std::cerr << "INFO: The send buffer is full, CONNECT_TO_LOBBY NOT handled" << std::endl;
         }
         return;
@@ -206,9 +234,9 @@ void Server::ConnectToLobby(int socket, int message_size)
     std::string lobby = info.GetLobbyName();
     std::string name = info.GetPlayerName();
 
-
     // Make sure that lobby name is correct
-    if (!lobbies.hasLobby(lobby) || lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE){
+    if (!lobbies.hasLobby(lobby) || lobby.size() > LobbyConnectInfo::MAX_LOBBY_NAME_SIZE)
+    {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_LOBBY_NAME));
 
         // Send information about incorrect lobby name
@@ -217,9 +245,12 @@ void Server::ConnectToLobby(int socket, int message_size)
         // Handle errors
         if (rv == -1)
         {
-            if (errno != EWOULDBLOCK){
+            if (errno != EWOULDBLOCK)
+            {
                 std::cerr << "ERROR: Failed to send message of type: INCORRECT_LOBBY_NAME" << std::endl;
-            } else {
+            }
+            else
+            {
                 std::cerr << "INFO: The send buffer is full, INCORRECT_LOBBY_NAME NOT handled" << std::endl;
             }
             return;
@@ -228,7 +259,8 @@ void Server::ConnectToLobby(int socket, int message_size)
     }
 
     // Check if password is correct
-    if (lobbies.GetLobby(lobby).GetPassword() != password || password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE){
+    if (lobbies.GetLobby(lobby).GetPassword() != password || password.size() > LobbyConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
+    {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PASSWORD));
 
         // Send information about incorrect password
@@ -237,9 +269,12 @@ void Server::ConnectToLobby(int socket, int message_size)
         // Handle errors
         if (rv == -1)
         {
-            if (errno != EWOULDBLOCK){
+            if (errno != EWOULDBLOCK)
+            {
                 std::cerr << "ERROR: Failed to send message of type: INCORRECT_PASSWORD" << std::endl;
-            } else {
+            }
+            else
+            {
                 std::cerr << "INFO: The send buffer is full, INCORRECT_PASSWORD NOT handled" << std::endl;
             }
             return;
@@ -248,7 +283,8 @@ void Server::ConnectToLobby(int socket, int message_size)
     }
 
     // Check if player name is unique/correct
-    if (lobbies.GetLobby(lobby).hasPlayerName(name) || name.empty() || name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE){
+    if (lobbies.GetLobby(lobby).hasPlayerName(name) || name.empty() || name.size() > LobbyConnectInfo::MAX_CLIENT_NAME_SIZE)
+    {
         Message message = Message(static_cast<int>(MessageToClient::INCORRECT_PLAYER_NAME));
 
         // Send information about non-unique/incorrect player name
@@ -257,9 +293,12 @@ void Server::ConnectToLobby(int socket, int message_size)
         // Handle errors
         if (rv == -1)
         {
-            if (errno != EWOULDBLOCK){
+            if (errno != EWOULDBLOCK)
+            {
                 std::cerr << "ERROR: Failed to send message of type: INCORRECT_PLAYER_NAME" << std::endl;
-            } else {
+            }
+            else
+            {
                 std::cerr << "INFO: The send buffer is full, INCORRECT_PLAYER_NAME NOT handled" << std::endl;
             }
             return;
@@ -270,7 +309,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     // Add client do lobby
     EnterLobby(socket, lobby, name);
 
-    // Send information about successfully adding to lobby 
+    // Send information about successfully adding to lobby
     Message message = Message(static_cast<int>(MessageToClient::CONNECT));
 
     rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
@@ -278,9 +317,12 @@ void Server::ConnectToLobby(int socket, int message_size)
     // Handle errors
     if (rv == -1)
     {
-        if (errno != EWOULDBLOCK){
+        if (errno != EWOULDBLOCK)
+        {
             std::cerr << "ERROR: Failed to send message of type: CONNECT" << std::endl;
-        } else {
+        }
+        else
+        {
             std::cerr << "INFO: The send buffer is full, CONNECT NOT handled" << std::endl;
         }
         return;
@@ -336,15 +378,14 @@ void Server::Read(int socket)
 
 void Server::Write(int socket)
 {
-    
 }
 
 void Server::ExitLobby(int socket)
 {
     std::string lobby = clients.GetClient(socket).GetCurrentLobby();
-    std::cout << "Client: " << clients.GetClient(socket).GetAddress() 
-              << ":" << clients.GetClient(socket).GetPort() 
-              << " (\"" << lobbies.GetLobby(lobby).GetPlayerName(socket) 
+    std::cout << "Client: " << clients.GetClient(socket).GetAddress()
+              << ":" << clients.GetClient(socket).GetPort()
+              << " (\"" << lobbies.GetLobby(lobby).GetPlayerName(socket)
               << "\"), disconnected from lobby: \"" << lobby << "\"" << std::endl;
 
     lobbies.GetLobby(lobby).RemovePlayer(socket);
@@ -352,29 +393,30 @@ void Server::ExitLobby(int socket)
     if (lobbies.GetLobby(lobby).GetSize() == 0)
     {
         lobbies.RemoveLobby(lobby);
-        std::cout << "Closed lobby: \"" << lobby << "\"" << std::endl; 
+        std::cout << "Closed lobby: \"" << lobby << "\"" << std::endl;
     }
 
     clients.GetClient(socket).SetCurrentLobby("");
 }
 
-void Server::EnterLobby(int socket, const std::string& lobby, const std::string& name)
+void Server::EnterLobby(int socket, const std::string &lobby, const std::string &name)
 {
     clients.GetClient(socket).SetCurrentLobby(lobby);
     lobbies.GetLobby(lobby).AddPlayer(socket, name);
 
-    std::cout << "Client: " << clients.GetClient(socket).GetAddress() 
-              << ":" << clients.GetClient(socket).GetPort() 
+    std::cout << "Client: " << clients.GetClient(socket).GetAddress()
+              << ":" << clients.GetClient(socket).GetPort()
               << ", connected as: \"" << name << "\", with lobby: \"" << lobby << "\"" << std::endl;
 }
 
 void Server::Disconnect(int socket)
 {
-    if (!clients.GetClient(socket).GetCurrentLobby().empty()){
+    if (!clients.GetClient(socket).GetCurrentLobby().empty())
+    {
         ExitLobby(socket);
     }
-    std::cout << "Closed connection with: " << clients.GetClient(socket).GetAddress() 
-                << clients.GetClient(socket).GetPort() << std::endl;
+    std::cout << "Closed connection with: " << clients.GetClient(socket).GetAddress()
+              << clients.GetClient(socket).GetPort() << std::endl;
     clients.RemoveClient(socket);
     FD_CLR(socket, &descriptors);
     shutdown(socket, SHUT_RDWR);
@@ -422,7 +464,7 @@ void Server::Init(int port)
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
     serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    
+
     serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (serverSocket == -1)
     {
@@ -456,7 +498,7 @@ void Server::Init(int port)
     FD_ZERO(&descriptors);
     FD_ZERO(&reading);
     FD_ZERO(&writing);
-    
+
     FD_SET(serverSocket, &descriptors);
 
     maxSocket = serverSocket;
@@ -471,16 +513,19 @@ void Server::Run()
         sleep(1); // TODO: Remove later
 
         FD_SET(serverSocket, &reading); // Set server socket for accepting connections
-        writing = descriptors; // Set all descriptors to handle messages
+        writing = descriptors;          // Set all descriptors to handle messages
 
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
 
         int rc = select(maxSocket++, &reading, &writing, NULL, &timeout);
-        if (rc < 0){
+        if (rc < 0)
+        {
             std::cerr << "ERROR: Select failed" << std::endl;
             continue;
-        } else if (rc == 0){
+        }
+        else if (rc == 0)
+        {
             std::cout << "Timed out" << std::endl;
             continue;
         }
@@ -494,38 +539,40 @@ void Server::Run()
             FD_CLR(serverSocket, &reading);
         }
 
-        // Handle all clients that are writing 
+        // Handle all clients that are writing
         for (int socket = serverSocket + 1; socket <= maxSocket && rc > 0; socket++)
         {
             if (FD_ISSET(socket, &writing))
             {
                 rc--;
-                
+
                 Read(socket);
 
                 // Update max socket if necessary
-                if (socket == maxSocket) 
+                if (socket == maxSocket)
                 {
-                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors)) {
+                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors))
+                    {
                         maxSocket--;
                     }
                 }
             }
         }
 
-        // Handle all clients that are reading 
+        // Handle all clients that are reading
         for (int socket = serverSocket + 1; socket <= maxSocket && rc > 0; socket++)
         {
             if (FD_ISSET(socket, &reading))
             {
                 rc--;
-                
+
                 Write(socket);
 
                 // Update max socket if necessary
-                if (socket == maxSocket) 
+                if (socket == maxSocket)
                 {
-                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors)) {
+                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors))
+                    {
                         maxSocket--;
                     }
                 }

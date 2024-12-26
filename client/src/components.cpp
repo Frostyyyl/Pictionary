@@ -6,10 +6,9 @@
 #include "text_manager.hpp"
 #include "network_connector.hpp"
 
-
 // Lots of functions (update mostly) are just placeholders
 
-SpriteRenderer::SpriteRenderer(int x, int y, const char *filename, const std::string& name) : Component(name)
+SpriteRenderer::SpriteRenderer(int x, int y, const char *filename, const std::string &name) : Component(name)
 {
     tex = TextureManager::LoadTexture(filename);
     int w, h;
@@ -22,7 +21,7 @@ void SpriteRenderer::Update()
     TextureManager::Draw(tex, rect);
 }
 
-TextObject::TextObject(int x, int y, const std::string& content, const std::string& name, int wrapLength) 
+TextObject::TextObject(int x, int y, const std::string &content, const std::string &name, int wrapLength)
     : Component(name), wrapLength(wrapLength)
 {
     text.text = content;
@@ -30,7 +29,7 @@ TextObject::TextObject(int x, int y, const std::string& content, const std::stri
     rect.y = y;
     LoadText();
 }
-TextObject::TextObject(int x, int y, int wrapLength) 
+TextObject::TextObject(int x, int y, int wrapLength)
     : Component(""), wrapLength(wrapLength)
 {
     text.text = "";
@@ -70,6 +69,8 @@ void TextInput::HandleEvent(SDL_Event event)
                 SendMessage();
         }
     }
+    else if (event.type == SDL_MOUSEBUTTONDOWN)
+        GameManager::getInstance().SetCurrentTextInput(this->GetName());
 }
 
 void TextInput::Update()
@@ -91,7 +92,7 @@ void FixedTextInput::HandleEvent(SDL_Event event)
 {
     if (event.type == SDL_TEXTINPUT)
     {
-        if ((int)text.text.text.size() < maxSize) 
+        if ((int)text.text.text.size() < maxSize)
         {
             text.text.text += event.text.text;
             text.LoadText();
@@ -105,6 +106,8 @@ void FixedTextInput::HandleEvent(SDL_Event event)
             text.LoadText();
         }
     }
+    else if (event.type == SDL_MOUSEBUTTONDOWN)
+        GameManager::getInstance().SetCurrentTextInput(this->GetName());
 }
 
 void FixedTextInput::Update()
@@ -112,14 +115,14 @@ void FixedTextInput::Update()
     text.Update();
 }
 
-Button::Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string& name) : Interactable(name)
+Button::Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string &name) : Interactable(name)
 {
     rect = {x, y, w, h};
     tex = TextureManager::LoadTexture(filename);
     onClick = func;
 }
 
-Button::Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func, const std::string& name) : Interactable(name)
+Button::Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func, const std::string &name) : Interactable(name)
 {
     rect = {x, y, w, h};
     tex = TextureManager::LoadSolidColor(w, h, color);
@@ -137,12 +140,12 @@ void Button::Update()
     TextureManager::Draw(tex, rect);
 }
 
-TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, 
-    const char *filename, std::function<void()> func, const std::string& name) 
+TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string &text,
+                       const char *filename, std::function<void()> func, const std::string &name)
     : Button(x, y, w, h, filename, func, name), text(x + padding.x, (y + h / 2) + padding.y, text, name, w - padding.x) {}
 
-TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, 
-    Uint32 color, std::function<void()> func, const std::string& name) 
+TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string &text,
+                       Uint32 color, std::function<void()> func, const std::string &name)
     : Button(x, y, w, h, color, func, name), text(x + padding.x, (y + h / 2) + padding.y, text, name, w - padding.x) {}
 
 void TextButton::Update()
@@ -190,7 +193,7 @@ void MessageWindow::AddMessage(std::string message)
     }
 }
 
-Canvas::Canvas(const std::string& name) : Interactable(name)
+Canvas::Canvas(const std::string &name) : Interactable(name)
 {
     rect = {20, 20, 400, 400};
     tex = TextureManager::CreateCanvas(400, 400);

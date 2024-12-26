@@ -16,6 +16,7 @@ private:
     Scene *currentScene;
     InputManager *inputManager;
     GameMode mode = GameMode::STANDBY;
+    std::string currentTextInput = "_";
 
 public:
     bool wasSceneChanged;
@@ -34,4 +35,7 @@ public:
     void RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable);
     void SetGameMode(GameMode mode) { this->mode = mode; }
     GameMode GetGameMode() { return mode; }
+    void SetCurrentTextInput(const std::string &input) { currentTextInput = input; }
+    std::string GetCurrentTextInput() { return currentTextInput; }
+    void ResetCurrentTextInput() { currentTextInput = "_"; }
 };

@@ -29,11 +29,11 @@ private:
     SDL_Texture *tex;
 
 public:
-    SpriteRenderer(const std::string& name = "") : Component(name)
+    SpriteRenderer(const std::string &name = "") : Component(name)
     {
         rect = {100, 100, 20, 20};
     }
-    SpriteRenderer(int x, int y, const char *filename, const std::string& name = "");
+    SpriteRenderer(int x, int y, const char *filename, const std::string &name = "");
     ~SpriteRenderer() {}
 
     void Update() override;
@@ -49,9 +49,9 @@ public:
     // here because text input wants to access it
     Text text;
 
-    TextObject(int x, int y, const std::string& content = "", const std::string& name = "", int wrapLength = 500);
+    TextObject(int x, int y, const std::string &content = "", const std::string &name = "", int wrapLength = 500);
     TextObject(int x, int y, int wrapLength = 500);
-    ~TextObject() 
+    ~TextObject()
     {
         SDL_DestroyTexture(tex);
     }
@@ -75,8 +75,8 @@ protected:
     std::function<void()> onClick;
 
 public:
-    Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string& name = "");
-    Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func, const std::string& name = "");
+    Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string &name = "");
+    Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func, const std::string &name = "");
     virtual ~Button() {}
 
     virtual void HandleEvent(SDL_Event event) override;
@@ -90,10 +90,10 @@ private:
     TextObject text;
 
 public:
-    TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, const char *filename, 
-        std::function<void()> func, const std::string& name = "");
-    TextButton(int x, int y, int w, int h, Padding padding, const std::string& text, Uint32 color, 
-        std::function<void()> func, const std::string& name = "");
+    TextButton(int x, int y, int w, int h, Padding padding, const std::string &text, const char *filename,
+               std::function<void()> func, const std::string &name = "");
+    TextButton(int x, int y, int w, int h, Padding padding, const std::string &text, Uint32 color,
+               std::function<void()> func, const std::string &name = "");
     ~TextButton() {}
 
     void Update() override;
@@ -108,7 +108,7 @@ private:
     const int msgOffset = 6;
 
 public:
-    MessageWindow(int x, int y, int w, int h, const std::string& name = "") : Component(name)
+    MessageWindow(int x, int y, int w, int h, const std::string &name = "") : Component(name)
     {
         rect = {x, y, w, h};
     }
@@ -128,7 +128,7 @@ private:
     bool isClicked(SDL_Event event);
 
 public:
-    TextInput(int x, int y, int w, int h, MessageWindow *window, const std::string& name = "") 
+    TextInput(int x, int y, int w, int h, MessageWindow *window, const std::string &name = "")
         : Interactable(name), text(x, y, 100)
     {
         rect = {x, y, w, h};
@@ -149,11 +149,9 @@ private:
     TextObject text;
     int maxSize;
 
-    bool isClicked(SDL_Event event);
-
 public:
-    FixedTextInput(int x, int y, int w, int h, int maxSize, const std::string& name = "") 
-        : Interactable(name), text(x, y, 400), maxSize(maxSize)
+    FixedTextInput(int x, int y, int w, int h, int maxSize, const std::string &name = "")
+        : Interactable(name), text(x, y, 200), maxSize(maxSize)
     {
         rect = {x, y, w, h};
     }
@@ -174,8 +172,8 @@ private:
     Position prevPos;
 
 public:
-    Canvas(const std::string& name = "");
-    ~Canvas() 
+    Canvas(const std::string &name = "");
+    ~Canvas()
     {
         SDL_DestroyTexture(tex);
     }
