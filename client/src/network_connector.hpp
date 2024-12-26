@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include "../../global/src/message_types.hpp"
 #include "../../global/src/messages.hpp"
 
 class NetworkConnector
@@ -26,11 +27,12 @@ public:
     bool isInitialized() { return isInit; }
     void Init(int port, std::string address);
     void Exit();
+    std::string GetError();
     LobbyInfoList RequestLobbies();
     bool ValidateData(const std::string &lobby, const std::string &name, const std::string &password);
     bool CreateLobby(const std::string &lobby, const std::string &name, const std::string &password);
     bool ConnectToLobby(const std::string &lobby, const std::string &name, const std::string &password);
-    std::string GetError();
+    PlayerInfoList RequestPlayers();
 
     void HandleCanvasChange(SDL_Texture *tex)
     {

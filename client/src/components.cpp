@@ -6,11 +6,9 @@
 #include "text_manager.hpp"
 #include "network_connector.hpp"
 
-// Lots of functions (update mostly) are just placeholders
-
-SpriteRenderer::SpriteRenderer(int x, int y, const char *filename, const std::string &name) : Component(name)
+SpriteRenderer::SpriteRenderer(int x, int y, const std::string &filename, const std::string &name) : Component(name)
 {
-    tex = TextureManager::LoadTexture(filename);
+    tex = TextureManager::LoadTexture(filename.c_str());
     int w, h;
     SDL_QueryTexture(tex, NULL, NULL, &w, &h);
     rect = {x, y, w, h};
@@ -115,10 +113,10 @@ void FixedTextInput::Update()
     text.Update();
 }
 
-Button::Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string &name) : Interactable(name)
+Button::Button(int x, int y, int w, int h, const std::string &filename, std::function<void()> func, const std::string &name) : Interactable(name)
 {
     rect = {x, y, w, h};
-    tex = TextureManager::LoadTexture(filename);
+    tex = TextureManager::LoadTexture(filename.c_str());
     onClick = func;
 }
 
@@ -141,7 +139,7 @@ void Button::Update()
 }
 
 TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string &text,
-                       const char *filename, std::function<void()> func, const std::string &name)
+                       const std::string &filename, std::function<void()> func, const std::string &name)
     : Button(x, y, w, h, filename, func, name), text(x + padding.x, (y + h / 2) + padding.y, text, name, w - padding.x) {}
 
 TextButton::TextButton(int x, int y, int w, int h, Padding padding, const std::string &text,

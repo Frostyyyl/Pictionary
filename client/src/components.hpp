@@ -14,7 +14,7 @@ struct Position
     int x = {}, y = {};
 };
 
-class Padding
+struct Padding
 {
 public:
     int x = {}, y = {};
@@ -33,7 +33,7 @@ public:
     {
         rect = {100, 100, 20, 20};
     }
-    SpriteRenderer(int x, int y, const char *filename, const std::string &name = "");
+    SpriteRenderer(int x, int y, const std::string &filename, const std::string &name = "");
     ~SpriteRenderer() {}
 
     void Update() override;
@@ -75,7 +75,7 @@ protected:
     std::function<void()> onClick;
 
 public:
-    Button(int x, int y, int w, int h, const char *filename, std::function<void()> func, const std::string &name = "");
+    Button(int x, int y, int w, int h, const std::string &filename, std::function<void()> func, const std::string &name = "");
     Button(int x, int y, int w, int h, Uint32 color, std::function<void()> func, const std::string &name = "");
     virtual ~Button() {}
 
@@ -90,7 +90,7 @@ private:
     TextObject text;
 
 public:
-    TextButton(int x, int y, int w, int h, Padding padding, const std::string &text, const char *filename,
+    TextButton(int x, int y, int w, int h, Padding padding, const std::string &text, const std::string &filename,
                std::function<void()> func, const std::string &name = "");
     TextButton(int x, int y, int w, int h, Padding padding, const std::string &text, Uint32 color,
                std::function<void()> func, const std::string &name = "");

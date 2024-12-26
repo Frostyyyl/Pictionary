@@ -78,10 +78,6 @@ void GameManager::Run()
 
         inputManager->HandleEvent();
 
-        if (currentScene->sceneType == SceneType::GAME)
-        {
-        }
-
         if (wasSceneChanged)
         {
             wasSceneChanged = false;

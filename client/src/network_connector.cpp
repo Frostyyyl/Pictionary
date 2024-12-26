@@ -247,3 +247,42 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
 
     return false;
 }
+
+PlayerInfoList NetworkConnector::RequestPlayers()
+{
+    Message message = Message(static_cast<int>(MessageToServer::REQUEST_PLAYERS));
+    PlayerInfoList list;
+
+    // Send the message type
+    int rv = write(serverSocket, &message, sizeof(Message));
+
+    // Handle errors
+    if (rv == -1)
+    {
+        std::cerr << "ERROR: Could not send message of type: REQUEST_PLAYERS" << std::endl;
+        return list;
+    }
+
+    // Read the message type alongside the size of lobbies
+    rv = read(serverSocket, &message, sizeof(Message));
+
+    // Handle errors
+    if (rv == -1)
+    {
+        std::cerr << "ERROR: Could not receive message of type: UPLOAD_PLAYERS" << std::endl;
+        return list;
+    }
+
+    // Read the list of lobbies
+    rv = read(serverSocket, &list, message.GetSize());
+
+    // Handle errors
+    if (rv == -1)
+    {
+        std::cerr << "ERROR: Could not receive: PlayerInfoList" << std::endl;
+        return list;
+    }
+
+    std::cout << "Received players" << std::endl;
+    return list;
+}
