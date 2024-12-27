@@ -23,7 +23,7 @@ private:
     Server();
     int SetNonBlocking(int socket);
     template <typename T>
-    void DisplayError(const T& message);
+    void DisplayError(const T &message);
     void SendIncorrectLobbyName(int socket);
     void SendIncorrectPlayerName(int socket);
     void SendIncorrectPassword(int socket);
@@ -39,23 +39,31 @@ private:
     void Disconnect(int socket);
     void Accept();
 
-    const int MAX_QUEUE_SIZE = 10;
+    const int MAX_PENDING_CONNECTIONS = 10;
+    const int PORT = 1100;
+    bool isInit = false;
     socklen_t size = sizeof(struct sockaddr_in);
-    sockaddr_in serverAddr;
-    int serverSocket;
-    int maxSocket;
-    timeval timeout;
-    fd_set descriptors;
-    fd_set reading;
-    fd_set writing;
+    sockaddr_in serverAddr = {};
+    int serverSocket = {};
+    int maxSocket = {};
+    timeval timeout = {};
+    fd_set descriptors_list;
+    fd_set reading_list;
+    fd_set writing_list;
 
-    LobbyManager lobbies;
-    ClientManager clients;
+    LobbyManager lobbies = {};
+    ClientManager clients = {};
 
 public:
     static Server &getInstance();
     ~Server();
 
-    void Init(int port);
+    void Init();
     void Run();
+    void Exit();
+
+    static void Exit(int signal)
+    {
+        Server::getInstance().Exit();
+    }
 };

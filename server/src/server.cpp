@@ -8,15 +8,7 @@ Server &Server::getInstance()
     return INSTANCE;
 }
 
-Server::~Server()
-{
-    for (auto &socket : clients.GetSockets())
-    {
-        close(socket);
-    }
-    close(serverSocket);
-    std::cout << "Closing server" << std::endl;
-}
+Server::~Server() {}
 
 int Server::SetNonBlocking(int socket)
 {
@@ -32,7 +24,7 @@ int Server::SetNonBlocking(int socket)
 }
 
 template <typename T>
-void Server::DisplayError(const T& message)
+void Server::DisplayError(const T &message)
 {
     if (errno != EWOULDBLOCK)
     {
@@ -137,7 +129,7 @@ void Server::SendLobbyList(int socket)
 void Server::SendPlayerList(int socket)
 {
     PlayerInfoList list;
-    std::string lobby = clients.GetClient(socket).GetCurrentLobby(); 
+    std::string lobby = clients.GetClient(socket).GetCurrentLobby();
 
     // List player names
     for (auto i : lobbies.GetLobby(lobby).GetNames())
@@ -168,7 +160,6 @@ void Server::SendPlayerList(int socket)
         DisplayError("PlayerInfoList");
         return;
     }
-
 }
 
 void Server::CreateLobby(int socket, int message_size)
@@ -360,11 +351,10 @@ void Server::Disconnect(int socket)
     {
         ExitLobby(socket);
     }
-    std::cout << "Closed connection with: " << clients.GetClient(socket).GetAddress()
+    std::cout << "Closed connection with: " << clients.GetClient(socket).GetAddress() << ":"
               << clients.GetClient(socket).GetPort() << std::endl;
     clients.RemoveClient(socket);
-    FD_CLR(socket, &descriptors);
-    shutdown(socket, SHUT_RDWR);
+    FD_CLR(socket, &descriptors_list);
     close(socket);
 }
 
@@ -394,7 +384,7 @@ void Server::Accept()
     std::cout << "Connected with " << client.GetAddress() << ":" << client.GetPort() << std::endl;
 
     // Add the client to the descriptor set
-    FD_SET(clientSocket, &descriptors);
+    FD_SET(clientSocket, &descriptors_list);
 
     // Update the maximum socket value if necessary
     if (clientSocket > maxSocket)
@@ -403,11 +393,11 @@ void Server::Accept()
     }
 }
 
-void Server::Init(int port)
+void Server::Init()
 {
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(port);
+    serverAddr.sin_port = htons(PORT);
     serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -433,36 +423,37 @@ void Server::Init(int port)
         exit(EXIT_FAILURE);
     }
 
-    if (listen(serverSocket, MAX_QUEUE_SIZE) == -1)
+    if (listen(serverSocket, MAX_PENDING_CONNECTIONS) == -1)
     {
         std::cerr << "ERROR: Listen failed" << std::endl;
         close(serverSocket);
         exit(EXIT_FAILURE);
     }
 
-    FD_ZERO(&descriptors);
-    FD_ZERO(&reading);
-    FD_ZERO(&writing);
+    FD_ZERO(&descriptors_list);
+    FD_ZERO(&reading_list);
+    FD_ZERO(&writing_list);
 
-    FD_SET(serverSocket, &descriptors);
+    FD_SET(serverSocket, &descriptors_list);
 
     maxSocket = serverSocket;
+    isInit = true;
 }
 
 void Server::Run()
 {
-    std::cout << "Entering main loop" << std::endl;
+    std::cout << "Server listening on port: " << PORT << std::endl;
 
     while (true)
     {
         sleep(1);
-        FD_SET(serverSocket, &reading); // Set server socket for accepting connections
-        writing = descriptors;          // Set all descriptors to handle messages
+        FD_SET(serverSocket, &reading_list); // Set server socket for accepting connections
+        writing_list = descriptors_list;     // Set all descriptors to handle messages
 
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
 
-        int rc = select(maxSocket++, &reading, &writing, NULL, &timeout);
+        int rc = select(maxSocket++, &reading_list, &writing_list, NULL, &timeout);
         if (rc < 0)
         {
             std::cerr << "ERROR: Select failed" << std::endl;
@@ -475,18 +466,15 @@ void Server::Run()
         }
 
         // Accept connections if server socket is reading
-        if (FD_ISSET(serverSocket, &reading))
+        if (FD_ISSET(serverSocket, &reading_list))
         {
             Accept();
-
-            // Remove server socket from reading set
-            FD_CLR(serverSocket, &reading);
         }
 
         // Handle all clients that are writing
         for (int socket = serverSocket + 1; socket <= maxSocket && rc > 0; socket++)
         {
-            if (FD_ISSET(socket, &writing))
+            if (FD_ISSET(socket, &writing_list))
             {
                 rc--;
 
@@ -495,7 +483,7 @@ void Server::Run()
                 // Update max socket if necessary
                 if (socket == maxSocket)
                 {
-                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors))
+                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors_list))
                     {
                         maxSocket--;
                     }
@@ -506,7 +494,7 @@ void Server::Run()
         // Handle all clients that are reading
         for (int socket = serverSocket + 1; socket <= maxSocket && rc > 0; socket++)
         {
-            if (FD_ISSET(socket, &reading))
+            if (FD_ISSET(socket, &reading_list))
             {
                 rc--;
 
@@ -515,7 +503,7 @@ void Server::Run()
                 // Update max socket if necessary
                 if (socket == maxSocket)
                 {
-                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors))
+                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors_list))
                     {
                         maxSocket--;
                     }
@@ -523,4 +511,19 @@ void Server::Run()
             }
         }
     }
+}
+
+void Server::Exit()
+{
+    std::cout << "\nExit by interrupt, closing all connections" << std::endl;
+    for (auto &socket : clients.GetSockets())
+    {
+        close(socket);
+    }
+    if (isInit)
+    {
+        close(serverSocket);
+    }
+
+    exit(EXIT_SUCCESS);
 }

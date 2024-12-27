@@ -1,7 +1,10 @@
 #include "server.hpp"
+#include <csignal>
 
 int main()
 {
-    Server::getInstance().Init(1100);
+    signal(SIGINT, Server::Exit);
+
+    Server::getInstance().Init();
     Server::getInstance().Run();
 }
