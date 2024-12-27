@@ -283,6 +283,5 @@ PlayerInfoList NetworkConnector::RequestPlayers()
         return list;
     }
 
-    std::cout << "Received players" << std::endl;
     return list;
 }

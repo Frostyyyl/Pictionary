@@ -1,5 +1,7 @@
-#include "scene.hpp"
 #include <iostream>
+
+#include "scene.hpp"
+#include "game_manager.hpp"
 
 Scene::Scene() {}
 Scene::~Scene() {}
@@ -25,7 +27,7 @@ void Scene::Update()
 
     if (sceneType == SceneType::GAME)
     {
-        if (frameCount == 60)
+        if (frameCount == FRAMES_PER_SECOND)
         {
             UpdatePlayers();
 

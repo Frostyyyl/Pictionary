@@ -7,6 +7,8 @@
 #include "player.hpp"
 #include "input_manager.hpp"
 
+const int FRAMES_PER_SECOND = 140;
+
 class GameManager
 {
 private:

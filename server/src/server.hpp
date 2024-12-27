@@ -23,7 +23,9 @@ private:
     Server();
     int SetNonBlocking(int socket);
     template <typename T>
-    void DisplayError(const T &message);
+    void DisplaySendError(const T &message);
+    template <typename T>
+    void DisplayRecvError(const T &message);
     void SendIncorrectLobbyName(int socket);
     void SendIncorrectPlayerName(int socket);
     void SendIncorrectPassword(int socket);
@@ -47,9 +49,10 @@ private:
     int serverSocket = {};
     int maxSocket = {};
     timeval timeout = {};
-    fd_set descriptors_list;
+
     fd_set reading_list;
     fd_set writing_list;
+    fd_set exception_list;
 
     LobbyManager lobbies = {};
     ClientManager clients = {};

@@ -5,6 +5,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "../../global/src/message_types.hpp"
+
 class Client
 {
 public:
@@ -16,8 +18,11 @@ public:
     std::string GetAddress() { return inet_ntoa(address.sin_addr); }
     std::string GetCurrentLobby() { return lobby; }
     void SetCurrentLobby(const std::string &lobby) { this->lobby = lobby; }
+    Message GetMessageToHandle() { return msgToHandle; }
+    void SetMessageToHandle(Message message) { msgToHandle = message; }
 
 private:
+    Message msgToHandle = Message();
     std::string lobby = {};
     sockaddr_in address = {};
 };
@@ -41,6 +46,16 @@ public:
         }
 
         return tmp;
+    }
+    bool hasClient(int socket)
+    {
+        for (const auto &pair : clients)
+        {
+            if (pair.first == socket)
+                return true;
+        }
+
+        return false;
     }
 
 private:

@@ -24,7 +24,7 @@ int Server::SetNonBlocking(int socket)
 }
 
 template <typename T>
-void Server::DisplayError(const T &message)
+void Server::DisplaySendError(const T &message)
 {
     if (errno != EWOULDBLOCK)
     {
@@ -32,8 +32,21 @@ void Server::DisplayError(const T &message)
     }
     else
     {
-        std::cerr << "INFO: Send would block, \"" << message << "\" NOT handled" << std::endl;
+        std::cerr << "ERROR: Send buffor is full, message: \"" << message << "\" NOT handled" << std::endl;
     }
+}
+
+template <typename T>
+void Server::DisplayRecvError(const T &message)
+{
+    if (errno != EWOULDBLOCK)
+    {
+        std::cerr << "ERROR: Failed to recv message of type: \"" << message << "\"" << std::endl;
+    }
+    // else
+    // {
+    //     std::cout << "INFO: Recv would block, message: \"" << message << "\"" << std::endl;
+    // }
 }
 
 void Server::SendIncorrectLobbyName(int socket)
@@ -46,7 +59,7 @@ void Server::SendIncorrectLobbyName(int socket)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError(MessageToClient::INCORRECT_LOBBY_NAME);
+        DisplaySendError(MessageToClient::INCORRECT_LOBBY_NAME);
     }
 }
 
@@ -60,7 +73,7 @@ void Server::SendIncorrectPlayerName(int socket)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError(MessageToClient::INCORRECT_PLAYER_NAME);
+        DisplaySendError(MessageToClient::INCORRECT_PLAYER_NAME);
     }
 }
 
@@ -74,7 +87,7 @@ void Server::SendIncorrectPassword(int socket)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError(MessageToClient::INCORRECT_PLAYER_NAME);
+        DisplaySendError(MessageToClient::INCORRECT_PLAYER_NAME);
     }
 }
 
@@ -87,7 +100,7 @@ void Server::ConfirmConnect(int socket)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError(MessageToClient::CONNECT);
+        DisplaySendError(MessageToClient::CONNECT);
     }
 }
 
@@ -111,7 +124,7 @@ void Server::SendLobbyList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError(MessageToClient::UPLOAD_LOBBIES);
+        DisplaySendError(MessageToClient::UPLOAD_LOBBIES);
         return;
     }
 
@@ -121,7 +134,7 @@ void Server::SendLobbyList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError("LobbyInfoList");
+        DisplaySendError("LobbyInfoList");
         return;
     }
 }
@@ -147,7 +160,7 @@ void Server::SendPlayerList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError(MessageToClient::UPLOAD_PLAYERS);
+        DisplaySendError(MessageToClient::UPLOAD_PLAYERS);
         return;
     }
 
@@ -157,7 +170,7 @@ void Server::SendPlayerList(int socket)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError("PlayerInfoList");
+        DisplaySendError("PlayerInfoList");
         return;
     }
 }
@@ -172,7 +185,7 @@ void Server::CreateLobby(int socket, int message_size)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError(MessageToServer::CREATE_LOBBY);
+        DisplayRecvError(MessageToServer::CREATE_LOBBY);
         return;
     }
 
@@ -184,6 +197,7 @@ void Server::CreateLobby(int socket, int message_size)
     if (lobbies.hasLobby(lobby) || lobby.empty() || lobby.size() > ConnectInfo::MAX_LOBBY_NAME_SIZE)
     {
         SendIncorrectLobbyName(socket);
+        clients.GetClient(socket).SetMessageToHandle(Message());
         return;
     }
 
@@ -191,6 +205,7 @@ void Server::CreateLobby(int socket, int message_size)
     if (name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE)
     {
         SendIncorrectPlayerName(socket);
+        clients.GetClient(socket).SetMessageToHandle(Message());
         return;
     }
 
@@ -198,6 +213,7 @@ void Server::CreateLobby(int socket, int message_size)
     if (password.size() > ConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
     {
         SendIncorrectPassword(socket);
+        clients.GetClient(socket).SetMessageToHandle(Message());
         return;
     }
 
@@ -210,6 +226,9 @@ void Server::CreateLobby(int socket, int message_size)
 
     // Send information about successfully creating a lobby
     ConfirmConnect(socket);
+
+    // Remove from other structers to handle
+    clients.GetClient(socket).SetMessageToHandle(Message());
 }
 
 void Server::ConnectToLobby(int socket, int message_size)
@@ -222,7 +241,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     // Handle errors
     if (rv == -1)
     {
-        DisplayError(MessageToServer::CONNECT_TO_LOBBY);
+        DisplayRecvError(MessageToServer::CONNECT_TO_LOBBY);
         return;
     }
 
@@ -234,6 +253,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     if (!lobbies.hasLobby(lobby) || lobby.size() > ConnectInfo::MAX_LOBBY_NAME_SIZE)
     {
         SendIncorrectLobbyName(socket);
+        clients.GetClient(socket).SetMessageToHandle(Message());
         return;
     }
 
@@ -241,6 +261,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     if (lobbies.GetLobby(lobby).GetPassword() != password || password.size() > ConnectInfo::MAX_LOBBY_PASSWORD_SIZE)
     {
         SendIncorrectPassword(socket);
+        clients.GetClient(socket).SetMessageToHandle(Message());
         return;
     }
 
@@ -248,6 +269,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     if (lobbies.GetLobby(lobby).hasPlayerName(name) || name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE)
     {
         SendIncorrectPlayerName(socket);
+        clients.GetClient(socket).SetMessageToHandle(Message());
         return;
     }
 
@@ -256,10 +278,36 @@ void Server::ConnectToLobby(int socket, int message_size)
 
     // Send information about successfully adding to lobby
     ConfirmConnect(socket);
+
+    // Remove from other structers to handle
+    clients.GetClient(socket).SetMessageToHandle(Message());
 }
 
 void Server::Read(int socket)
 {
+    // Check if need to read a structure other than Message
+    Message altMessage = clients.GetClient(socket).GetMessageToHandle();
+
+    switch (static_cast<MessageToServer>(altMessage.GetMessageType()))
+    {
+    case MessageToServer::CREATE_LOBBY:
+        CreateLobby(socket, altMessage.GetSize());
+        break;
+    case MessageToServer::CONNECT_TO_LOBBY:
+        ConnectToLobby(socket, altMessage.GetSize());
+        break;
+    
+    case MessageToServer::INVALID: // Nothing to handle, continue
+        break;
+    default:
+        std::cerr << "ERROR: Added unexpected message to handle" << std::endl;
+        Exit();
+        break;
+    }
+
+
+
+
     Message message;
 
     int rv = recv(socket, &message, sizeof(Message), MSG_DONTWAIT);
@@ -281,10 +329,10 @@ void Server::Read(int socket)
         SendLobbyList(socket);
         break;
     case MessageToServer::CREATE_LOBBY:
-        CreateLobby(socket, message.GetSize());
+        clients.GetClient(socket).SetMessageToHandle(message);
         break;
     case MessageToServer::CONNECT_TO_LOBBY:
-        ConnectToLobby(socket, message.GetSize());
+        clients.GetClient(socket).SetMessageToHandle(message);
         break;
     case MessageToServer::REQUEST_PLAYERS:
         SendPlayerList(socket);
@@ -302,19 +350,19 @@ void Server::Read(int socket)
 
     // Remove from descriptors and lobby, close socket
     case MessageToServer::INVALID:
+        std::cout << "Client: " << clients.GetClient(socket).GetAddress() << ":"
+                  << clients.GetClient(socket).GetPort() << " closed connection" << std::endl;
         Disconnect(socket);
         break;
     // Unexpected behaviour
     default:
         std::cerr << "ERROR: Received unexpected message type: " << message.GetMessageType() << std::endl;
-        Disconnect(socket);
+        // Disconnect(socket);
         break;
     }
 }
 
-void Server::Write(int socket)
-{
-}
+void Server::Write(int socket) {}
 
 void Server::ExitLobby(int socket)
 {
@@ -354,7 +402,6 @@ void Server::Disconnect(int socket)
     std::cout << "Closed connection with: " << clients.GetClient(socket).GetAddress() << ":"
               << clients.GetClient(socket).GetPort() << std::endl;
     clients.RemoveClient(socket);
-    FD_CLR(socket, &descriptors_list);
     close(socket);
 }
 
@@ -382,9 +429,6 @@ void Server::Accept()
 
     // Log information about connecting
     std::cout << "Connected with " << client.GetAddress() << ":" << client.GetPort() << std::endl;
-
-    // Add the client to the descriptor set
-    FD_SET(clientSocket, &descriptors_list);
 
     // Update the maximum socket value if necessary
     if (clientSocket > maxSocket)
@@ -430,12 +474,6 @@ void Server::Init()
         exit(EXIT_FAILURE);
     }
 
-    FD_ZERO(&descriptors_list);
-    FD_ZERO(&reading_list);
-    FD_ZERO(&writing_list);
-
-    FD_SET(serverSocket, &descriptors_list);
-
     maxSocket = serverSocket;
     isInit = true;
 }
@@ -446,14 +484,22 @@ void Server::Run()
 
     while (true)
     {
-        sleep(1);
+        FD_ZERO(&reading_list);
+        FD_ZERO(&writing_list);
+        FD_ZERO(&exception_list);
+        
         FD_SET(serverSocket, &reading_list); // Set server socket for accepting connections
-        writing_list = descriptors_list;     // Set all descriptors to handle messages
+
+        // Set all client descriptors to handle messages
+        for (auto& socket : clients.GetSockets())
+        {
+            FD_SET(socket, &writing_list);
+        }
 
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
 
-        int rc = select(maxSocket++, &reading_list, &writing_list, NULL, &timeout);
+        int rc = select(maxSocket + 1, &reading_list, &writing_list, &exception_list, &timeout);
         if (rc < 0)
         {
             std::cerr << "ERROR: Select failed" << std::endl;
@@ -467,43 +513,55 @@ void Server::Run()
 
         // Accept connections if server socket is reading
         if (FD_ISSET(serverSocket, &reading_list))
-        {
             Accept();
-        }
 
-        // Handle all clients that are writing
+        // Handle set sockets
         for (int socket = serverSocket + 1; socket <= maxSocket && rc > 0; socket++)
         {
-            if (FD_ISSET(socket, &writing_list))
+            // Handle exceptions
+            if (FD_ISSET(socket, &exception_list))
             {
                 rc--;
 
-                Read(socket);
-
-                // Update max socket if necessary
+                FD_CLR(socket, &reading_list);
+                FD_CLR(socket, &writing_list);
+                Disconnect(socket);
+                
                 if (socket == maxSocket)
                 {
-                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors_list))
+                    while (maxSocket > serverSocket && !clients.hasClient(maxSocket))
                     {
                         maxSocket--;
                     }
                 }
             }
-        }
+            // Handle clients that are writing
+            else if (FD_ISSET(socket, &writing_list))
+            {
+                rc--;
 
-        // Handle all clients that are reading
-        for (int socket = serverSocket + 1; socket <= maxSocket && rc > 0; socket++)
-        {
-            if (FD_ISSET(socket, &reading_list))
+                Read(socket);
+
+                // Update max socket if necessary (socket was closed)
+                if (socket == maxSocket)
+                {
+                    while (maxSocket > serverSocket && !clients.hasClient(maxSocket))
+                    {
+                        maxSocket--;
+                    }
+                }
+            }
+            // Handle clients that are reading
+            else if (FD_ISSET(socket, &reading_list))
             {
                 rc--;
 
                 Write(socket);
 
-                // Update max socket if necessary
+                // Update max socket if necessary (socket was closed)
                 if (socket == maxSocket)
                 {
-                    while (maxSocket > serverSocket && !FD_ISSET(maxSocket, &descriptors_list))
+                    while (maxSocket > serverSocket && !clients.hasClient(maxSocket))
                     {
                         maxSocket--;
                     }
