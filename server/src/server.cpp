@@ -362,8 +362,6 @@ void Server::Read(int socket)
     }
 }
 
-void Server::Write(int socket) {}
-
 void Server::ExitLobby(int socket)
 {
     std::string lobby = clients.GetClient(socket).GetCurrentLobby();
@@ -541,22 +539,6 @@ void Server::Run()
                 rc--;
 
                 Read(socket);
-
-                // Update max socket if necessary (socket was closed)
-                if (socket == maxSocket)
-                {
-                    while (maxSocket > serverSocket && !clients.hasClient(maxSocket))
-                    {
-                        maxSocket--;
-                    }
-                }
-            }
-            // Handle clients that are reading
-            else if (FD_ISSET(socket, &reading_list))
-            {
-                rc--;
-
-                Write(socket);
 
                 // Update max socket if necessary (socket was closed)
                 if (socket == maxSocket)

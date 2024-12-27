@@ -35,7 +35,6 @@ private:
     void CreateLobby(int socket, int message_size);
     void ConnectToLobby(int socket, int message_size);
     void Read(int socket);
-    void Write(int socket);
     void ExitLobby(int socket);
     void EnterLobby(int socket, const std::string &lobby, const std::string &name);
     void Disconnect(int socket);
