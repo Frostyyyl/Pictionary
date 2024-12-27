@@ -8,12 +8,13 @@
 #include "interactable.hpp"
 #include "text.hpp"
 
-// Used in canvas
+// Used in Canvas
 struct Position
 {
     int x = {}, y = {};
 };
 
+// Used in TextButton
 struct Padding
 {
 public:
@@ -21,6 +22,18 @@ public:
 
     Padding(int x, int y = -14) : x(x), y(y) {}
     Padding() {}
+};
+
+class Color
+{
+private:
+    Color() {}
+public:
+    static constexpr Uint32 CLEANWHITE = 0xff000000;
+    static constexpr Uint32 WHITE = 0x00000000;
+    static constexpr Uint32 CLEANBLACK = 0xffffffff;
+    static constexpr Uint32 BLACK = 0xf0f0f000;
+    static constexpr Uint32 LIGHTPINK = 0xffcccbff; // Alpha 33 - 10% transparent
 };
 
 class SpriteRenderer : public Component
@@ -46,7 +59,6 @@ private:
     int wrapLength;
 
 public:
-    // here because text input wants to access it
     Text text;
 
     TextObject(int x, int y, const std::string &content = "", const std::string &name = "", int wrapLength = 500);
@@ -99,7 +111,7 @@ public:
     void Update() override;
 };
 
-// if we want scroll we need Interactable though
+// NOTE: if we want scroll we need Interactable though
 class MessageWindow : public Component
 {
 private:
@@ -125,8 +137,6 @@ private:
     TextObject text;
     MessageWindow *msgWindow;
 
-    bool isClicked(SDL_Event event);
-
 public:
     TextInput(int x, int y, int w, int h, MessageWindow *window, const std::string &name = "")
         : Interactable(name), text(x, y, 100)
@@ -151,7 +161,7 @@ private:
 
 public:
     FixedTextInput(int x, int y, int w, int h, int maxSize, const std::string &name = "")
-        : Interactable(name), text(x, y, 200), maxSize(maxSize)
+        : Interactable(name), text(x, y, w), maxSize(maxSize)
     {
         rect = {x, y, w, h};
     }

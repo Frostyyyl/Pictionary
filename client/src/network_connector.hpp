@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <fcntl.h>
 
 #include "../../global/src/message_types.hpp"
 #include "../../global/src/messages.hpp"
@@ -17,15 +18,18 @@ private:
     NetworkConnector();
 
     bool isInit;
-    int serverSocket;
-    std::string error;
+    int mySocket;
+    std::string errorMessage;
+
+    const int PORT = 1100;
+    const std::string ADDRESS = "127.0.0.1";
 
 public:
     static NetworkConnector &getInstance();
     ~NetworkConnector();
 
     bool isInitialized() { return isInit; }
-    void Init(int port, std::string address);
+    void Init();
     void Exit();
     std::string GetError();
     LobbyInfoList RequestLobbies();

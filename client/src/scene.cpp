@@ -6,33 +6,28 @@ Scene::~Scene() {}
 
 void Scene::Update()
 {
+    // FIXME: For now update is split into two parts
+    // Firstly update nameless objects (background objects)
     for (const auto &obj : objects)
     {
-        obj->Update();
+        if (obj->GetName() == ""){
+            obj->Update();  
+        }
+    }
+
+    // Secondly update the rest
+    for (const auto &obj : objects)
+    {
+        if (obj->GetName() != ""){
+            obj->Update();  
+        }
     }
 
     if (sceneType == SceneType::GAME)
     {
         if (frameCount == 60)
         {
-            for (auto it = objects.begin(); it != objects.end();)
-            {
-                if ((*it)->GetName() == "Player")
-                {
-                    it = objects.erase(it);
-                }
-                else
-                {
-                    ++it;
-                }
-            }
-
-            PlayerInfoList list = NetworkConnector::getInstance().RequestPlayers();
-            for (int i = 0; i < list.GetSize(); i++)
-            {
-                auto txt = std::make_shared<TextObject>(600, 60 + (20 * i), list.GetPlayer(i).GetPlayerName(), "Player", 200);
-                AddObject(txt);
-            }
+            UpdatePlayers();
 
             frameCount = 0;
         }
@@ -88,6 +83,28 @@ void Scene::ShowObject()
     {
         objects.insert(hiddenObjects.back());
         hiddenObjects.pop_back();
+    }
+}
+
+void Scene::UpdatePlayers()
+{
+    for (auto it = objects.begin(); it != objects.end();)
+    {
+        if ((*it)->GetName() == "Player")
+        {
+            it = objects.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    PlayerInfoList list = NetworkConnector::getInstance().RequestPlayers();
+    for (int i = 0; i < list.GetSize(); i++)
+    {
+        auto txt = std::make_shared<TextObject>(440, 20 + (20 * i), list.GetPlayer(i).GetPlayerName(), "Player", 200);
+        AddObject(txt);
     }
 }
 

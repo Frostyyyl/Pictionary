@@ -48,7 +48,9 @@ std::shared_ptr<Button> CreateButton(Scene *scene, int x, int y, int w, int h, U
 // Helper function to create FixedTextInput
 std::shared_ptr<FixedTextInput> CreateFixedTextInput(Scene *scene, int x, int y, int w, int h, int maxSize, const std::string &name)
 {
-    auto fixedTxtInput = std::make_shared<FixedTextInput>(x, y, w, h, maxSize, name);
+    // FIXME: For now fixed text input object's background is achieved using a color button
+    CreateButton(scene, x, y, w, h, Color::LIGHTPINK, [](){}, "");
+    auto fixedTxtInput = std::make_shared<FixedTextInput>(x + 5, y, w, h, maxSize, name);
     scene->AddObject(fixedTxtInput);
     GameManager::getInstance().RegisterInteractable(name, fixedTxtInput);
     return fixedTxtInput;
@@ -119,13 +121,13 @@ Scene *CreateLobbyScene()
             newScene->HideObject("CreateLobbyButton");
 
             CreateTextObject(newScene, 220, 80, "Enter Lobby Name", "LobbyNameText");
-            auto lobbyNameInput = CreateFixedTextInput(newScene, 220, 100, 200, 20, ConnectInfo::MAX_LOBBY_NAME_SIZE, "LobbyNameInput");
+            auto lobbyNameInput = CreateFixedTextInput(newScene, 220, 100, 255, 20, ConnectInfo::MAX_LOBBY_NAME_SIZE, "LobbyNameInput");
 
             CreateTextObject(newScene, 220, 120, "Add Password", "PasswordText");
-            auto passwordInput = CreateFixedTextInput(newScene, 220, 140, 200, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput");
+            auto passwordInput = CreateFixedTextInput(newScene, 220, 140, 255, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput");
 
             CreateTextObject(newScene, 220, 160, "Enter Player Name", "PlayerNameText");
-            auto playerNameInput = CreateFixedTextInput(newScene, 220, 180, 200, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput");
+            auto playerNameInput = CreateFixedTextInput(newScene, 220, 180, 255, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput");
 
             CreateTextButton(newScene, 100, 170, 100, 60, Padding(15), "Confirm ", "images/button.png", 
                 [newScene, lobbyNameInput, playerNameInput, passwordInput]()
@@ -171,12 +173,12 @@ Scene *CreateLobbyScene()
                 newScene->DeleteObject("PasswordInput2");
 
                 CreateTextObject(newScene, 220, 320, "Enter Player Name", "PlayerNameText2");
-                auto playerNameInput = CreateFixedTextInput(newScene, 420, 320, 200, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2");
+                auto playerNameInput = CreateFixedTextInput(newScene, 420, 320, 255, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2");
 
                 if (info.hasPassword())
                 {
                     CreateTextObject(newScene, 220, 340, "Enter Password", "PasswordText2");
-                    auto passwordInput = CreateFixedTextInput(newScene, 420, 340, 200, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2");
+                    auto passwordInput = CreateFixedTextInput(newScene, 420, 340, 255, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2");
 
                     CreateTextButton(newScene, 640, 340, 100, 60, Padding(15), "Confirm ", "images/button.png", [info, newScene, playerNameInput, passwordInput]()
                         {
@@ -214,10 +216,12 @@ Scene *CreateGameScene()
     Scene *newScene = new Scene();
 
     newScene->sceneType = SceneType::GAME;
+    newScene->UpdatePlayers();
 
     // For now backgrounds have unstable Z-index
     // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
     // newScene->AddObject(bg);
+
 
     GameMode gameMode = GameManager::getInstance().GetGameMode();
 
@@ -227,16 +231,14 @@ Scene *CreateGameScene()
     if (gameMode == GameMode::DRAW)
     {
 
-        GameManager::getInstance().RegisterInteractable("Canvas", cvs);
-
         // This is a little tricky in creating color it's RRGGBBAA
         // But in ChangeColor() it's AABBGGRR (and also FF is solid, 00 is transparent for alpha)
         // MAYBE WE'LL FIX THIS LATER
 
-        CreateButton(newScene, 100, 500, 30, 30, (Uint32)0x00000000, [cvs]()
-                     { cvs.get()->ChangeColor(0xff000000); }, "BlackButton");
-        CreateButton(newScene, 150, 500, 30, 30, 0xf0f0f000, [cvs]()
-                     { cvs.get()->ChangeColor(0xffffffff); }, "WhiteButton");
+        CreateButton(newScene, 100, 500, 30, 30, Color::WHITE, [cvs]()
+                     { cvs.get()->ChangeColor(Color::CLEANWHITE); }, "BlackButton");
+        CreateButton(newScene, 150, 500, 30, 30, Color::BLACK, [cvs]()
+                     { cvs.get()->ChangeColor(Color::CLEANBLACK); }, "WhiteButton");
     }
 
     auto msgWindow = CreateMessageWindow(newScene, gameMode, 600, 100, 200, 300, "MsgWindow");

@@ -32,7 +32,7 @@ public:
         }
         SDL_SetRenderTarget(GameManager::renderer, texture);
 
-        // this is getting colors from Uint32
+        // Get colors from Uint32 format
         Uint8 r = (color >> 24) & 0xFF;
         Uint8 g = (color >> 16) & 0xFF;
         Uint8 b = (color >> 8) & 0xFF;

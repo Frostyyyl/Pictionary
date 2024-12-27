@@ -12,41 +12,41 @@ NetworkConnector::~NetworkConnector() {}
 
 std::string NetworkConnector::GetError()
 {
-    return error;
+    return errorMessage;
 }
 
-void NetworkConnector::Init(int port, std::string address)
+void NetworkConnector::Init()
 {
-    struct sockaddr_in serverAddr;
+    struct sockaddr_in address;
 
-    memset(&serverAddr, 0, sizeof serverAddr);
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(port);
-    serverAddr.sin_addr.s_addr = inet_addr(address.c_str());
+    memset(&address, 0, sizeof address);
+    address.sin_family = AF_INET;
+    address.sin_port = htons(PORT);
+    address.sin_addr.s_addr = inet_addr(ADDRESS.c_str());
 
-    serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    mySocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    if (serverSocket == -1)
+    if (mySocket == -1)
     {
         std::cerr << "ERROR: Could not create socket" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    if (connect(serverSocket, (struct sockaddr *)&serverAddr, sizeof serverAddr) == -1)
+    if (connect(mySocket, (struct sockaddr *)&address, sizeof address) == -1)
     {
         std::cerr << "ERROR: Could not connect to server" << std::endl;
-        close(serverSocket);
+        close(mySocket);
         exit(EXIT_FAILURE);
     }
 
-    std::cout << "Connected with server: " << address << ":" << port << std::endl;
+    std::cout << "Connected with server: " << ADDRESS << ":" << PORT << std::endl;
     isInit = true;
 }
 
 void NetworkConnector::Exit()
 {
-    shutdown(serverSocket, SHUT_RDWR);
-    close(serverSocket);
+    shutdown(mySocket, SHUT_RDWR);
+    close(mySocket);
     std::cout << "Closing due to server error" << std::endl;
     exit(EXIT_FAILURE);
 }
@@ -57,7 +57,7 @@ LobbyInfoList NetworkConnector::RequestLobbies()
     LobbyInfoList list;
 
     // Send the message type
-    int rv = write(serverSocket, &message, sizeof(Message));
+    int rv = write(mySocket, &message, sizeof(Message));
 
     // Handle errors
     if (rv == -1)
@@ -67,7 +67,7 @@ LobbyInfoList NetworkConnector::RequestLobbies()
     }
 
     // Read the message type alongside the size of lobbies
-    rv = read(serverSocket, &message, sizeof(Message));
+    rv = read(mySocket, &message, sizeof(Message));
 
     // Handle errors
     if (rv == -1)
@@ -77,7 +77,7 @@ LobbyInfoList NetworkConnector::RequestLobbies()
     }
 
     // Read the list of lobbies
-    rv = read(serverSocket, &list, message.GetSize());
+    rv = read(mySocket, &list, message.GetSize());
 
     // Handle errors
     if (rv == -1)
@@ -94,11 +94,11 @@ bool NetworkConnector::ValidateData(const std::string &lobby, const std::string 
 {
     if (lobby.empty())
     {
-        error = "Lobby name must be non-empty, please try again";
+        errorMessage = "Lobby name must be non-empty, please try again";
     }
     else if (name.empty())
     {
-        error = "Player name must be non-empty, please try again";
+        errorMessage = "Player name must be non-empty, please try again";
     }
     else
     {
@@ -119,10 +119,10 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
     Message message = Message(static_cast<int>(MessageToServer::CREATE_LOBBY), sizeof(info));
 
     // Prepare error message in case of failure
-    error = "Failed to create lobby, please try again";
+    errorMessage = "Failed to create lobby, please try again";
 
     // Send the message type
-    int rv = write(serverSocket, &message, sizeof(Message));
+    int rv = write(mySocket, &message, sizeof(Message));
 
     // Handle errors
     if (rv == -1)
@@ -132,7 +132,7 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
     }
 
     // Send the lobby information
-    rv = write(serverSocket, &info, sizeof(info));
+    rv = write(mySocket, &info, sizeof(info));
 
     // Handle errors
     if (rv == -1)
@@ -142,7 +142,7 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
     }
 
     // Receive the response
-    rv = read(serverSocket, &message, sizeof(Message));
+    rv = read(mySocket, &message, sizeof(Message));
 
     // Handle errors
     if (rv == -1)
@@ -155,10 +155,10 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
-        error = "Unfortunately this lobby name is taken, please pick another one";
+        errorMessage = "Unfortunately this lobby name is taken, please pick another one";
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
-        error = "Player name must be non-empty, please try again";
+        errorMessage = "Player name must be non-empty, please try again";
         break;
     case MessageToClient::CONNECT:
         std::cout << "Succesfully created lobby: \"" << lobby << "\"" << std::endl;
@@ -188,10 +188,10 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
     ConnectInfo info = ConnectInfo(lobby, name, password);
     Message message = Message(static_cast<int>(MessageToServer::CONNECT_TO_LOBBY), sizeof(info));
 
-    error = "Failed to connect with lobby, please try again";
+    errorMessage = "Failed to connect with lobby, please try again";
 
     // Send the message type
-    int rv = write(serverSocket, &message, sizeof(Message));
+    int rv = write(mySocket, &message, sizeof(Message));
 
     // Handle errors
     if (rv == -1)
@@ -201,7 +201,7 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
     }
 
     // Send the lobby information
-    rv = write(serverSocket, &info, sizeof(info));
+    rv = write(mySocket, &info, sizeof(info));
 
     // Handle errors
     if (rv == -1)
@@ -210,7 +210,7 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
         return false;
     }
     // Receive the response
-    rv = read(serverSocket, &message, sizeof(Message));
+    rv = read(mySocket, &message, sizeof(Message));
 
     // Handle errors
     if (rv == -1)
@@ -223,13 +223,13 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::INCORRECT_LOBBY_NAME:
-        error = "This lobby no longer exists, please try refreshing";
+        errorMessage = "This lobby no longer exists, please try refreshing";
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
-        error = "Unfortunately someone already took this name, please pick another one";
+        errorMessage = "Unfortunately someone already took this name, please pick another one";
         break;
     case MessageToClient::INCORRECT_PASSWORD:
-        error = "Given password is incorrect, try again";
+        errorMessage = "Given password is incorrect, try again";
         break;
     case MessageToClient::CONNECT:
         std::cout << "Connected with lobby: \"" << lobby << "\", as: \"" << name << "\"" << std::endl;
@@ -254,7 +254,7 @@ PlayerInfoList NetworkConnector::RequestPlayers()
     PlayerInfoList list;
 
     // Send the message type
-    int rv = write(serverSocket, &message, sizeof(Message));
+    int rv = write(mySocket, &message, sizeof(Message));
 
     // Handle errors
     if (rv == -1)
@@ -264,7 +264,7 @@ PlayerInfoList NetworkConnector::RequestPlayers()
     }
 
     // Read the message type alongside the size of lobbies
-    rv = read(serverSocket, &message, sizeof(Message));
+    rv = read(mySocket, &message, sizeof(Message));
 
     // Handle errors
     if (rv == -1)
@@ -274,7 +274,7 @@ PlayerInfoList NetworkConnector::RequestPlayers()
     }
 
     // Read the list of lobbies
-    rv = read(serverSocket, &list, message.GetSize());
+    rv = read(mySocket, &list, message.GetSize());
 
     // Handle errors
     if (rv == -1)

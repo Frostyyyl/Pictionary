@@ -6,7 +6,7 @@
 #include "text_manager.hpp"
 #include "network_connector.hpp"
 
-const int FRAMES_PER_SECOND = 60;
+const int FRAMES_PER_SECOND = 120;
 const int FRAME_DELAY = 1000 / FRAMES_PER_SECOND;
 
 SDL_Renderer *GameManager::renderer = nullptr;
@@ -100,27 +100,28 @@ void GameManager::ChangeCurrentScene(SceneType newScene)
 
     if (newScene == SceneType::GAME)
     {
-        // For now this causes segmentation fault in inputManager, maybe it's not important to have
+        // Clear last scene
         inputManager->ClearInteractables();
-
-        // BE CAREFUL WITH THIS FUNCTION FOR NOW
         currentScene->DeleteScene();
 
-        GameManager::getInstance().SetGameMode(GameMode::GUESS);
+        GameManager::getInstance().SetGameMode(GameMode::DRAW);
 
+        // Inicialize new scene
         currentScene = CreateGameScene();
     }
     if (newScene == SceneType::LOBBY)
     {
+        // Clear last scene
         inputManager->ClearInteractables();
         currentScene->DeleteScene();
 
         // Inicialize connection with server
         if (!NetworkConnector::getInstance().isInitialized())
         {
-            NetworkConnector::getInstance().Init(1100, "127.0.0.1");
+            NetworkConnector::getInstance().Init();
         }
 
+        // Inicialize new scene
         currentScene = CreateLobbyScene();
     }
     wasSceneChanged = true;

@@ -35,5 +35,6 @@ public:
     void DeleteObject(const std::shared_ptr<Component>& obj);
     void HideObject(const std::string &name);
     void ShowObject();
+    void UpdatePlayers();
     void DeleteScene();
 };
