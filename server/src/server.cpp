@@ -175,6 +175,41 @@ void Server::SendPlayerList(int socket)
     }
 }
 
+void Server::SendGameMode(int socket)
+{
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<int> dist(2, 3);
+
+    GameModeInfo info = static_cast<GameMode>(dist(rng));
+
+    std::cout << (int)info.GetGameMode() << "\n";
+    
+    // TODO: Implement logic of picking game mode
+
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_PLAYERS), sizeof(info));
+
+    // Send the message type
+    int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplaySendError(MessageToClient::UPLOAD_GAMEMODE);
+        return;
+    }
+
+    // Send the lobbies list to client
+    rv = send(socket, &info, sizeof(info), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplaySendError("PlayerInfoList");
+        return;
+    }
+}
+
 void Server::CreateLobby(int socket, int message_size)
 {
     ConnectInfo info;
@@ -285,7 +320,7 @@ void Server::ConnectToLobby(int socket, int message_size)
 
 void Server::Read(int socket)
 {
-    // Check if need to read a structure other than Message
+    // Check if there is a need to read a structure other than Message
     Message altMessage = clients.GetClient(socket).GetMessageToHandle();
 
     switch (static_cast<MessageToServer>(altMessage.GetMessageType()))
@@ -337,6 +372,9 @@ void Server::Read(int socket)
     case MessageToServer::REQUEST_PLAYERS:
         SendPlayerList(socket);
         break;
+    case MessageToServer::REQUEST_GAMEMODE:
+        SendGameMode(socket);
+        break;
     case MessageToServer::UPLOAD_CANVAS:
         break;
     case MessageToServer::REQUEST_CANVAS:
@@ -356,7 +394,8 @@ void Server::Read(int socket)
         break;
     // Unexpected behaviour
     default:
-        std::cerr << "ERROR: Received unexpected message type: " << message.GetMessageType() << std::endl;
+        // FIXME: Server sometimes receives unexpected messages ????
+        std::cerr << "ERROR: Received unexpected message type " << std::endl;
         // Disconnect(socket);
         break;
     }
@@ -505,7 +544,7 @@ void Server::Run()
         }
         else if (rc == 0)
         {
-            std::cout << "Timed out" << std::endl;
+            // std::cout << "Timed out" << std::endl;
             continue;
         }
 

@@ -103,7 +103,7 @@ void GameManager::ChangeCurrentScene(SceneType newScene)
         inputManager->ClearInteractables();
         currentScene->DeleteScene();
 
-        GameManager::getInstance().SetGameMode(GameMode::DRAW);
+        GameManager::getInstance().SetGameMode(GameMode::GUESS);
 
         // Inicialize new scene
         currentScene = CreateGameScene();
@@ -126,9 +126,14 @@ void GameManager::ChangeCurrentScene(SceneType newScene)
     wasSceneChanged = true;
 }
 
-void GameManager::RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable)
+void GameManager::RegisterInteractable(const std::string& name, std::shared_ptr<Interactable> interactable)
 {
     inputManager->AddInteractable(name, interactable);
+}
+
+void GameManager::RemoveInteractable(const std::string& name)
+{
+    inputManager->DeleteInteractable(name);
 }
 
 void GameManager::Exit()

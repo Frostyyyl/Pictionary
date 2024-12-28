@@ -16,6 +16,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType)
     case MessageToServer::REQUEST_PLAYERS:
         stream << "REQUEST_PLAYERS";
         break;
+    case MessageToServer::REQUEST_GAMEMODE:
+        stream << "REQUEST_GAMEMODE";
+        break;
     case MessageToServer::UPLOAD_CANVAS:
         stream << "UPLOAD_CANVAS";
         break;
@@ -61,6 +64,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
     case MessageToClient::UPLOAD_PLAYERS:
         stream << "UPLOAD_PLAYERS";
         break;
+    case MessageToClient::UPLOAD_GAMEMODE:
+        stream << "UPLOAD_GAMEMODE";
+        break;
     case MessageToClient::UPLOAD_CANVAS:
         stream << "UPLOAD_CANVAS";
         break;
@@ -69,6 +75,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
         break;
     case MessageToClient::PICK_PROMPT:
         stream << "PICK_PROMPT";
+        break;
+    case MessageToClient::UPLOAD_TIME:
+        stream << "UPLOAD_TIME";
         break;
 
     default:

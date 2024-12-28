@@ -9,14 +9,42 @@ InputManager::InputManager(GameManager *manager)
     isTyping = false;
 }
 
-void InputManager::AddInteractable(std::string name, std::weak_ptr<Interactable> object)
+void InputManager::AddInteractable(const std::string &name, std::weak_ptr<Interactable> object)
 {
     interactables[name] = object;
+
+    if (name == "Canvas")
+    {
+        std::shared_ptr<Interactable> sharedObject = object.lock();
+        if (sharedObject)
+        {
+            std::shared_ptr<Canvas> sharedCanvas = std::static_pointer_cast<Canvas>(sharedObject);
+            if (sharedCanvas)
+                canvas = sharedCanvas;
+        }
+    }
+}
+
+void InputManager::DeleteInteractable(const std::string &name)
+{
+    interactables.erase(name);
 }
 
 void InputManager::ClearInteractables()
 {
     interactables.clear();
+}
+
+void InputManager::StopDrawing()
+{
+    // NOTE: This is quite junky but oh well
+    if (isDrawing)
+    {
+        isDrawing = false;
+        SDL_Event ev;
+        ev.type = SDL_MOUSEBUTTONUP;
+        canvas.lock().get()->HandleEvent(ev);
+    }
 }
 
 void InputManager::HandleEvent()
@@ -51,14 +79,14 @@ void InputManager::HandleEvent()
         if (interactables.find("Canvas") != interactables.end())
         {
             isDrawing = false;
-            interactables["Canvas"].lock().get()->HandleEvent(event);
+            canvas.lock().get()->HandleEvent(event);
         }
     }
     else if (event.type == SDL_MOUSEMOTION)
     {
-        if (isDrawing) // probably won't give any error that canvas does not exist
+        if (isDrawing && interactables.find("Canvas") != interactables.end())
         {
-            interactables["Canvas"].lock().get()->HandleEvent(event);
+            canvas.lock().get()->HandleEvent(event);
         }
     }
     else if (event.type == SDL_TEXTINPUT ||

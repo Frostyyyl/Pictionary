@@ -9,6 +9,7 @@ enum class MessageToServer : int
     CREATE_LOBBY,
     CONNECT_TO_LOBBY,
     REQUEST_PLAYERS,
+    REQUEST_GAMEMODE,
     UPLOAD_CANVAS,
     REQUEST_CANVAS,
     UPLOAD_TEXT,
@@ -25,25 +26,11 @@ enum class MessageToClient : int
     INCORRECT_PLAYER_NAME,
     INCORRECT_PASSWORD,
     UPLOAD_PLAYERS,
+    UPLOAD_GAMEMODE,
     UPLOAD_CANVAS,
     UPLOAD_CHAT,
     PICK_PROMPT,
-};
-
-class Message
-{
-public:
-    Message(int type, int size) : type(type), size(size) {}
-    Message(int type) : type(type) {}
-    Message() = default;
-    ~Message() noexcept = default;
-
-    int GetMessageType() { return type; }
-    int GetSize() { return size; }
-
-private:
-    int type = -1;
-    int size = 0;
+    UPLOAD_TIME,
 };
 
 std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType);

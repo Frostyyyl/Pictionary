@@ -27,8 +27,9 @@ TextObject::TextObject(int x, int y, const std::string &content, const std::stri
     rect.y = y;
     LoadText();
 }
+
 TextObject::TextObject(int x, int y, int wrapLength)
-    : Component(""), wrapLength(wrapLength)
+    : Component("TextComponent"), wrapLength(wrapLength)
 {
     text.text = "";
     rect.x = x;
@@ -68,7 +69,9 @@ void TextInput::HandleEvent(SDL_Event event)
         }
     }
     else if (event.type == SDL_MOUSEBUTTONDOWN)
+    {
         GameManager::getInstance().SetCurrentTextInput(this->GetName());
+    }
 }
 
 void TextInput::Update()
@@ -162,7 +165,7 @@ void MessageWindow::Update()
 
 void MessageWindow::AddMessage(std::string message)
 {
-    auto newMessage = std::make_shared<TextObject>(rect.x, 0, message);
+    auto newMessage = std::make_shared<TextObject>(rect.x, 0, message, "Message", rect.w);
     int messageHeight = newMessage->GetHeight();
 
     while (height + messageHeight > rect.h)
@@ -195,7 +198,7 @@ Canvas::Canvas(const std::string &name) : Interactable(name)
 {
     rect = {20, 20, 400, 400};
     tex = TextureManager::CreateCanvas(400, 400);
-    currentColor = 0xff000000;
+    currentColor = Color::ABGR_WHITE;
 }
 
 void Canvas::HandleEvent(SDL_Event event)

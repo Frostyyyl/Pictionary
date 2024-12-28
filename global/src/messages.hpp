@@ -3,6 +3,24 @@
 #include <string>
 #include <array>
 
+#include "game_mode.hpp"
+
+class Message
+{
+public:
+    Message(int type, int size) : type(type), size(size) {}
+    Message(int type) : type(type) {}
+    Message() = default;
+    ~Message() noexcept = default;
+
+    int GetMessageType() { return type; }
+    int GetSize() { return size; }
+
+private:
+    int type = -1;
+    int size = 0;
+};
+
 class ConnectInfo
 {
 public:
@@ -114,4 +132,17 @@ public:
 private:
     short size = 0;
     std::array<PlayerInfo, LobbyInfo::MAX_PLAYERS_PER_LOBBY> list = {};
+};
+
+class GameModeInfo
+{
+public:
+    GameModeInfo(GameMode mode) : mode(mode) {};
+    GameModeInfo() = default;
+    ~GameModeInfo() noexcept = default;
+
+    GameMode GetGameMode() { return mode; }
+
+private:
+    GameMode mode = GameMode::WAIT_FOR_PLAYERS;
 };

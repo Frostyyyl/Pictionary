@@ -37,6 +37,7 @@ public:
     bool CreateLobby(const std::string &lobby, const std::string &name, const std::string &password);
     bool ConnectToLobby(const std::string &lobby, const std::string &name, const std::string &password);
     PlayerInfoList RequestPlayers();
+    GameMode RequestGameMode();
 
     void HandleCanvasChange(SDL_Texture *tex)
     {

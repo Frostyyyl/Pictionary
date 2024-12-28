@@ -39,7 +39,6 @@ void NetworkConnector::Init()
         exit(EXIT_FAILURE);
     }
 
-    std::cout << "Connected with server: " << ADDRESS << ":" << PORT << std::endl;
     isInit = true;
 }
 
@@ -47,7 +46,7 @@ void NetworkConnector::Exit()
 {
     shutdown(mySocket, SHUT_RDWR);
     close(mySocket);
-    std::cout << "Closing due to server error" << std::endl;
+    std::cerr << "Closing due to server error" << std::endl;
     exit(EXIT_FAILURE);
 }
 
@@ -161,8 +160,6 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
         errorMessage = "Player name must be non-empty, please try again";
         break;
     case MessageToClient::CONNECT:
-        std::cout << "Succesfully created lobby: \"" << lobby << "\"" << std::endl;
-        std::cout << "Connected with lobby: \"" << lobby << "\", as: \"" << name << "\"" << std::endl;
         return true;
         break;
 
@@ -263,7 +260,7 @@ PlayerInfoList NetworkConnector::RequestPlayers()
         return list;
     }
 
-    // Read the message type alongside the size of lobbies
+    // Read the message type alongside the size of players list
     rv = read(mySocket, &message, sizeof(Message));
 
     // Handle errors
@@ -273,7 +270,7 @@ PlayerInfoList NetworkConnector::RequestPlayers()
         return list;
     }
 
-    // Read the list of lobbies
+    // Read the list of players
     rv = read(mySocket, &list, message.GetSize());
 
     // Handle errors
@@ -284,4 +281,42 @@ PlayerInfoList NetworkConnector::RequestPlayers()
     }
 
     return list;
+}
+
+GameMode NetworkConnector::RequestGameMode()
+{
+    Message message = Message(static_cast<int>(MessageToServer::REQUEST_GAMEMODE));
+    GameMode mode;
+
+    // Send the message type
+    int rv = write(mySocket, &message, sizeof(Message));
+
+    // Handle errors
+    if (rv == -1)
+    {
+        std::cerr << "ERROR: Could not send message of type: REQUEST_GAMEMODE" << std::endl;
+        return mode;
+    }
+
+    // Read the message type alongside the size of game mode
+    rv = read(mySocket, &message, sizeof(Message));
+
+    // Handle errors
+    if (rv == -1)
+    {
+        std::cerr << "ERROR: Could not receive message of type: UPLOAD_GAMEMODE" << std::endl;
+        return mode;
+    }
+
+    // Read the game mode
+    rv = read(mySocket, &mode, message.GetSize());
+
+    // Handle errors
+    if (rv == -1)
+    {
+        std::cerr << "ERROR: Could not receive: GameModeInfo" << std::endl;
+        return mode;
+    }
+
+    return mode;
 }

@@ -4,8 +4,8 @@
 
 #include "scene.hpp"
 #include "interactable.hpp"
-#include "player.hpp"
 #include "input_manager.hpp"
+#include "../../global/src/game_mode.hpp"
 
 const int FRAMES_PER_SECOND = 140;
 
@@ -18,7 +18,7 @@ private:
     Scene *currentScene;
     InputManager *inputManager;
     GameMode mode = GameMode::STANDBY;
-    std::string currentTextInput = "_";
+    std::string currentTextInput = "";
 
 public:
     bool wasSceneChanged;
@@ -34,10 +34,16 @@ public:
     void Exit();
 
     void ChangeCurrentScene(SceneType newScene);
-    void RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable);
+
+    void RegisterInteractable(const std::string& name, std::shared_ptr<Interactable> interactable);
+    void RemoveInteractable(const std::string& name);
+
     void SetGameMode(GameMode mode) { this->mode = mode; }
     GameMode GetGameMode() { return mode; }
+
+    void StopDrawing() { inputManager->StopDrawing(); }
+
     void SetCurrentTextInput(const std::string &input) { currentTextInput = input; }
     std::string GetCurrentTextInput() { return currentTextInput; }
-    void ResetCurrentTextInput() { currentTextInput = "_"; }
+    void ResetCurrentTextInput() { currentTextInput = ""; }
 };

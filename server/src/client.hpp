@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "../../global/src/message_types.hpp"
+#include "../../global/src/messages.hpp"
 
 class Client
 {

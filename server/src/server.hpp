@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <random>
 #include <string>
 #include <map>
 #include <vector>
@@ -32,6 +33,7 @@ private:
     void ConfirmConnect(int socket);
     void SendLobbyList(int socket);
     void SendPlayerList(int socket);
+    void SendGameMode(int socket);
     void CreateLobby(int socket, int message_size);
     void ConnectToLobby(int socket, int message_size);
     void Read(int socket);

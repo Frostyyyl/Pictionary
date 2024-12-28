@@ -4,109 +4,15 @@
 #include "game_manager.hpp"
 #include "scenes.hpp"
 #include "network_connector.hpp"
-
-// Helper function to create a TextButton
-std::shared_ptr<TextButton> CreateTextButton(Scene *scene, int x, int y, int w, int h, const Padding &padding, const std::string &text,
-                                             const std::string &filename, std::function<void()> onClick, const std::string &name)
-{
-    auto txtButton = std::make_shared<TextButton>(x, y, w, h, padding, text, filename, onClick, name);
-    scene->AddObject(txtButton);
-    GameManager::getInstance().RegisterInteractable(name, txtButton);
-    return txtButton;
-}
-
-// Helper function to create a TextButton
-std::shared_ptr<TextButton> CreateTextButton(Scene *scene, int x, int y, int w, int h, const Padding &padding, const std::string &text,
-                                             Uint32 color, std::function<void()> onClick, const std::string &name)
-{
-    auto txtButton = std::make_shared<TextButton>(x, y, w, h, padding, text, color, onClick, name);
-    scene->AddObject(txtButton);
-    GameManager::getInstance().RegisterInteractable(name, txtButton);
-    return txtButton;
-}
-
-// Helper function to create a Button
-std::shared_ptr<Button> CreateButton(Scene *scene, int x, int y, int w, int h, const std::string &filename,
-                                     std::function<void()> onClick, const std::string &name)
-{
-    auto button = std::make_shared<Button>(x, y, w, h, filename, onClick, name);
-    scene->AddObject(button);
-    GameManager::getInstance().RegisterInteractable(name, button);
-    return button;
-}
-
-// Helper function to create a Button
-std::shared_ptr<Button> CreateButton(Scene *scene, int x, int y, int w, int h, Uint32 color,
-                                     std::function<void()> onClick, const std::string &name)
-{
-    auto button = std::make_shared<Button>(x, y, w, h, color, onClick, name);
-    scene->AddObject(button);
-    GameManager::getInstance().RegisterInteractable(name, button);
-    return button;
-}
-
-// Helper function to create FixedTextInput
-std::shared_ptr<FixedTextInput> CreateFixedTextInput(Scene *scene, int x, int y, int w, int h, int maxSize, const std::string &name)
-{
-    // FIXME: For now fixed text input object's background is achieved using a color button
-    CreateButton(scene, x, y, w, h, Color::LIGHTPINK, [](){}, "");
-    auto fixedTxtInput = std::make_shared<FixedTextInput>(x + 5, y, w, h, maxSize, name);
-    scene->AddObject(fixedTxtInput);
-    GameManager::getInstance().RegisterInteractable(name, fixedTxtInput);
-    return fixedTxtInput;
-}
-
-// Helper function to create TextObject
-std::shared_ptr<TextObject> CreateTextObject(Scene *scene, int x, int y, const std::string &text, const std::string &name)
-{
-    auto txt = std::make_shared<TextObject>(x, y, text, name);
-    scene->AddObject(txt);
-    return txt;
-}
-
-// Helper function to create MessageWindow
-std::shared_ptr<MessageWindow> CreateMessageWindow(Scene *scene, GameMode mode, int x, int y, int w, int h, const std::string &name)
-{
-    auto msgWindow = std::make_shared<MessageWindow>(600, 100, 200, 300);
-    scene->AddObject(msgWindow);
-    return msgWindow;
-}
-
-// Helper function to create a TextInput
-std::shared_ptr<TextInput> CreateTextInput(Scene *scene, GameMode gameMode, int x, int y, int w, int h, MessageWindow *msgWindow, const std::string &name)
-{
-    auto txtInput = std::make_shared<TextInput>(x, y, w, h, msgWindow);
-    scene->AddObject(txtInput);
-
-    if (gameMode == GameMode::GUESS)
-    {
-        GameManager::getInstance().RegisterInteractable(name, txtInput);
-    }
-
-    return txtInput;
-}
-
-// Helper function to create Canvas
-std::shared_ptr<Canvas> CreateCanvas(Scene *scene, GameMode gameMode, const std::string &name)
-{
-    auto cvs = std::make_shared<Canvas>(name);
-    scene->AddObject(cvs);
-
-    if (gameMode == GameMode::DRAW)
-    {
-        GameManager::getInstance().RegisterInteractable("Canvas", cvs);
-    }
-
-    return cvs;
-}
+#include "../../global/src/game_mode.hpp"
 
 Scene *CreateMainMenuScene()
 {
     Scene *newScene = new Scene();
     newScene->sceneType = SceneType::MAIN_MENU;
 
-    CreateTextButton(newScene, 600, 400, 80, 80, Padding(24), "Play", "images/button.png", []()
-                     { GameManager::getInstance().ChangeCurrentScene(SceneType::LOBBY); }, "PlayButton");
+    newScene->CreateTextButton(600, 400, 80, 80, Padding(24), "Play", "images/button.png", []()
+                               { GameManager::getInstance().ChangeCurrentScene(SceneType::LOBBY); }, "PlayButton");
 
     return newScene;
 }
@@ -116,20 +22,20 @@ Scene *CreateLobbyScene()
     Scene *newScene = new Scene();
     newScene->sceneType = SceneType::LOBBY;
 
-    auto createLobbyButton = CreateTextButton(newScene, 100, 80, 100, 60, Padding(5), "Create Lobby", "images/button.png", [newScene]()
-                                              {
-            newScene->HideObject("CreateLobbyButton");
+    auto createLobbyButton = newScene->CreateTextButton(100, 80, 100, 60, Padding(5), "Create Lobby", "images/button.png", [newScene]()
+                                                        {
+            newScene->HideObjects("CreateLobbyButton");
 
-            CreateTextObject(newScene, 220, 80, "Enter Lobby Name", "LobbyNameText");
-            auto lobbyNameInput = CreateFixedTextInput(newScene, 220, 100, 255, 20, ConnectInfo::MAX_LOBBY_NAME_SIZE, "LobbyNameInput");
+            newScene->CreateTextObject(220, 80, "Enter Lobby Name", "LobbyNameText", 300);
+            auto lobbyNameInput = newScene->CreateFixedTextInput(220, 100, 255, 20, ConnectInfo::MAX_LOBBY_NAME_SIZE, "LobbyNameInput");
 
-            CreateTextObject(newScene, 220, 120, "Add Password", "PasswordText");
-            auto passwordInput = CreateFixedTextInput(newScene, 220, 140, 255, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput");
+            newScene->CreateTextObject(220, 120, "Add Password", "PasswordText", 300);
+            auto passwordInput = newScene->CreateFixedTextInput(220, 140, 255, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput");
 
-            CreateTextObject(newScene, 220, 160, "Enter Player Name", "PlayerNameText");
-            auto playerNameInput = CreateFixedTextInput(newScene, 220, 180, 255, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput");
+            newScene->CreateTextObject(220, 160, "Enter Player Name", "PlayerNameText", 300);
+            auto playerNameInput = newScene->CreateFixedTextInput(220, 180, 255, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput");
 
-            CreateTextButton(newScene, 100, 170, 100, 60, Padding(15), "Confirm ", "images/button.png", 
+            newScene->CreateTextButton(100, 170, 100, 60, Padding(15), "Confirm ", "images/button.png", 
                 [newScene, lobbyNameInput, playerNameInput, passwordInput]()
                 {
                     if (NetworkConnector::getInstance().CreateLobby(lobbyNameInput->GetText(), playerNameInput->GetText(), passwordInput->GetText()))
@@ -138,26 +44,26 @@ Scene *CreateLobbyScene()
                     }
                     else
                     {
-                        newScene->DeleteObject("CreateErrorText");
-                        CreateTextObject(newScene, 220, 30, NetworkConnector::getInstance().GetError(), "CreateErrorText");
+                        newScene->DeleteObjects("CreateErrorText");
+                        newScene->CreateTextObject(220, 30, NetworkConnector::getInstance().GetError(), "CreateErrorText", 500);
                     } }, "ConfirmButton");
 
-            CreateTextButton(newScene, 100, 260, 100, 60, Padding(25), "Cancel", "images/button.png", [newScene]()
+            newScene->CreateTextButton(100, 260, 100, 60, Padding(25), "Cancel", "images/button.png", [newScene]()
                 {
-                    newScene->DeleteObject("ConfirmButton");
-                    newScene->DeleteObject("CancelButton");
-                    newScene->DeleteObject("CreateErrorText");
-                    newScene->DeleteObject("LobbyNameText");
-                    newScene->DeleteObject("LobbyNameInput");
-                    newScene->DeleteObject("PasswordText");
-                    newScene->DeleteObject("PasswordInput");
-                    newScene->DeleteObject("PlayerNameText");
-                    newScene->DeleteObject("PlayerNameInput");
+                    newScene->DeleteObjects("ConfirmButton");
+                    newScene->DeleteObjects("CancelButton");
+                    newScene->DeleteObjects("CreateErrorText");
+                    newScene->DeleteObjects("LobbyNameText");
+                    newScene->DeleteObjects("LobbyNameInput");
+                    newScene->DeleteObjects("PasswordText");
+                    newScene->DeleteObjects("PasswordInput");
+                    newScene->DeleteObjects("PlayerNameText");
+                    newScene->DeleteObjects("PlayerNameInput");
                     newScene->ShowObject();
                     GameManager::getInstance().ResetCurrentTextInput();
                 }, "CancelButton"); }, "CreateLobbyButton");
 
-    CreateTextObject(newScene, 100, 340, "Lobbies", "LobbiesText");
+    newScene->CreateTextObject(100, 340, "Lobbies", "LobbiesText", 100);
 
     LobbyInfoList list = NetworkConnector::getInstance().RequestLobbies();
 
@@ -165,22 +71,22 @@ Scene *CreateLobbyScene()
     {
         LobbyInfo info = list.GetLobbyInfo(i);
 
-        CreateTextButton(newScene, 100 + 120 * (i % 4), 365 + 80 * (i / 4), 100, 60, Padding(5), info.GetLobbyName(), "images/button.png", [info, newScene]()
-                         {
-                newScene->DeleteObject("PlayerNameText2");
-                newScene->DeleteObject("PlayerNameInput2");
-                newScene->DeleteObject("PasswordText2");
-                newScene->DeleteObject("PasswordInput2");
+        newScene->CreateTextButton(100 + 120 * (i % 4), 365 + 80 * (i / 4), 100, 60, Padding(5), info.GetLobbyName(), "images/button.png", [info, newScene]()
+                                   {
+                newScene->DeleteObjects("PlayerNameText2");
+                newScene->DeleteObjects("PlayerNameInput2");
+                newScene->DeleteObjects("PasswordText2");
+                newScene->DeleteObjects("PasswordInput2");
 
-                CreateTextObject(newScene, 220, 320, "Enter Player Name", "PlayerNameText2");
-                auto playerNameInput = CreateFixedTextInput(newScene, 420, 320, 255, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2");
+                newScene->CreateTextObject(220, 320, "Enter Player Name", "PlayerNameText2", 300);
+                auto playerNameInput = newScene->CreateFixedTextInput(420, 320, 255, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2");
 
                 if (info.hasPassword())
                 {
-                    CreateTextObject(newScene, 220, 340, "Enter Password", "PasswordText2");
-                    auto passwordInput = CreateFixedTextInput(newScene, 420, 340, 255, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2");
+                    newScene->CreateTextObject(220, 340, "Enter Password", "PasswordText2", 300);
+                    auto passwordInput = newScene->CreateFixedTextInput(420, 340, 255, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2");
 
-                    CreateTextButton(newScene, 640, 340, 100, 60, Padding(15), "Confirm ", "images/button.png", [info, newScene, playerNameInput, passwordInput]()
+                    newScene->CreateTextButton(640, 340, 100, 60, Padding(15), "Confirm ", "images/button.png", [newScene, info, playerNameInput, passwordInput]()
                         {
                             if (NetworkConnector::getInstance().ConnectToLobby(info.GetLobbyName(), playerNameInput->GetText(), passwordInput->GetText()))
                             {
@@ -188,13 +94,13 @@ Scene *CreateLobbyScene()
                             }
                             else
                             {
-                                newScene->DeleteObject("ConnectErrorText");
-                                CreateTextObject(newScene, 200, 240, NetworkConnector::getInstance().GetError(), "ConnectErrorText");
+                                newScene->DeleteObjects("ConnectErrorText");
+                                newScene->CreateTextObject(200, 240, NetworkConnector::getInstance().GetError(), "ConnectErrorText", 500);
                             } }, "ConfirmButton2");
                 }
                 else
                 {
-                    CreateTextButton(newScene, 640, 340, 100, 60, Padding(15), "Confirm ", "images/button.png", [info, newScene, playerNameInput]()
+                    newScene->CreateTextButton(640, 340, 100, 60, Padding(15), "Confirm ", "images/button.png", [newScene, info, playerNameInput]()
                         {
                             if (NetworkConnector::getInstance().ConnectToLobby(info.GetLobbyName(), playerNameInput->GetText(), "")) // No password
                             {
@@ -202,8 +108,8 @@ Scene *CreateLobbyScene()
                             }
                             else
                             {
-                                newScene->DeleteObject("ConnectErrorText");
-                                CreateTextObject(newScene, 200, 240, NetworkConnector::getInstance().GetError(), "ConnectErrorText");
+                                newScene->DeleteObjects("ConnectErrorText");
+                                newScene->CreateTextObject(200, 240, NetworkConnector::getInstance().GetError(), "ConnectErrorText", 500);
                             } }, "ConfirmButton2");
                 } }, "LobbyButton");
     }
@@ -216,41 +122,41 @@ Scene *CreateGameScene()
     Scene *newScene = new Scene();
 
     newScene->sceneType = SceneType::GAME;
-    newScene->UpdatePlayers();
+    newScene->CreatePlayerNames();
+
+    GameMode mode = NetworkConnector::getInstance().RequestGameMode();
+    GameManager::getInstance().SetGameMode(mode);
 
     // For now backgrounds have unstable Z-index
     // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
     // newScene->AddObject(bg);
 
+    auto cvs = newScene->CreateCanvas("Canvas");
+     // FIXME: window sometimes flushes intead of adding themmessages?????
+    auto msgWindow = newScene->CreateMessageWindow(600, 100, 200, 300, "MsgWindow");
+    auto txtInput = newScene->CreateTextInput(600, 10, 100, 100, msgWindow.get(), "TextInput");
 
-    GameMode gameMode = GameManager::getInstance().GetGameMode();
-
-    auto cvs = CreateCanvas(newScene, gameMode, "Canvas");
-
-    // If the player is the one drawing, add canvas to interactables
-    if (gameMode == GameMode::DRAW)
+    // Create objects based on game mode
+    switch (mode)
     {
-
-        // This is a little tricky in creating color it's RRGGBBAA
-        // But in ChangeColor() it's AABBGGRR (and also FF is solid, 00 is transparent for alpha)
-        // MAYBE WE'LL FIX THIS LATER
-
-        CreateButton(newScene, 100, 500, 30, 30, Color::WHITE, [cvs]()
-                     { cvs.get()->ChangeColor(Color::CLEANWHITE); }, "BlackButton");
-        CreateButton(newScene, 150, 500, 30, 30, Color::BLACK, [cvs]()
-                     { cvs.get()->ChangeColor(Color::CLEANBLACK); }, "WhiteButton");
+    case GameMode::WAIT_FOR_PLAYERS:
+        newScene->CreateForWaitMode();
+        break;
+    case GameMode::STANDBY:
+        newScene->CreateForStandByMode();
+        break;
+    case GameMode::DRAW:
+        newScene->CreateForDrawMode();
+        break;
+    case GameMode::GUESS:
+        newScene->CreateForGuessMode();
+        break;
+    
+    default:
+        break;
     }
 
-    auto msgWindow = CreateMessageWindow(newScene, gameMode, 600, 100, 200, 300, "MsgWindow");
-    auto txtInput = CreateTextInput(newScene, gameMode, 600, 10, 100, 100, msgWindow.get(), "TextInput");
-
-    // If the player is the one guessing, allow them that and also show button for guessing
-    if (GameManager::getInstance().GetGameMode() == GameMode::GUESS)
-    {
-        SDL_StartTextInput();
-        CreateButton(newScene, 720, 10, 30, 30, "images/button.png", [txtInput]()
-                     { txtInput->SendMessage(); }, "EnterTextButton");
-    }
+    SDL_StartTextInput();
 
     return newScene;
 }
