@@ -119,8 +119,7 @@ class MessageWindow : public Component
 {
 private:
     std::deque<std::shared_ptr<TextObject>> messages;
-    int height;
-    const int msgOffset = 6;
+    int height = 0;
 
 public:
     MessageWindow(int x, int y, int w, int h, const std::string &name) : Component(name)

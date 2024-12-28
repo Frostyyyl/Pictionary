@@ -85,7 +85,6 @@ LobbyInfoList NetworkConnector::RequestLobbies()
         return list;
     }
 
-    std::cout << "Received lobbies" << std::endl;
     return list;
 }
 
@@ -229,7 +228,6 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
         errorMessage = "Given password is incorrect, try again";
         break;
     case MessageToClient::CONNECT:
-        std::cout << "Connected with lobby: \"" << lobby << "\", as: \"" << name << "\"" << std::endl;
         return true;
         break;
 

@@ -1,4 +1,5 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
+#include <algorithm>
 
 #include "components.hpp"
 #include "game_manager.hpp"
@@ -25,6 +26,7 @@ TextObject::TextObject(int x, int y, const std::string &content, const std::stri
     text.text = content;
     rect.x = x;
     rect.y = y;
+    rect.h = 20;
     LoadText();
 }
 
@@ -34,6 +36,7 @@ TextObject::TextObject(int x, int y, int wrapLength)
     text.text = "";
     rect.x = x;
     rect.y = y;
+    rect.h = 20;
     LoadText();
 }
 
@@ -50,12 +53,7 @@ void TextObject::Update()
 
 void TextInput::HandleEvent(SDL_Event event)
 {
-    if (event.type == SDL_TEXTINPUT)
-    {
-        text.text.text += event.text.text;
-        text.LoadText();
-    }
-    else if (event.type == SDL_KEYDOWN)
+    if (event.type == SDL_KEYDOWN)
     {
         if (event.key.keysym.sym == SDLK_BACKSPACE && !text.text.text.empty())
         {
@@ -64,9 +62,13 @@ void TextInput::HandleEvent(SDL_Event event)
         }
         else if (event.key.keysym.sym == SDLK_RETURN)
         {
-            if (!text.text.text.empty())
-                SendMessage();
+            SendMessage();
         }
+    }
+    else if (event.type == SDL_TEXTINPUT)
+    {
+        text.text.text += event.text.text;
+        text.LoadText();
     }
     else if (event.type == SDL_MOUSEBUTTONDOWN)
     {
@@ -165,7 +167,11 @@ void MessageWindow::Update()
 
 void MessageWindow::AddMessage(std::string message)
 {
-    auto newMessage = std::make_shared<TextObject>(rect.x, 0, message, "Message", rect.w);
+    if (message.empty())
+        return;
+
+    auto newMessage = std::make_shared<TextObject>(rect.x, 0, GameManager::getInstance().GetPlayerName() + ": " + message,
+                                                   "Message", rect.w);
     int messageHeight = newMessage->GetHeight();
 
     while (height + messageHeight > rect.h)
@@ -184,12 +190,12 @@ void MessageWindow::AddMessage(std::string message)
     messages.push_back(newMessage);
     height += messageHeight;
 
-    int yOffset = rect.y + rect.h + msgOffset;
+    int yOffset = rect.y + rect.h;
 
     for (auto it = messages.rbegin(); it != messages.rend(); ++it)
     {
         auto &message = *it;
-        yOffset -= (message->GetHeight() + msgOffset);
+        yOffset -= (message->GetHeight());
         message->SetPosition(rect.x, yOffset);
     }
 }
@@ -198,7 +204,7 @@ Canvas::Canvas(const std::string &name) : Interactable(name)
 {
     rect = {20, 20, 400, 400};
     tex = TextureManager::CreateCanvas(400, 400);
-    currentColor = Color::ABGR_WHITE;
+    currentColor = Color::ABGR_BLACK;
 }
 
 void Canvas::HandleEvent(SDL_Event event)

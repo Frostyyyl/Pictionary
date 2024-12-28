@@ -19,6 +19,7 @@ private:
     InputManager *inputManager;
     GameMode mode = GameMode::STANDBY;
     std::string currentTextInput = "";
+    std::string playerName = "";
 
 public:
     bool wasSceneChanged;
@@ -46,4 +47,7 @@ public:
     void SetCurrentTextInput(const std::string &input) { currentTextInput = input; }
     std::string GetCurrentTextInput() { return currentTextInput; }
     void ResetCurrentTextInput() { currentTextInput = ""; }
+
+    void SetPlayerName(const std::string& name) { playerName = name; }
+    std::string GetPlayerName() { return playerName; }
 };

@@ -27,19 +27,20 @@ Scene *CreateLobbyScene()
             newScene->HideObjects("CreateLobbyButton");
 
             newScene->CreateTextObject(220, 80, "Enter Lobby Name", "LobbyNameText", 300);
-            auto lobbyNameInput = newScene->CreateFixedTextInput(220, 100, 255, 20, ConnectInfo::MAX_LOBBY_NAME_SIZE, "LobbyNameInput");
+            auto lobbyNameInput = newScene->CreateFixedTextInput(220, 100, 255, 22, ConnectInfo::MAX_LOBBY_NAME_SIZE, "LobbyNameInput");
 
             newScene->CreateTextObject(220, 120, "Add Password", "PasswordText", 300);
-            auto passwordInput = newScene->CreateFixedTextInput(220, 140, 255, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput");
+            auto passwordInput = newScene->CreateFixedTextInput(220, 140, 255, 22, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput");
 
             newScene->CreateTextObject(220, 160, "Enter Player Name", "PlayerNameText", 300);
-            auto playerNameInput = newScene->CreateFixedTextInput(220, 180, 255, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput");
+            auto playerNameInput = newScene->CreateFixedTextInput(220, 180, 255, 22, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput");
 
             newScene->CreateTextButton(100, 170, 100, 60, Padding(15), "Confirm ", "images/button.png", 
                 [newScene, lobbyNameInput, playerNameInput, passwordInput]()
                 {
                     if (NetworkConnector::getInstance().CreateLobby(lobbyNameInput->GetText(), playerNameInput->GetText(), passwordInput->GetText()))
                     {
+                        GameManager::getInstance().SetPlayerName(playerNameInput->GetText());
                         GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
                     }
                     else
@@ -79,17 +80,18 @@ Scene *CreateLobbyScene()
                 newScene->DeleteObjects("PasswordInput2");
 
                 newScene->CreateTextObject(220, 320, "Enter Player Name", "PlayerNameText2", 300);
-                auto playerNameInput = newScene->CreateFixedTextInput(420, 320, 255, 20, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2");
+                auto playerNameInput = newScene->CreateFixedTextInput(420, 320, 255, 22, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2");
 
                 if (info.hasPassword())
                 {
                     newScene->CreateTextObject(220, 340, "Enter Password", "PasswordText2", 300);
-                    auto passwordInput = newScene->CreateFixedTextInput(420, 340, 255, 20, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2");
+                    auto passwordInput = newScene->CreateFixedTextInput(420, 340, 255, 22, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2");
 
                     newScene->CreateTextButton(640, 340, 100, 60, Padding(15), "Confirm ", "images/button.png", [newScene, info, playerNameInput, passwordInput]()
                         {
                             if (NetworkConnector::getInstance().ConnectToLobby(info.GetLobbyName(), playerNameInput->GetText(), passwordInput->GetText()))
                             {
+                                GameManager::getInstance().SetPlayerName(playerNameInput->GetText());
                                 GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
                             }
                             else
@@ -132,9 +134,10 @@ Scene *CreateGameScene()
     // newScene->AddObject(bg);
 
     auto cvs = newScene->CreateCanvas("Canvas");
-     // FIXME: window sometimes flushes intead of adding themmessages?????
-    auto msgWindow = newScene->CreateMessageWindow(600, 100, 200, 300, "MsgWindow");
-    auto txtInput = newScene->CreateTextInput(600, 10, 100, 100, msgWindow.get(), "TextInput");
+    auto msgWindow = newScene->CreateMessageWindow(600, 100, 200, 308, "MsgWindow");
+    auto txtInput = newScene->CreateTextInput(600, 100 + 308, 200 - 22, 22, msgWindow.get(), "TextInput");
+    newScene->CreateButton(600 + 200 - 22, 100 + 308, 22, 22, "images/button.png", [txtInput]()
+                 { txtInput->SendMessage(); }, "EnterTextButton");
 
     // Create objects based on game mode
     switch (mode)

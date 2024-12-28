@@ -85,9 +85,9 @@ void Scene::UpdateGameMode()
         else if (prevMode == GameMode::GUESS)
         {
             GameManager::getInstance().RemoveInteractable("TextInput");
-            std::static_pointer_cast<TextInput>(GetObject("TextInput"))->FlushText();
-            DeleteObjects("EnterTextButton");
             GameManager::getInstance().ResetCurrentTextInput();
+            std::static_pointer_cast<TextInput>(GetObject("TextInput"))->FlushText();
+            GameManager::getInstance().RemoveInteractable("EnterTextButton");
         }
         else
         {
@@ -109,6 +109,7 @@ void Scene::UpdateGameMode()
             break;
         case GameMode::GUESS:
             GameManager::getInstance().RegisterInteractable("TextInput", std::static_pointer_cast<Interactable>(GetObject("TextInput")));
+            GameManager::getInstance().RegisterInteractable("EnterTextButton", std::static_pointer_cast<Interactable>(GetObject("EnterTextButton")));
             CreateForGuessMode();
             break;
         default:
@@ -191,8 +192,6 @@ void Scene::CreateForDrawMode()
 
 void Scene::CreateForGuessMode()
 {
-    CreateButton(720, 10, 30, 30, "images/button.png", [this]()
-                 { std::static_pointer_cast<TextInput>(GetObject("TextInput"))->SendMessage(); }, "EnterTextButton");
 }
 
 void Scene::CreateForWaitMode()
@@ -269,7 +268,7 @@ std::shared_ptr<MessageWindow> Scene::CreateMessageWindow(int x, int y, int w, i
 {
     // FIXME: For now fixed text input object's background is achieved using a color button
     CreateButton(x, y, w, h, Color::PUMPKIN, []() {}, "");
-    auto msgWindow = std::make_shared<MessageWindow>(600, 100, 200, 300, name);
+    auto msgWindow = std::make_shared<MessageWindow>(x, y, w, h, name);
     AddObject(msgWindow);
     return msgWindow;
 }
