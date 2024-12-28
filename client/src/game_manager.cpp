@@ -103,8 +103,6 @@ void GameManager::ChangeCurrentScene(SceneType newScene)
         inputManager->ClearInteractables();
         currentScene->DeleteScene();
 
-        GameManager::getInstance().SetGameMode(GameMode::GUESS);
-
         // Inicialize new scene
         currentScene = CreateGameScene();
     }
@@ -138,6 +136,7 @@ void GameManager::RemoveInteractable(const std::string& name)
 
 void GameManager::Exit()
 {
+    NetworkConnector::getInstance().Exit();
     isRunning = false;
     SDL_StopTextInput();
     SDL_DestroyWindow(window);

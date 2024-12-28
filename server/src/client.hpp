@@ -27,37 +27,45 @@ private:
     sockaddr_in address = {};
 };
 
-class ClientManager
-{
+class ClientManager {
 public:
-    ClientManager() = default;
-    ~ClientManager() noexcept = default;
+    static ClientManager& getInstance() {
+        static ClientManager instance;
+        return instance;
+    }
 
-    Client &GetClient(int socket) { return clients[socket]; }
-    void AddClient(int socket, Client client) { clients.insert({socket, client}); }
-    void RemoveClient(int socket) { clients.erase(socket); }
-    std::vector<int> GetSockets()
-    {
+    std::shared_ptr<Client> GetClient(int socket) {
+        if (clients.count(socket)) {
+            return clients.at(socket);
+        }
+        return nullptr; // Return nullptr if not found
+    }
+
+    void AddClient(int socket, const Client& client) {
+        clients.insert({socket, std::make_shared<Client>(client)});
+    }
+
+    void RemoveClient(int socket) {
+        clients.erase(socket);
+    }
+
+    std::vector<int> GetSockets() {
         std::vector<int> tmp;
-
-        for (const auto &pair : clients)
-        {
+        for (const auto& pair : clients) {
             tmp.push_back(pair.first);
         }
-
         return tmp;
     }
-    bool hasClient(int socket)
-    {
-        for (const auto &pair : clients)
-        {
-            if (pair.first == socket)
-                return true;
-        }
 
-        return false;
+    bool hasClient(int socket) {
+        return clients.count(socket) > 0; 
     }
 
 private:
-    std::map<int, Client> clients = {};
+    ClientManager() = default;
+    ~ClientManager() noexcept = default;
+    ClientManager(const ClientManager&) = delete;
+    ClientManager& operator=(const ClientManager&) = delete;
+
+    std::map<int, std::shared_ptr<Client>> clients;
 };

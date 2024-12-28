@@ -14,6 +14,7 @@ enum class MessageToServer : int
     REQUEST_CANVAS,
     UPLOAD_TEXT,
     REQUEST_CHAT,
+    START_GAME,
     START_ROUND,
 };
 
@@ -29,6 +30,7 @@ enum class MessageToClient : int
     UPLOAD_GAMEMODE,
     UPLOAD_CANVAS,
     UPLOAD_CHAT,
+    CONFIRM_GAME_START,
     PICK_PROMPT,
     UPLOAD_TIME,
 };

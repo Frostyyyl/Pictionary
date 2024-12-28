@@ -144,5 +144,5 @@ public:
     GameMode GetGameMode() { return mode; }
 
 private:
-    GameMode mode = GameMode::WAIT_FOR_PLAYERS;
+    GameMode mode = GameMode::STANDBY;
 };

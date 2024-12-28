@@ -27,7 +27,7 @@ public:
         SDL_Texture *texture = SDL_CreateTexture(GameManager::renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
         if (!texture)
         {
-            std::cerr << "Failed to create texture: " << SDL_GetError() << std::endl;
+            std::cerr << "ERROR: Failed to create texture: " << SDL_GetError() << std::endl;
             return nullptr;
         }
         SDL_SetRenderTarget(GameManager::renderer, texture);
@@ -51,7 +51,7 @@ public:
         SDL_Texture *canvas = SDL_CreateTexture(GameManager::renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, w, h);
         if (!canvas)
         {
-            std::cerr << "Failed to create canvas texture! SDL_Error: " << SDL_GetError() << std::endl;
+            std::cerr << "ERROR: Failed to create canvas texture! SDL_Error: " << SDL_GetError() << std::endl;
             exit(1);
         }
         SDL_SetRenderTarget(GameManager::renderer, canvas);

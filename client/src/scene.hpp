@@ -24,6 +24,7 @@ private:
     int frameCount = 0;
 
     std::shared_ptr<Component> GetObject(const std::string &name);
+    void AddObject(std::shared_ptr<Component> component);
     void UpdateGameMode();
 
 public:
@@ -35,7 +36,6 @@ public:
     void Update();
     void DeleteScene();
 
-    void AddObject(std::shared_ptr<Component> component);
     void DeleteObjects(const std::string &name);
     void HideObjects(const std::string &name);
     void ShowObject();

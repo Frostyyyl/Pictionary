@@ -82,7 +82,12 @@ Scene *CreateLobbyScene()
                 newScene->CreateTextObject(220, 320, "Enter Player Name", "PlayerNameText2", 300);
                 auto playerNameInput = newScene->CreateFixedTextInput(420, 320, 255, 22, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2");
 
-                if (info.hasPassword())
+                if (info.GetPlayerCount() >= info.MAX_PLAYERS_PER_LOBBY)
+                {
+                    newScene->DeleteObjects("ConnectErrorText");
+                    newScene->CreateTextObject(200, 240, "This lobby is full", "ConnectErrorText", 500);
+                }
+                else if (info.hasPassword())
                 {
                     newScene->CreateTextObject(220, 340, "Enter Password", "PasswordText2", 300);
                     auto passwordInput = newScene->CreateFixedTextInput(420, 340, 255, 22, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2");
@@ -106,6 +111,7 @@ Scene *CreateLobbyScene()
                         {
                             if (NetworkConnector::getInstance().ConnectToLobby(info.GetLobbyName(), playerNameInput->GetText(), "")) // No password
                             {
+                                GameManager::getInstance().SetPlayerName(playerNameInput->GetText());
                                 GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
                             }
                             else
@@ -137,7 +143,17 @@ Scene *CreateGameScene()
     auto msgWindow = newScene->CreateMessageWindow(600, 100, 200, 308, "MsgWindow");
     auto txtInput = newScene->CreateTextInput(600, 100 + 308, 200 - 22, 22, msgWindow.get(), "TextInput");
     newScene->CreateButton(600 + 200 - 22, 100 + 308, 22, 22, "images/button.png", [txtInput]()
-                 { txtInput->SendMessage(); }, "EnterTextButton");
+                           { txtInput->SendMessage(); }, "EnterTextButton");
+
+    if (NetworkConnector::getInstance().hasPlayerCreatedLobby())
+    {
+        newScene->CreateTextButton(400, 400, 200, 80, Padding(20), "Start the game!", "images/button.png", [newScene]()
+                                   {
+            if (NetworkConnector::getInstance().StartGame())
+            {
+                newScene->DeleteObjects("StartButton");
+            } }, "StartButton");
+    }
 
     // Create objects based on game mode
     switch (mode)
@@ -153,9 +169,6 @@ Scene *CreateGameScene()
         break;
     case GameMode::GUESS:
         newScene->CreateForGuessMode();
-        break;
-    
-    default:
         break;
     }
 

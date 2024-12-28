@@ -50,7 +50,10 @@ void Scene::Update()
     case SceneType::GAME:
         if (frameCount == FRAMES_PER_SECOND * 2)
         {
-            UpdateGameMode();
+            if (GameManager::getInstance().GetGameMode() == GameMode::WAIT_FOR_PLAYERS)
+            {
+                UpdateGameMode();
+            }
 
             DeleteObjects("Player");
             CreatePlayerNames();

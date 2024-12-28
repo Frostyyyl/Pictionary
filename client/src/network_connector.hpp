@@ -20,9 +20,12 @@ private:
     bool isInit;
     int mySocket;
     std::string errorMessage;
+    bool hasCreated;
 
     const int PORT = 1100;
     const std::string ADDRESS = "127.0.0.1";
+
+    void ExitError();
 
 public:
     static NetworkConnector &getInstance();
@@ -31,13 +34,15 @@ public:
     bool isInitialized() { return isInit; }
     void Init();
     void Exit();
-    std::string GetError();
+    std::string GetError() { return errorMessage; };
+    bool hasPlayerCreatedLobby() { return hasCreated; };
     LobbyInfoList RequestLobbies();
     bool ValidateData(const std::string &lobby, const std::string &name, const std::string &password);
     bool CreateLobby(const std::string &lobby, const std::string &name, const std::string &password);
     bool ConnectToLobby(const std::string &lobby, const std::string &name, const std::string &password);
     PlayerInfoList RequestPlayers();
     GameMode RequestGameMode();
+    bool StartGame();
 
     void HandleCanvasChange(SDL_Texture *tex)
     {

@@ -31,6 +31,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType)
     case MessageToServer::REQUEST_CHAT:
         stream << "REQUEST_CHAT";
         break;
+    case MessageToServer::START_GAME:
+        stream << "START_GAME";
+        break;
     case MessageToServer::START_ROUND:
         stream << "START_ROUND";
         break;
@@ -72,6 +75,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
         break;
     case MessageToClient::UPLOAD_CHAT:
         stream << "UPLOAD_CHAT";
+        break;
+    case MessageToClient::CONFIRM_GAME_START:
+        stream << "CONFIRM_GAME_START";
         break;
     case MessageToClient::PICK_PROMPT:
         stream << "PICK_PROMPT";

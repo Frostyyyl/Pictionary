@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include <random>
 #include <string>
 #include <map>
 #include <vector>
@@ -27,15 +26,21 @@ private:
     void DisplaySendError(const T &message);
     template <typename T>
     void DisplayRecvError(const T &message);
+
     void SendIncorrectLobbyName(int socket);
     void SendIncorrectPlayerName(int socket);
     void SendIncorrectPassword(int socket);
+
     void ConfirmConnect(int socket);
+    void ConfirmGameStart(int socket);
+
     void SendLobbyList(int socket);
     void SendPlayerList(int socket);
     void SendGameMode(int socket);
+
     void CreateLobby(int socket, int message_size);
     void ConnectToLobby(int socket, int message_size);
+    
     void Read(int socket);
     void ExitLobby(int socket);
     void EnterLobby(int socket, const std::string &lobby, const std::string &name);
@@ -44,8 +49,7 @@ private:
 
     const int MAX_PENDING_CONNECTIONS = 10;
     const int PORT = 1100;
-    bool isInit = false;
-    socklen_t size = sizeof(struct sockaddr_in);
+    socklen_t clientAddrSize = sizeof(struct sockaddr_in);
     sockaddr_in serverAddr = {};
     int serverSocket = {};
     int maxSocket = {};
@@ -55,8 +59,7 @@ private:
     fd_set writing_list;
     fd_set exception_list;
 
-    LobbyManager lobbies = {};
-    ClientManager clients = {};
+    bool isInit = false;
 
 public:
     static Server &getInstance();

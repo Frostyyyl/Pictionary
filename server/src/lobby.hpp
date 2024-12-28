@@ -3,103 +3,92 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
+#include <chrono>
+
+#include <iostream>
 
 #include "client.hpp"
+
+// TODO: handle player drawing disconnecting
+
+class Player
+{
+public:
+    Player(const std::string &name) : name(name) {}
+    Player() = default;
+    ~Player() noexcept = default;
+
+    std::string GetName() { return name; }
+    bool isReady() { return ready; }
+    void SetIsReady(bool value) { ready = value; }
+
+private:
+    std::string name;
+    bool ready = false;
+};
 
 class Lobby
 {
 public:
+    static constexpr int ROUND_TIME_SEC = 180;
+
     Lobby(const std::string &password) : password(password) {}
-    Lobby() {}
+    Lobby() = default;
     ~Lobby() noexcept = default;
 
-    void AddPlayer(int socket, std::string name) { players.insert({socket, name}); }
+    void AddPlayer(int socket, std::string name) { players.insert({socket, std::make_shared<Player>(name)}); }
     void RemovePlayer(int socket) { players.erase(socket); }
-    std::vector<int> GetSockets()
-    {
-        std::vector<int> tmp;
+    std::shared_ptr<Player> GetPlayer(int socket) { return players[socket]; }
 
-        for (const auto &pair : players)
-        {
-            tmp.push_back(pair.first);
-        }
+    int GetPlayerDrawing() { return playerDrawing; }
+    void SetPlayerDrawing(int socket) { playerDrawing = socket; }
 
-        return tmp;
-    }
-    std::vector<std::string> GetNames()
-    {
-        std::vector<std::string> tmp;
-
-        for (const auto &pair : players)
-        {
-            tmp.push_back(pair.second);
-        }
-
-        return tmp;
-    }
-    std::string GetPlayerName(int socket) { return players[socket]; }
     std::string GetPassword() { return password; }
     int GetSize() { return players.size(); }
-    bool hasPlayerName(const std::string &name)
-    {
-        for (const auto &pair : players)
-        {
-            if (pair.second == name)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+    int GetTime();
+    void StartGame() { gameStarted = true; }
+    void StartRound();
+    void EndRound() { roundStarted = false; }
+
+    std::vector<int> GetSockets();
+    std::vector<std::string> GetNames();
+
+    bool hasPlayerName(const std::string &name);
+    bool hasGameStarted() { return gameStarted; }
+    bool hasRoundStarted() { return roundStarted; }
+    bool isEveryoneReady();
 
 private:
-    std::string password = {};
-    std::map<int, std::string> players = {};
+    std::string password;
+    std::map<int, std::shared_ptr<Player>> players;
+
+    int playerDrawing = 0;
+    bool gameStarted = false;
+    bool roundStarted = false;
+    std::chrono::steady_clock::time_point time = {};
 };
 
 class LobbyManager
 {
 public:
-    LobbyManager() = default;
-    ~LobbyManager() noexcept = default;
+    static LobbyManager &getInstance()
+    {
+        static LobbyManager instance;
+        return instance;
+    }
 
-    Lobby &GetLobby(const std::string &name) { return lobbies[name]; }
-    void AddLobby(const std::string &name, Lobby lobby) { lobbies.insert({name, lobby}).second; }
+    std::shared_ptr<Lobby> GetLobby(const std::string &name); // Return nullptr if not found
+    void AddLobby(const std::string &name, const std::string &password) { lobbies.insert({name, std::make_shared<Lobby>(password)}); }
     void RemoveLobby(const std::string &name) { lobbies.erase(name); }
-    /**
-     * Return 'count' of lobby names
-     */
-    std::vector<std::string> GetLobbyNames(int count)
-    {
-        std::vector<std::string> names;
-        int counter = 0;
-
-        for (const auto &pair : lobbies)
-        {
-            if (counter < count)
-            {
-                names.push_back(pair.first);
-                counter++;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return names;
-    }
-    bool hasLobby(const std::string &name)
-    {
-        std::map<std::string, Lobby>::iterator it = lobbies.find(name);
-
-        if (it != lobbies.end())
-        {
-            return true;
-        }
-        return false;
-    }
+    std::vector<std::string> GetLobbyNames(int count);
+    bool hasLobby(const std::string &name) { return lobbies.count(name) > 0; }
 
 private:
-    std::map<std::string, Lobby> lobbies = {};
+    LobbyManager() = default;
+    ~LobbyManager() noexcept = default;
+    LobbyManager(const LobbyManager &) = delete;
+    LobbyManager &operator=(const LobbyManager &) = delete;
+
+    std::map<std::string, std::shared_ptr<Lobby>> lobbies;
 };
