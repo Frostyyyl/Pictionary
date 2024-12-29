@@ -1,3 +1,6 @@
+#include <chrono>
+#include <thread>
+
 #include "network_connector.hpp"
 
 NetworkConnector::NetworkConnector() {}
@@ -50,8 +53,41 @@ void NetworkConnector::ExitError()
 {
     shutdown(mySocket, SHUT_RDWR);
     close(mySocket);
-    std::cerr << "ERROR: Closing due to server error" << std::endl;
     exit(EXIT_FAILURE);
+}
+
+bool NetworkConnector::WriteWithRetry(int socket, const void *buffer, size_t size)
+{
+    for (int attempt = 0; attempt < MAX_RETRIES; ++attempt)
+    {
+        if (write(socket, buffer, size) != -1)
+        {
+            return true;
+        }
+        std::cerr << "ERROR: Failed to write data, attempt " << (attempt + 1) << " of " << MAX_RETRIES << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_DELAY_MS));
+    }
+    return false;
+}
+
+bool NetworkConnector::ReadWithRetry(int socket, void *buffer, size_t size)
+{
+    for (int attempt = 0; attempt < MAX_RETRIES; ++attempt)
+    {
+        int rv = read(socket, buffer, size);
+        if (rv > -1)
+        {
+            return true;
+        }
+        else if (rv == 0)
+        {
+            std::cerr << "ERROR: Server closed connection" << std::endl;
+            ExitError();
+        }
+        std::cerr << "ERROR: Failed to read data, attempt " << (attempt + 1) << " of " << MAX_RETRIES << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_DELAY_MS));
+    }
+    return false;
 }
 
 bool NetworkConnector::ValidateData(const std::string &lobby, const std::string &name, const std::string &password)
@@ -82,37 +118,24 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
     ConnectInfo info = ConnectInfo(lobby, name, password);
     Message message = Message(static_cast<int>(MessageToServer::CREATE_LOBBY), sizeof(info));
 
-    // Prepare error message in case of failure
-    errorMessage = "Failed to create lobby, please try again";
-
     // Send the message type
-    int rv = write(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message)))
     {
         std::cerr << "ERROR: Failed to send message of type: " << MessageToServer::CREATE_LOBBY << std::endl;
-        return false;
+        ExitError();
     }
 
-    // Send the lobby information
-    rv = write(mySocket, &info, sizeof(info));
-
-    // Handle errors
-    if (rv == -1)
+    // Send the create information
+    if (!WriteWithRetry(mySocket, &info, sizeof(info)))
     {
         std::cerr << "ERROR: While creating lobby failed to send: ConnectInfo" << std::endl;
-        return false;
     }
 
     // Receive the response
-    rv = read(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message)))
     {
         std::cerr << "ERROR: Failed to receive message in method: CreateLobby" << std::endl;
-        return false;
+        ExitError();
     }
 
     // Handle based on response
@@ -128,8 +151,8 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
         hasCreated = true;
         return true;
         break;
-
     case MessageToClient::INVALID:
+        std::cerr << "ERROR: Server closed connection" << std::endl;
         ExitError();
         break;
     default:
@@ -151,35 +174,25 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
     ConnectInfo info = ConnectInfo(lobby, name, password);
     Message message = Message(static_cast<int>(MessageToServer::CONNECT_TO_LOBBY), sizeof(info));
 
-    errorMessage = "Failed to connect with lobby, please try again";
-
     // Send the message type
-    int rv = write(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message)))
     {
         std::cerr << "ERROR: Failed to send message of type: " << MessageToServer::CONNECT_TO_LOBBY << std::endl;
-        return false;
+        ExitError();
     }
 
-    // Send the lobby information
-    rv = write(mySocket, &info, sizeof(info));
-
-    // Handle errors
-    if (rv == -1)
+    // Send the connect information
+    if (!WriteWithRetry(mySocket, &info, sizeof(info)))
     {
         std::cerr << "ERROR: While connecting to lobby failed to send: ConnectInfo" << std::endl;
-        return false;
+        ExitError();
     }
-    // Receive the response
-    rv = read(mySocket, &message, sizeof(Message));
 
-    // Handle errors
-    if (rv == -1)
+    // Receive the response
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message)))
     {
         std::cerr << "ERROR: Failed to receive message in method: ConnectToLobby" << std::endl;
-        return false;
+        ExitError();
     }
 
     // Handle based on response
@@ -200,6 +213,7 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
         break;
 
     case MessageToClient::INVALID:
+        std::cerr << "ERROR: Server closed connection" << std::endl;
         ExitError();
         break;
     default:
@@ -217,32 +231,26 @@ LobbyInfoList NetworkConnector::RequestLobbies()
     LobbyInfoList list;
 
     // Send the message type
-    int rv = write(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message)))
     {
-        std::cerr << "ERROR: Could not send message of type: " << MessageToServer::REQUEST_LOBBIES << std::endl;
-        return list;
+        std::cerr << "ERROR: Failed to send message of type: " << MessageToServer::REQUEST_LOBBIES << std::endl;
+        ExitError();
     }
 
     // Read the message type alongside the size of lobbies
-    rv = read(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message)))
     {
-        std::cerr << "ERROR: Could not receive message of type: " << MessageToClient::UPLOAD_LOBBIES << std::endl;
-        return list;
+        std::cerr << "ERROR: Failed to receive message of type: " << MessageToClient::UPLOAD_LOBBIES << std::endl;
+        ExitError();
     }
 
     // Handle based on response
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::UPLOAD_LOBBIES:
-        break;
-
+        break; // Continue
     case MessageToClient::INVALID:
+        std::cerr << "ERROR: Server closed connection" << std::endl;
         ExitError();
         break;
     default:
@@ -252,13 +260,10 @@ LobbyInfoList NetworkConnector::RequestLobbies()
     }
 
     // Read the list of lobbies
-    rv = read(mySocket, &list, message.GetSize());
-
-    // Handle errors
-    if (rv == -1)
+    if (!ReadWithRetry(mySocket, &list, message.GetSize()))
     {
-        std::cerr << "ERROR: Could not receive: LobbyInfoList" << std::endl;
-        return list;
+        std::cerr << "ERROR: Failed to receive: LobbyInfoList" << std::endl;
+        ExitError();
     }
 
     return list;
@@ -270,32 +275,26 @@ PlayerInfoList NetworkConnector::RequestPlayers()
     PlayerInfoList list;
 
     // Send the message type
-    int rv = write(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message)))
     {
-        std::cerr << "ERROR: Could not send message of type: " << MessageToServer::REQUEST_PLAYERS << std::endl;
-        return list;
+        std::cerr << "ERROR: Failed to send message of type: " << MessageToServer::REQUEST_PLAYERS << std::endl;
+        ExitError();
     }
 
     // Read the message type alongside the size of players list
-    rv = read(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message)))
     {
-        std::cerr << "ERROR: Could not receive message of type: " << MessageToClient::UPLOAD_PLAYERS << std::endl;
-        return list;
+        std::cerr << "ERROR: Failed to receive message of type: " << MessageToClient::UPLOAD_PLAYERS << std::endl;
+        ExitError();
     }
 
     // Handle based on response
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::UPLOAD_PLAYERS:
-        break;
-
+        break; // Continue
     case MessageToClient::INVALID:
+        std::cerr << "ERROR: Server closed connection" << std::endl;
         ExitError();
         break;
     default:
@@ -305,13 +304,10 @@ PlayerInfoList NetworkConnector::RequestPlayers()
     }
 
     // Read the list of players
-    rv = read(mySocket, &list, message.GetSize());
-
-    // Handle errors
-    if (rv == -1)
+    if (!ReadWithRetry(mySocket, &list, message.GetSize()))
     {
-        std::cerr << "ERROR: Could not receive: PlayerInfoList" << std::endl;
-        return list;
+        std::cerr << "ERROR: Failed to receive: PlayerInfoList" << std::endl;
+        ExitError();
     }
 
     return list;
@@ -323,32 +319,26 @@ GameMode NetworkConnector::RequestGameMode()
     GameMode mode;
 
     // Send the message type
-    int rv = write(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message)))
     {
-        std::cerr << "ERROR: Could not send message of type: " << MessageToServer::REQUEST_GAMEMODE << std::endl;
-        return mode;
+        std::cerr << "ERROR: Failed to send message of type: " << MessageToServer::REQUEST_GAMEMODE << std::endl;
+        ExitError();
     }
 
     // Read the message type alongside the size of game mode
-    rv = read(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message)))
     {
-        std::cerr << "ERROR: Could not receive message of type: " << MessageToClient::UPLOAD_GAMEMODE << std::endl;
-        return mode;
+        std::cerr << "ERROR: Failed to receive message of type: " << MessageToClient::UPLOAD_GAMEMODE << std::endl;
+        ExitError();
     }
 
     // Handle based on response
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::UPLOAD_GAMEMODE:
-        break;
-
+        break; // Continue
     case MessageToClient::INVALID:
+        std::cerr << "ERROR: Server closed connection" << std::endl;
         ExitError();
         break;
     default:
@@ -358,13 +348,10 @@ GameMode NetworkConnector::RequestGameMode()
     }
 
     // Read the game mode
-    rv = read(mySocket, &mode, message.GetSize());
-
-    // Handle errors
-    if (rv == -1)
+    if (!ReadWithRetry(mySocket, &mode, message.GetSize()))
     {
-        std::cerr << "ERROR: Could not receive: GameModeInfo" << std::endl;
-        return mode;
+        std::cerr << "ERROR: Failed to receive: GameModeInfo" << std::endl;
+        ExitError();
     }
 
     return mode;
@@ -376,31 +363,24 @@ ChatInfo NetworkConnector::RequestChat()
     ChatInfo chat;
 
     // Send the message type
-    int rv = write(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message)))
     {
-        std::cerr << "ERROR: Could not send message of type: " << MessageToServer::REQUEST_CHAT << std::endl;
-        return chat;
+        std::cerr << "ERROR: Failed to send message of type: " << MessageToServer::REQUEST_CHAT << std::endl;
+        ExitError();
     }
 
-    // Read the message type alongside the size of chat
-    rv = read(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    // Read the message type alongside the size of chat info
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message)))
     {
-        std::cerr << "ERROR: Could not receive message of type: " << MessageToClient::UPLOAD_CHAT << std::endl;
-        return chat;
+        std::cerr << "ERROR: Failed to receive message of type: " << MessageToClient::UPLOAD_CHAT << std::endl;
+        ExitError();
     }
 
     // Handle based on response
     switch (static_cast<MessageToClient>(message.GetMessageType()))
     {
     case MessageToClient::UPLOAD_CHAT:
-        break;
-
+        break; // Continue
     case MessageToClient::INVALID:
         ExitError();
         break;
@@ -410,58 +390,44 @@ ChatInfo NetworkConnector::RequestChat()
         break;
     }
 
-    // Read the chat
-    rv = read(mySocket, &chat, message.GetSize());
-
-    // Handle errors
-    if (rv == -1)
+    // Read the chat info
+    if (!ReadWithRetry(mySocket, &chat, message.GetSize()))
     {
-        std::cerr << "ERROR: Could not receive: GameModeInfo" << std::endl;
-        return chat;
+        std::cerr << "ERROR: Failed to receive: ChatInfo" << std::endl;
+        ExitError();
     }
 
     return chat;
 }
 
-bool NetworkConnector::StartGame()
+void NetworkConnector::StartGame()
 {
     Message message = Message(static_cast<int>(MessageToServer::START_GAME));
 
     // Send the message type
-    int rv = write(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message)))
     {
-        std::cerr << "ERROR: Could not send message of type: " << MessageToServer::START_GAME << std::endl;
-        return false;
-    }
-
-    // Read the message type
-    rv = read(mySocket, &message, sizeof(Message));
-
-    // Handle errors
-    if (rv == -1)
-    {
-        std::cerr << "ERROR: Could not receive message of type: " << MessageToClient::CONFIRM_GAME_START << std::endl;
-        return false;
-    }
-
-    // Handle based on response
-    switch (static_cast<MessageToClient>(message.GetMessageType()))
-    {
-    case MessageToClient::CONFIRM_GAME_START:
-        return true;
-        break;
-
-    case MessageToClient::INVALID:
+        std::cerr << "ERROR: Failed to send message of type " << MessageToServer::START_GAME << std::endl;
         ExitError();
-        break;
-    default:
-        std::cerr << "ERROR: While starting game received unexpected message type" << std::endl;
+    }
+}
+
+void NetworkConnector::UploadText(const std::string &player, const std::string &text)
+{
+    TextInfo info = TextInfo(player, text);
+    Message message = Message(static_cast<int>(MessageToServer::UPLOAD_TEXT), sizeof(info));
+
+    // Send the message type
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message)))
+    {
+        std::cerr << "ERROR: Failed to send message of type: " << MessageToServer::UPLOAD_TEXT << std::endl;
         ExitError();
-        break;
     }
 
-    return false;
+    // Send the text information
+    if (!WriteWithRetry(mySocket, &info, sizeof(info)))
+    {
+        std::cerr << "ERROR: While uploading text failed to send: TextInfo" << std::endl;
+        ExitError();
+    }
 }

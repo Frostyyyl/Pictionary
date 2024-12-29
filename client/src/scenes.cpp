@@ -148,11 +148,9 @@ Scene *CreateGameScene()
     if (NetworkConnector::getInstance().hasPlayerCreatedLobby())
     {
         newScene->CreateTextButton(400, 400, 200, 80, Padding(20), "Start the game!", "images/button.png", [newScene]()
-                                   {
-            if (NetworkConnector::getInstance().StartGame())
-            {
-                newScene->DeleteObjects("StartButton");
-            } }, "StartButton");
+                                   { 
+                                    NetworkConnector::getInstance().StartGame();
+                                    newScene->DeleteObjects("StartButton"); }, "StartButton");
     }
 
     // Create objects based on game mode

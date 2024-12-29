@@ -7,7 +7,7 @@
 #include "input_manager.hpp"
 #include "../../global/src/game_mode.hpp"
 
-const int FRAMES_PER_SECOND = 140;
+const int FRAMES_PER_SECOND = 200;
 
 class GameManager
 {

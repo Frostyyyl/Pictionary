@@ -91,11 +91,7 @@ void TextInput::SendMessage()
     if (msg.empty())
         return;
 
-    if (!NetworkConnector::getInstance().UploadText(GameManager::getInstance().GetPlayerName(), msg))
-    {
-        return;
-    }
-
+    NetworkConnector::getInstance().UploadText(GameManager::getInstance().GetPlayerName(), msg);
     msgWindow->AddMessage(GameManager::getInstance().GetPlayerName()+ ": " + msg);
 
     text.text.text = "";
