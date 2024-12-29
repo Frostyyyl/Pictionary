@@ -48,8 +48,22 @@ void Scene::Update()
     switch (sceneType)
     {
     case SceneType::GAME:
-        if (frameCount == FRAMES_PER_SECOND * 2)
+        if (frameCount == FRAMES_PER_SECOND / 2)
         {
+            ChatInfo chat = NetworkConnector::getInstance().RequestChat();
+
+            if (chat.GetSize() != 0)
+            {
+                std::static_pointer_cast<MessageWindow>(GetObject("MsgWindow"))
+                    ->ClearMessages();
+            }
+
+            for (int i = 0; i < chat.GetSize(); i++)
+            {
+                std::static_pointer_cast<MessageWindow>(GetObject("MsgWindow"))
+                    ->AddMessage(chat.GetMessage(i).GetPlayerName() + ": " + chat.GetMessage(i).GetText());
+            }
+
             if (GameManager::getInstance().GetGameMode() == GameMode::WAIT_FOR_PLAYERS)
             {
                 UpdateGameMode();
@@ -83,13 +97,15 @@ void Scene::UpdateGameMode()
             GameManager::getInstance().StopDrawing();
             DeleteObjects("WhiteButton");
             DeleteObjects("BlackButton");
-            std::static_pointer_cast<Canvas>(GetObject("Canvas"))->ChangeColor(Color::ABGR_BLACK);
+            std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                ->ChangeColor(Color::ABGR_BLACK);
         }
         else if (prevMode == GameMode::GUESS)
         {
             GameManager::getInstance().RemoveInteractable("TextInput");
             GameManager::getInstance().ResetCurrentTextInput();
-            std::static_pointer_cast<TextInput>(GetObject("TextInput"))->FlushText();
+            std::static_pointer_cast<TextInput>(GetObject("TextInput"))
+                ->FlushText();
             GameManager::getInstance().RemoveInteractable("EnterTextButton");
         }
         else
@@ -188,9 +204,11 @@ void Scene::CreateForDrawMode()
     // MAYBE WE'LL FIX THIS LATER
 
     CreateButton(100, 500, 30, 30, Color::WHITE, [this]()
-                 { std::static_pointer_cast<Canvas>(GetObject("Canvas"))->ChangeColor(Color::ABGR_WHITE); }, "WhiteButton");
+                 { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                       ->ChangeColor(Color::ABGR_WHITE); }, "WhiteButton");
     CreateButton(150, 500, 30, 30, Color::BLACK, [this]()
-                 { std::static_pointer_cast<Canvas>(GetObject("Canvas"))->ChangeColor(Color::ABGR_BLACK); }, "BlackButton");
+                 { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                       ->ChangeColor(Color::ABGR_BLACK); }, "BlackButton");
 }
 
 void Scene::CreateForGuessMode()

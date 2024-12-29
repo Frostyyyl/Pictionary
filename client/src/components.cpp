@@ -53,7 +53,15 @@ void TextObject::Update()
 
 void TextInput::HandleEvent(SDL_Event event)
 {
-    if (event.type == SDL_KEYDOWN)
+    if (event.type == SDL_TEXTINPUT)
+    {
+        if ((int)text.text.text.size() < TextInfo::MAX_TEXT_SIZE)
+        {
+            text.text.text += event.text.text;
+            text.LoadText();
+        }
+    }
+    else if (event.type == SDL_KEYDOWN)
     {
         if (event.key.keysym.sym == SDLK_BACKSPACE && !text.text.text.empty())
         {
@@ -64,11 +72,6 @@ void TextInput::HandleEvent(SDL_Event event)
         {
             SendMessage();
         }
-    }
-    else if (event.type == SDL_TEXTINPUT)
-    {
-        text.text.text += event.text.text;
-        text.LoadText();
     }
     else if (event.type == SDL_MOUSEBUTTONDOWN)
     {
@@ -84,8 +87,16 @@ void TextInput::Update()
 void TextInput::SendMessage()
 {
     std::string msg = text.text.text;
-    msgWindow->AddMessage(msg);
-    NetworkConnector::getInstance().HandleNewMessage(msg);
+
+    if (msg.empty())
+        return;
+
+    if (!NetworkConnector::getInstance().UploadText(GameManager::getInstance().GetPlayerName(), msg))
+    {
+        return;
+    }
+
+    msgWindow->AddMessage(GameManager::getInstance().GetPlayerName()+ ": " + msg);
 
     text.text.text = "";
     text.LoadText();
@@ -165,13 +176,18 @@ void MessageWindow::Update()
     }
 }
 
+void MessageWindow::ClearMessages()
+{
+    messages.clear();
+    height = 0;
+}
+
 void MessageWindow::AddMessage(std::string message)
 {
     if (message.empty())
         return;
 
-    auto newMessage = std::make_shared<TextObject>(rect.x, 0, GameManager::getInstance().GetPlayerName() + ": " + message,
-                                                   "Message", rect.w);
+    auto newMessage = std::make_shared<TextObject>(rect.x, 0, message, "Message", rect.w);
     int messageHeight = newMessage->GetHeight();
 
     while (height + messageHeight > rect.h)

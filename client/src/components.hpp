@@ -129,6 +129,7 @@ public:
     ~MessageWindow() {}
 
     void Update() override;
+    void ClearMessages();
 
     void AddMessage(std::string message);
 };

@@ -34,8 +34,14 @@ std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType)
     case MessageToServer::START_GAME:
         stream << "START_GAME";
         break;
-    case MessageToServer::START_ROUND:
-        stream << "START_ROUND";
+    case MessageToServer::REQUEST_PROMPTS:
+        stream << "REQUEST_PROMPTS";
+        break;
+    case MessageToServer::PICK_PROMPT:
+        stream << "PICK_PROMPT";
+        break;
+    case MessageToServer::REQUEST_TIME:
+        stream << "REQUEST_TIME";
         break;
 
     default:
@@ -52,8 +58,8 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
     case MessageToClient::UPLOAD_LOBBIES:
         stream << "UPLOAD_LOBBIES";
         break;
-    case MessageToClient::CONNECT:
-        stream << "CONNECT";
+    case MessageToClient::CONFIRM_CONNECT:
+        stream << "CONFIRM_CONNECT";
         break;
     case MessageToClient::INCORRECT_LOBBY_NAME:
         stream << "INCORRECT_LOBBY_NAME";
@@ -73,14 +79,20 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
     case MessageToClient::UPLOAD_CANVAS:
         stream << "UPLOAD_CANVAS";
         break;
+    case MessageToClient::CONFIRM_TEXT_UPLOAD:
+        stream << "CONFIRM_TEXT_UPLOAD";
+        break;
     case MessageToClient::UPLOAD_CHAT:
         stream << "UPLOAD_CHAT";
         break;
     case MessageToClient::CONFIRM_GAME_START:
         stream << "CONFIRM_GAME_START";
         break;
-    case MessageToClient::PICK_PROMPT:
-        stream << "PICK_PROMPT";
+    case MessageToClient::UPLOAD_PROMPTS:
+        stream << "UPLOAD_PROMPTS";
+        break;
+    case MessageToClient::CONFIRM_PROMPT:
+        stream << "CONFIRM_PROMPT";
         break;
     case MessageToClient::UPLOAD_TIME:
         stream << "UPLOAD_TIME";

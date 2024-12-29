@@ -93,14 +93,14 @@ void Server::SendIncorrectPassword(int socket)
 
 void Server::ConfirmConnect(int socket)
 {
-    Message message = Message(static_cast<int>(MessageToClient::CONNECT));
+    Message message = Message(static_cast<int>(MessageToClient::CONFIRM_CONNECT));
 
     int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
 
     // Handle errors
     if (rv == -1)
     {
-        DisplaySendError(MessageToClient::CONNECT);
+        DisplaySendError(MessageToClient::CONFIRM_CONNECT);
     }
 }
 
@@ -120,6 +120,19 @@ void Server::ConfirmGameStart(int socket)
     // NOTE: Probably unnecessary, but:
     // Wait for no errors on send to prevent start button from not disappearing
     LobbyManager::getInstance().GetLobby(ClientManager::getInstance().GetClient(socket)->GetCurrentLobby())->StartGame();
+}
+
+void Server::ConfirmTextUpload(int socket)
+{
+    Message message = Message(static_cast<int>(MessageToClient::CONFIRM_TEXT_UPLOAD));
+
+    int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplaySendError(MessageToClient::CONFIRM_TEXT_UPLOAD);
+    }
 }
 
 void Server::SendLobbyList(int socket)
@@ -213,6 +226,7 @@ void Server::SendGameMode(int socket)
                 if (socket == lobby.GetPlayerDrawing())
                 {
                     info = GameModeInfo(GameMode::DRAW);
+                    lobby.SetPlayerDrawing(socket);
                 }
                 else
                 {
@@ -260,6 +274,63 @@ void Server::SendGameMode(int socket)
         DisplaySendError("PlayerInfoList");
         return;
     }
+}
+
+void Server::SendChat(int socket)
+{
+    // Get chat from lobby
+    std::string lobby = ClientManager::getInstance().GetClient(socket)->GetCurrentLobby();
+    ChatInfo chat = LobbyManager::getInstance().GetLobby(lobby)->GetChat();
+
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_CHAT), sizeof(chat));
+
+    // Send the message type
+    int rv = send(socket, &message, sizeof(Message), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplaySendError(MessageToClient::UPLOAD_CHAT);
+        return;
+    }
+
+    // Send the chat to client
+    rv = send(socket, &chat, sizeof(chat), MSG_NOSIGNAL | MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplaySendError("ChatInfo");
+        return;
+    }
+}
+
+void Server::UpdateChat(int socket, int message_size)
+{
+    TextInfo info;
+
+    // Read the chat info
+    int rv = recv(socket, &info, message_size, MSG_DONTWAIT);
+
+    // Handle errors
+    if (rv == -1)
+    {
+        DisplayRecvError(MessageToServer::UPLOAD_TEXT);
+        return;
+    }
+
+    std::string lobby = ClientManager::getInstance().GetClient(socket)->GetCurrentLobby();
+    std::string name = info.GetPlayerName();
+    std::string text = info.GetText();
+
+    // Add message to chat
+    LobbyManager::getInstance().GetLobby(lobby)->AddMessage(TextInfo(name, text));
+
+    // Send information about successfully adding a message
+    ConfirmTextUpload(socket);
+
+    // Remove from other structers to handle
+    ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());
 }
 
 void Server::CreateLobby(int socket, int message_size)
@@ -383,6 +454,9 @@ void Server::Read(int socket)
     case MessageToServer::CONNECT_TO_LOBBY:
         ConnectToLobby(socket, altMessage.GetSize());
         break;
+    case MessageToServer::UPLOAD_TEXT:
+        UpdateChat(socket, altMessage.GetSize());
+        break;
 
     case MessageToServer::INVALID: // Nothing to handle, continue
         break;
@@ -429,17 +503,24 @@ void Server::Read(int socket)
     case MessageToServer::REQUEST_CANVAS:
         break;
     case MessageToServer::UPLOAD_TEXT:
+        ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(message);
         break;
     case MessageToServer::REQUEST_CHAT:
+        SendChat(socket);
         break;
     case MessageToServer::START_GAME:
         ConfirmGameStart(socket);
         break;
-    case MessageToServer::START_ROUND:
+    case MessageToServer::REQUEST_PROMPTS:
+        break;
+    case MessageToServer::PICK_PROMPT:
+        break;
+    case MessageToServer::REQUEST_TIME:
         break;
 
     // Remove from descriptors and lobby, close socket
     case MessageToServer::INVALID:
+        // TODO: Add a way to handle drawing player disconnecting 
         std::cout << "Client: " << ClientManager::getInstance().GetClient(socket)->GetAddress() << ":"
                   << ClientManager::getInstance().GetClient(socket)->GetPort() << " closed connection" << std::endl;
         Disconnect(socket);
@@ -447,7 +528,7 @@ void Server::Read(int socket)
     // Unexpected behaviour
     default:
         std::cerr << "ERROR: Received unexpected message type " << std::endl;
-        Disconnect(socket);
+        // Disconnect(socket); // NOTE: Probably fine to not disconnect
         break;
     }
 }

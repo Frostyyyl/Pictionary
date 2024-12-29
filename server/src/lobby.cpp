@@ -1,5 +1,69 @@
+#include <algorithm>
+
 #include "lobby.hpp"
-#include <iostream>
+
+int Lobby::GetPlayerDrawing()
+{
+    if (playerDrawing)
+    {
+        return -1;
+    }
+ 
+    int player = -1;
+    while (!drawingHistory.empty())
+    {
+        int lastDrawingPlayer = drawingHistory.back();
+        auto it = players.find(lastDrawingPlayer);
+
+        // If the last drawing player disconnected remove it from the drawing history
+        if (it == players.end())
+        {
+            drawingHistory.pop_back();
+        }
+        // If the last drawing player was the last player to connect clear the drawing history
+        else if (players.begin()->first == lastDrawingPlayer)
+        {
+            drawingHistory.clear();
+        }
+        // Find the player who joined the lobby after the last drawing player
+        else
+        {
+            for (auto it = players.begin(); it != players.end(); ++it)
+            {
+                if (it->first == lastDrawingPlayer)
+                {
+                    break;
+                }
+                player = it->first;
+            }
+
+            return player;
+        }
+    }
+
+    // Find the player who joined the lobby first
+    for (auto it = players.begin(); it != players.end(); ++it)
+    {
+        player = it->first;
+    }
+
+    return player;
+}
+
+void Lobby::SetPlayerDrawing(int socket)
+{
+    playerDrawing = true;
+    drawingHistory.push_back(socket);
+}
+
+std::shared_ptr<Player> Lobby::GetPlayer(int socket)
+{
+    if (players.count(socket))
+    {
+        return players.at(socket);
+    }
+    return nullptr;
+}
 
 std::vector<int> Lobby::GetSockets()
 {
@@ -14,10 +78,12 @@ std::vector<int> Lobby::GetSockets()
 std::vector<std::string> Lobby::GetNames()
 {
     std::vector<std::string> tmp;
-    for (auto &pair : players)
+    for (const auto &pair : players)
     {
         tmp.push_back(pair.second->GetName());
     }
+
+    std::reverse(tmp.begin(), tmp.end());
     return tmp;
 }
 
@@ -25,6 +91,12 @@ void Lobby::StartRound()
 {
     roundStarted = true;
     time = std::chrono::steady_clock::now();
+}
+
+void Lobby::EndRound()
+{
+    roundStarted = false;
+    playerDrawing = false;
 }
 
 bool Lobby::isEveryoneReady()
@@ -47,7 +119,7 @@ int Lobby::GetTime()
 
 bool Lobby::hasPlayerName(const std::string &name)
 {
-    for (auto &pair : players)
+    for (const auto &pair : players)
     {
         if (pair.second->GetName() == name)
         {
@@ -63,7 +135,7 @@ std::shared_ptr<Lobby> LobbyManager::GetLobby(const std::string &name)
     {
         return lobbies.at(name);
     }
-    return nullptr; 
+    return nullptr;
 }
 
 std::vector<std::string> LobbyManager::GetLobbyNames(int count)

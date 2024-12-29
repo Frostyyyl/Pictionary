@@ -33,11 +33,14 @@ private:
 
     void ConfirmConnect(int socket);
     void ConfirmGameStart(int socket);
+    void ConfirmTextUpload(int socket);
 
     void SendLobbyList(int socket);
     void SendPlayerList(int socket);
     void SendGameMode(int socket);
+    void SendChat(int socket);
 
+    void UpdateChat(int socket, int message_size);
     void CreateLobby(int socket, int message_size);
     void ConnectToLobby(int socket, int message_size);
     

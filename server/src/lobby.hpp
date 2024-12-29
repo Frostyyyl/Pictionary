@@ -2,11 +2,10 @@
 
 #include <string>
 #include <vector>
-#include <map>
 #include <memory>
 #include <chrono>
-
-#include <iostream>
+#include <map>
+#include <unordered_map>
 
 #include "client.hpp"
 
@@ -39,17 +38,17 @@ public:
 
     void AddPlayer(int socket, std::string name) { players.insert({socket, std::make_shared<Player>(name)}); }
     void RemovePlayer(int socket) { players.erase(socket); }
-    std::shared_ptr<Player> GetPlayer(int socket) { return players[socket]; }
+    std::shared_ptr<Player> GetPlayer(int socket); // Return nullptr if not found
 
-    int GetPlayerDrawing() { return playerDrawing; }
-    void SetPlayerDrawing(int socket) { playerDrawing = socket; }
+    int GetPlayerDrawing();
+    void SetPlayerDrawing(int socket);
 
     std::string GetPassword() { return password; }
     int GetSize() { return players.size(); }
     int GetTime();
     void StartGame() { gameStarted = true; }
     void StartRound();
-    void EndRound() { roundStarted = false; }
+    void EndRound();
 
     std::vector<int> GetSockets();
     std::vector<std::string> GetNames();
@@ -59,11 +58,16 @@ public:
     bool hasRoundStarted() { return roundStarted; }
     bool isEveryoneReady();
 
-private:
-    std::string password;
-    std::map<int, std::shared_ptr<Player>> players;
+    void AddMessage(const TextInfo &message) { chat.AddMessage(message); }
+    ChatInfo &GetChat() { return chat; }
 
-    int playerDrawing = 0;
+private:
+    ChatInfo chat = {};
+    std::string password;
+    std::unordered_map<int, std::shared_ptr<Player>> players;
+
+    std::vector<int> drawingHistory;
+    bool playerDrawing = false;
     bool gameStarted = false;
     bool roundStarted = false;
     std::chrono::steady_clock::time_point time = {};

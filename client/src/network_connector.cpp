@@ -124,7 +124,7 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
     case MessageToClient::INCORRECT_PLAYER_NAME:
         errorMessage = "Player name must be non-empty, please try again";
         break;
-    case MessageToClient::CONNECT:
+    case MessageToClient::CONFIRM_CONNECT:
         hasCreated = true;
         return true;
         break;
@@ -194,7 +194,7 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
     case MessageToClient::INCORRECT_PASSWORD:
         errorMessage = "Given password is incorrect, try again";
         break;
-    case MessageToClient::CONNECT:
+    case MessageToClient::CONFIRM_CONNECT:
         hasCreated = false;
         return true;
         break;
@@ -368,6 +368,59 @@ GameMode NetworkConnector::RequestGameMode()
     }
 
     return mode;
+}
+
+ChatInfo NetworkConnector::RequestChat()
+{
+    Message message = Message(static_cast<int>(MessageToServer::REQUEST_CHAT));
+    ChatInfo chat;
+
+    // Send the message type
+    int rv = write(mySocket, &message, sizeof(Message));
+
+    // Handle errors
+    if (rv == -1)
+    {
+        std::cerr << "ERROR: Could not send message of type: " << MessageToServer::REQUEST_CHAT << std::endl;
+        return chat;
+    }
+
+    // Read the message type alongside the size of chat
+    rv = read(mySocket, &message, sizeof(Message));
+
+    // Handle errors
+    if (rv == -1)
+    {
+        std::cerr << "ERROR: Could not receive message of type: " << MessageToClient::UPLOAD_CHAT << std::endl;
+        return chat;
+    }
+
+    // Handle based on response
+    switch (static_cast<MessageToClient>(message.GetMessageType()))
+    {
+    case MessageToClient::UPLOAD_CHAT:
+        break;
+
+    case MessageToClient::INVALID:
+        ExitError();
+        break;
+    default:
+        std::cerr << "ERROR: While requesting chat received unexpected message type" << std::endl;
+        ExitError();
+        break;
+    }
+
+    // Read the chat
+    rv = read(mySocket, &chat, message.GetSize());
+
+    // Handle errors
+    if (rv == -1)
+    {
+        std::cerr << "ERROR: Could not receive: GameModeInfo" << std::endl;
+        return chat;
+    }
+
+    return chat;
 }
 
 bool NetworkConnector::StartGame()
