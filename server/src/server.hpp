@@ -21,20 +21,17 @@ class Server
 {
 private:
     Server();
+
     int SetNonBlocking(int socket);
-    template <typename T>
-    void DisplaySendError(const T &message);
-    template <typename T>
-    void DisplayRecvError(const T &message);
+    void Accept();
+    void ExitLobby(int socket);
+    void EnterLobby(int socket, const std::string &lobby, const std::string &name);
+    void Disconnect(int socket);
 
     void SendIncorrectLobbyName(int socket);
     void SendIncorrectPlayerName(int socket);
     void SendIncorrectPassword(int socket);
-
-    void ConfirmConnect(int socket);
-    void ConfirmGameStart(int socket);
-    void ConfirmTextUpload(int socket);
-
+    void SendConfirmConnect(int socket);
     void SendLobbyList(int socket);
     void SendPlayerList(int socket);
     void SendGameMode(int socket);
@@ -44,12 +41,14 @@ private:
     void CreateLobby(int socket, int message_size);
     void ConnectToLobby(int socket, int message_size);
     
+    template <typename T>
+    bool ReadWithRetry(int socket, void *buffer, size_t size, const T& messageType);
+    template <typename T>
+    bool WriteWithRetry(int socket, const void *buffer, size_t size, const T& messageType);
     void Read(int socket);
-    void ExitLobby(int socket);
-    void EnterLobby(int socket, const std::string &lobby, const std::string &name);
-    void Disconnect(int socket);
-    void Accept();
+    void Write(int socket);
 
+    const int MAX_RETRIES = 3;
     const int MAX_PENDING_CONNECTIONS = 10;
     const int PORT = 1100;
     socklen_t clientAddrSize = sizeof(struct sockaddr_in);

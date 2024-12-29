@@ -9,7 +9,7 @@
 
 #include "client.hpp"
 
-// TODO: handle player drawing disconnecting
+// TODO: Handle player drawing disconnecting
 
 class Player
 {

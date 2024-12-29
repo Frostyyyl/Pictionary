@@ -4,6 +4,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType)
 {
     switch (msgType)
     {
+    case MessageToServer::INVALID:
+        stream << "INVALID";
+        break;
     case MessageToServer::REQUEST_LOBBIES:
         stream << "REQUEST_LOBBIES";
         break;
@@ -19,35 +22,40 @@ std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType)
     case MessageToServer::REQUEST_GAMEMODE:
         stream << "REQUEST_GAMEMODE";
         break;
-    case MessageToServer::UPLOAD_CANVAS:
-        stream << "UPLOAD_CANVAS";
-        break;
     case MessageToServer::REQUEST_CANVAS:
         stream << "REQUEST_CANVAS";
-        break;
-    case MessageToServer::UPLOAD_TEXT:
-        stream << "UPLOAD_TEXT";
         break;
     case MessageToServer::REQUEST_CHAT:
         stream << "REQUEST_CHAT";
         break;
-    case MessageToServer::START_GAME:
-        stream << "START_GAME";
-        break;
     case MessageToServer::REQUEST_PROMPTS:
         stream << "REQUEST_PROMPTS";
         break;
-    case MessageToServer::PICK_PROMPT:
-        stream << "PICK_PROMPT";
+    case MessageToServer::REQUEST_PROMPT_SIZE:
+        stream << "REQUEST_PROMPT_SIZE";
         break;
     case MessageToServer::REQUEST_TIME:
         stream << "REQUEST_TIME";
         break;
-
+    case MessageToServer::UPLOAD_CANVAS:
+        stream << "UPLOAD_CANVAS";
+        break;
+    case MessageToServer::UPLOAD_TEXT:
+        stream << "UPLOAD_TEXT";
+        break;
+    case MessageToServer::UPLOAD_PROMPT:
+        stream << "UPLOAD_PROMPT";
+        break;
+    case MessageToServer::START_GAME:
+        stream << "START_GAME";
+        break;
+    case MessageToServer::PICK_PROMPT:
+        stream << "PICK_PROMPT";
+        break;
     default:
+        stream << "UNKNOWN";
         break;
     }
-
     return stream;
 }
 
@@ -55,6 +63,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
 {
     switch (msgType)
     {
+    case MessageToClient::INVALID:
+        stream << "INVALID";
+        break;
     case MessageToClient::UPLOAD_LOBBIES:
         stream << "UPLOAD_LOBBIES";
         break;
@@ -79,14 +90,8 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
     case MessageToClient::UPLOAD_CANVAS:
         stream << "UPLOAD_CANVAS";
         break;
-    case MessageToClient::CONFIRM_TEXT_UPLOAD:
-        stream << "CONFIRM_TEXT_UPLOAD";
-        break;
     case MessageToClient::UPLOAD_CHAT:
         stream << "UPLOAD_CHAT";
-        break;
-    case MessageToClient::CONFIRM_GAME_START:
-        stream << "CONFIRM_GAME_START";
         break;
     case MessageToClient::UPLOAD_PROMPTS:
         stream << "UPLOAD_PROMPTS";
@@ -97,10 +102,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
     case MessageToClient::UPLOAD_TIME:
         stream << "UPLOAD_TIME";
         break;
-
     default:
+        stream << "UNKNOWN";
         break;
     }
-
     return stream;
 }

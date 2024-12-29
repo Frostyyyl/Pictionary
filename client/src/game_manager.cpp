@@ -142,4 +142,5 @@ void GameManager::Exit()
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
+    sleep(1);
 }

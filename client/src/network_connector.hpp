@@ -25,11 +25,13 @@ private:
     const int PORT = 1100;
     const std::string ADDRESS = "127.0.0.1";
     const int MAX_RETRIES = 3;
-    const int RETRY_DELAY_MS = 10;
+    const int RETRY_DELAY_SEC = 0.010;
 
     void ExitError();
-    bool WriteWithRetry(int socket, const void *buffer, size_t size);
-    bool ReadWithRetry(int socket, void *buffer, size_t size);
+    template <typename T>
+    bool WriteWithRetry(int socket, const void *buffer, size_t size, const T& messageType);
+    template <typename T>
+    bool ReadWithRetry(int socket, void *buffer, size_t size, const T& messageType);
     bool ValidateData(const std::string &lobby, const std::string &name, const std::string &password);
 
 public:

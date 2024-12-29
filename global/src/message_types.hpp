@@ -5,19 +5,21 @@
 enum class MessageToServer : int
 {
     INVALID = -1,
-    REQUEST_LOBBIES,
     CREATE_LOBBY,
     CONNECT_TO_LOBBY,
+    REQUEST_LOBBIES,
     REQUEST_PLAYERS,
     REQUEST_GAMEMODE,
-    UPLOAD_CANVAS,
     REQUEST_CANVAS,
-    UPLOAD_TEXT,
     REQUEST_CHAT,
-    START_GAME,
     REQUEST_PROMPTS,
-    PICK_PROMPT,
+    REQUEST_PROMPT_SIZE, // TODO: Implement as a READ in the server
     REQUEST_TIME,
+    UPLOAD_CANVAS, // TODO: Implement as a WRITE in the server
+    UPLOAD_TEXT,
+    UPLOAD_PROMPT,
+    START_GAME,
+    PICK_PROMPT,
 };
 
 enum class MessageToClient : int
@@ -31,9 +33,7 @@ enum class MessageToClient : int
     UPLOAD_PLAYERS,
     UPLOAD_GAMEMODE,
     UPLOAD_CANVAS,
-    CONFIRM_TEXT_UPLOAD,
     UPLOAD_CHAT,
-    CONFIRM_GAME_START,
     UPLOAD_PROMPTS,
     CONFIRM_PROMPT,
     UPLOAD_TIME,
