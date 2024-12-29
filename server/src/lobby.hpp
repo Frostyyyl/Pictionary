@@ -5,9 +5,10 @@
 #include <memory>
 #include <chrono>
 #include <map>
+#include <deque>
 #include <unordered_map>
 
-#include "client.hpp"
+#include "../../global/src/messages.hpp"
 
 // TODO: Handle player drawing disconnecting
 
@@ -21,10 +22,13 @@ public:
     std::string GetName() { return name; }
     bool isReady() { return ready; }
     void SetIsReady(bool value) { ready = value; }
+    void SetLastReadChange(int value) { lastReadChange = value; }
+    int GetLastReadChange() { return lastReadChange; }
 
 private:
     std::string name;
     bool ready = false;
+    int lastReadChange = -1;
 };
 
 class Lobby
@@ -60,17 +64,23 @@ public:
 
     void AddMessage(const TextInfo &message) { chat.AddMessage(message); }
     ChatInfo &GetChat() { return chat; }
+    void AddCanvasChange(const CanvasChangeInfo &change) { canvasChanges.push_back(change); }
+    CanvasChangeInfoList GetCanvasChanges(int socket);
 
 private:
     ChatInfo chat = {};
+    std::deque<CanvasChangeInfo> canvasChanges;
+
     std::string password;
     std::unordered_map<int, std::shared_ptr<Player>> players;
 
     std::vector<int> drawingHistory;
-    bool playerDrawing = false;
+    int playerDrawing = -1;
     bool gameStarted = false;
     bool roundStarted = false;
     std::chrono::steady_clock::time_point time = {};
+
+    int MinLastReadChange();
 };
 
 class LobbyManager

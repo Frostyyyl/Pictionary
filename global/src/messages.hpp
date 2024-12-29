@@ -179,8 +179,8 @@ public:
     ChatInfo() = default;
     ~ChatInfo() noexcept = default;
 
-    void AddMessage(const TextInfo &message) 
-    { 
+    void AddMessage(const TextInfo &message)
+    {
         if (size == MAX_TEXTS)
         {
             for (int i = 0; i < size - 1; i++)
@@ -191,8 +191,7 @@ public:
             size--;
         }
 
-        messages[size++] = message; 
-
+        messages[size++] = message;
     }
     TextInfo &GetMessage(int index) { return messages[index]; }
     int GetSize() const { return size; }
@@ -200,38 +199,6 @@ public:
 private:
     short size = 0;
     std::array<TextInfo, MAX_TEXTS> messages = {};
-};
-
-#include <SDL2/SDL.h>
-
-class CanvasInfo
-{
-public:
-    static constexpr int CANVAS_WIDTH = 400;
-    static constexpr int CANVAS_HEIGHT = 400;
-
-    CanvasInfo()
-    {
-        canvas.fill(0);
-    }
-
-    CanvasInfo(const SDL_Texture* texture)
-    {
-        SDL_Renderer* renderer = SDL_CreateRenderer(SDL_CreateWindow("temp", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, CANVAS_WIDTH, CANVAS_HEIGHT, 0), -1, 0);
-        SDL_SetRenderTarget(renderer, const_cast<SDL_Texture*>(texture));
-        SDL_RenderReadPixels(renderer, nullptr, SDL_PIXELFORMAT_RGBA8888, canvas.data(), CANVAS_WIDTH * 4);
-        SDL_DestroyRenderer(renderer);
-    }
-
-    ~CanvasInfo() noexcept = default;
-
-    const std::array<Uint32, CANVAS_WIDTH * CANVAS_HEIGHT>& GetCanvas() const
-    {
-        return canvas;
-    }
-
-private:
-    std::array<Uint32, CANVAS_WIDTH * CANVAS_HEIGHT> canvas;
 };
 
 class TimeInfo
@@ -245,4 +212,65 @@ public:
 
 private:
     int time = 0;
+};
+
+
+class CanvasChangeInfo
+{
+public:
+    enum class Color
+    {
+        ABGR_WHITE,
+        ABGR_BLACK,
+    };
+    enum class Type
+    {
+        NONE,
+        CLEAR,
+        LINE,
+        CIRCLE,
+    };
+    CanvasChangeInfo(int x1, int y1, int x2, int y2, Color color)
+        : type(Type::LINE), x1(x1), y1(y1), x2(x2), y2(y2), color(color) {}
+    CanvasChangeInfo(int x1, int y1, int radius, Color color)
+        : type(Type::CIRCLE), x1(x1), y1(y1), radius(radius), color(color) {}
+    CanvasChangeInfo(Type type) : type(type) {}
+    CanvasChangeInfo() = default;
+    ~CanvasChangeInfo() noexcept = default;
+
+    Type GetType() const { return type; }
+    int GetX1() const { return x1; }
+    int GetY1() const { return y1; }
+    int GetX2() const { return x2; }
+    int GetY2() const { return y2; }
+    Color GetColor() const { return color; }
+    int GetRadius() const { return radius; }
+
+private:
+    Type type = Type::NONE;
+    int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    int radius = 0;
+    Color color = Color::ABGR_WHITE;
+};
+
+class CanvasChangeInfoList
+{
+public:
+    static constexpr short MAX_CANVAS_CHANGES = 60;
+
+    CanvasChangeInfoList() = default;
+    ~CanvasChangeInfoList() noexcept = default;
+
+    void AddCanvasChange(const CanvasChangeInfo &change) { list[size++] = change; }
+    CanvasChangeInfo &GetCanvasChange() 
+    { 
+        size--;
+        return list[index++]; 
+    }
+    int GetSize() const { return size; }
+
+private:
+    short size = 0;
+    short index = 0;
+    std::array<CanvasChangeInfo, MAX_CANVAS_CHANGES> list = {};
 };

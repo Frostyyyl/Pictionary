@@ -424,6 +424,54 @@ void Server::SendChat(int socket)
     }
 }
 
+void Server::SendCanvasChanges(int socket)
+{
+    // Get canvas from lobby
+    std::string lobby = ClientManager::getInstance().GetClient(socket)->GetCurrentLobby();
+    CanvasChangeInfoList list = LobbyManager::getInstance().GetLobby(lobby)->GetCanvasChanges(socket);
+
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_CANVAS), sizeof(list));
+
+    // Send the message type
+    if (!WriteWithRetry(socket, &message, sizeof(Message), MessageToClient::UPLOAD_CANVAS))
+    {
+        Disconnect(socket);
+        return;
+    }
+
+    // Send the canvas to client
+    if (!WriteWithRetry(socket, &list, sizeof(list), "CanvasChangeInfoList"))
+    {
+        Disconnect(socket);
+        return;
+    }
+
+    // TODO: Clean up canvas changes after sending
+}
+
+void Server::SendTime(int socket)
+{
+    // Get time from lobby
+    std::string lobby = ClientManager::getInstance().GetClient(socket)->GetCurrentLobby();
+    TimeInfo time = TimeInfo(LobbyManager::getInstance().GetLobby(lobby)->GetTime());
+
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_TIME), sizeof(time));
+
+    // Send the message type
+    if (!WriteWithRetry(socket, &message, sizeof(Message), MessageToClient::UPLOAD_TIME))
+    {
+        Disconnect(socket);
+        return;
+    }
+
+    // Send the time to client
+    if (!WriteWithRetry(socket, &time, sizeof(time), "TimeInfo"))
+    {
+        Disconnect(socket);
+        return;
+    }
+}
+
 void Server::UpdateChat(int socket, int message_size)
 {
     TextInfo info;
@@ -440,6 +488,25 @@ void Server::UpdateChat(int socket, int message_size)
 
     // Add message to chat
     LobbyManager::getInstance().GetLobby(lobby)->AddMessage(TextInfo(name, text));
+
+    // Remove from other structers to handle
+    ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());
+}
+
+void Server::UpdateCanvas(int socket, int message_size)
+{
+    CanvasChangeInfo info;
+
+    // Read the canvas info
+    if (!ReadWithRetry(socket, &info, message_size, MessageToServer::UPLOAD_CANVAS))
+    {
+        return;
+    }
+
+    std::string lobby = ClientManager::getInstance().GetClient(socket)->GetCurrentLobby();
+
+    // Add canvas change to lobby
+    LobbyManager::getInstance().GetLobby(lobby)->AddCanvasChange(info);
 
     // Remove from other structers to handle
     ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());
@@ -551,7 +618,6 @@ bool Server::ReadWithRetry(int socket, void *buffer, size_t size, const T& messa
     for (int attempt = 0; attempt < MAX_RETRIES; ++attempt)
     {
         int rv = recv(socket, buffer, size, MSG_DONTWAIT);
-
         if (rv == -1)
         {
             if (errno == EWOULDBLOCK)
@@ -620,6 +686,10 @@ void Server::Read(int socket)
         UpdateChat(socket, altMessage.GetSize());
         return;
         break;
+    case MessageToServer::UPLOAD_CANVAS:
+        UpdateCanvas(socket, altMessage.GetSize());
+        return;
+        break;
 
     case MessageToServer::INVALID: // Nothing to handle, continue
         break;
@@ -641,39 +711,33 @@ void Server::Read(int socket)
     switch (static_cast<MessageToServer>(message.GetMessageType()))
     {
     case MessageToServer::REQUEST_LOBBIES:
-        // std::cout << "Received request for lobbies" << std::endl;
         SendLobbyList(socket);
         break;
     case MessageToServer::CREATE_LOBBY:
-        // std::cout << "Received request to create lobby" << std::endl;
         ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(message);
         break;
     case MessageToServer::CONNECT_TO_LOBBY:
-        // std::cout << "Received request to connect to lobby" << std::endl;
         ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(message);
         break;
     case MessageToServer::REQUEST_PLAYERS:
-        // std::cout << "Received request for players" << std::endl;
         SendPlayerList(socket);
         break;
     case MessageToServer::REQUEST_GAMEMODE:
-        // std::cout << "Received request for game mode" << std::endl;
         SendGameMode(socket);
         break;
     case MessageToServer::UPLOAD_CANVAS:
+        ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(message);
         break;
     case MessageToServer::REQUEST_CANVAS:
+        SendCanvasChanges(socket);
         break;
     case MessageToServer::UPLOAD_TEXT:
-        // std::cout << "Received text" << std::endl;
         ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(message);
         break;
     case MessageToServer::REQUEST_CHAT:
-        // std::cout << "Received request for chat" << std::endl;
         SendChat(socket);
         break;
     case MessageToServer::START_GAME:
-        // std::cout << "Received request to start game" << std::endl;
         LobbyManager::getInstance().GetLobby(ClientManager::getInstance().GetClient(socket)->GetCurrentLobby())->StartGame();
         break;
     case MessageToServer::REQUEST_PROMPTS:
@@ -681,6 +745,7 @@ void Server::Read(int socket)
     case MessageToServer::PICK_PROMPT:
         break;
     case MessageToServer::REQUEST_TIME:
+        SendTime(socket);
         break;
 
     // Remove from descriptors and lobby, close socket
@@ -695,8 +760,4 @@ void Server::Read(int socket)
         Disconnect(socket);
         break;
     }
-}
-
-void Server::Write(int socket)
-{
 }

@@ -21,11 +21,15 @@ class Scene
 private:
     std::set<std::shared_ptr<Component>> objects;
     std::vector<std::shared_ptr<Component>> hiddenObjects;
+    CanvasChangeInfoList changes = {};
     int frameCount = 0;
 
     std::shared_ptr<Component> GetObject(const std::string &name);
     void AddObject(std::shared_ptr<Component> component);
     void UpdateGameMode();
+    void UpdateChat();
+    void UpdateCanvas();
+    void ReadChanges();
 
 public:
     SceneType sceneType;

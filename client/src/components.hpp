@@ -7,6 +7,7 @@
 
 #include "interactable.hpp"
 #include "text.hpp"
+#include "../../global/src/messages.hpp"
 
 // Used in Canvas
 struct Position
@@ -186,8 +187,9 @@ class Canvas : public Interactable
 private:
     SDL_Texture *tex;
     Uint32 currentColor;
+    bool justPressed = false;
 
-    Position prevPos;
+    Position prevPos = {0, 0};
 
 public:
     Canvas(const std::string &name);
@@ -198,6 +200,9 @@ public:
 
     void HandleEvent(SDL_Event event) override;
     void Update() override;
+    void DrawLine(int x1, int y1, int x2, int y2);
+    void DrawCircle(int x, int y, int radius);
+    void ClearCanvas();
 
     void ChangeColor(Uint32 newColor)
     {

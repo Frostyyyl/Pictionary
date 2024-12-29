@@ -96,11 +96,11 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
     case MessageToClient::UPLOAD_PROMPTS:
         stream << "UPLOAD_PROMPTS";
         break;
-    case MessageToClient::CONFIRM_PROMPT:
-        stream << "CONFIRM_PROMPT";
-        break;
     case MessageToClient::UPLOAD_TIME:
         stream << "UPLOAD_TIME";
+        break;
+    case MessageToClient::CONFIRM_PROMPT:
+        stream << "CONFIRM_PROMPT";
         break;
     default:
         stream << "UNKNOWN";

@@ -15,7 +15,7 @@ enum class MessageToServer : int
     REQUEST_PROMPTS,
     REQUEST_PROMPT_SIZE, // TODO: Implement as a READ in the server
     REQUEST_TIME,
-    UPLOAD_CANVAS, // TODO: Implement as a WRITE in the server
+    UPLOAD_CANVAS,
     UPLOAD_TEXT,
     UPLOAD_PROMPT,
     START_GAME,
@@ -35,8 +35,8 @@ enum class MessageToClient : int
     UPLOAD_CANVAS,
     UPLOAD_CHAT,
     UPLOAD_PROMPTS,
-    CONFIRM_PROMPT,
     UPLOAD_TIME,
+    CONFIRM_PROMPT,
 };
 
 std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType);

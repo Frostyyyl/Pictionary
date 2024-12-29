@@ -36,8 +36,11 @@ private:
     void SendPlayerList(int socket);
     void SendGameMode(int socket);
     void SendChat(int socket);
+    void SendCanvasChanges(int socket);
+    void SendTime(int socket);
 
     void UpdateChat(int socket, int message_size);
+    void UpdateCanvas(int socket, int message_size);
     void CreateLobby(int socket, int message_size);
     void ConnectToLobby(int socket, int message_size);
     
@@ -46,7 +49,6 @@ private:
     template <typename T>
     bool WriteWithRetry(int socket, const void *buffer, size_t size, const T& messageType);
     void Read(int socket);
-    void Write(int socket);
 
     const int MAX_RETRIES = 3;
     const int MAX_PENDING_CONNECTIONS = 10;

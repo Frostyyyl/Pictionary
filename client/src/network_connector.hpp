@@ -44,14 +44,15 @@ public:
 
     void Init();
     void Exit();
-    LobbyInfoList RequestLobbies();
     bool CreateLobby(const std::string &lobby, const std::string &name, const std::string &password);
     bool ConnectToLobby(const std::string &lobby, const std::string &name, const std::string &password);
+    LobbyInfoList RequestLobbies();
     PlayerInfoList RequestPlayers();
     GameMode RequestGameMode();
     ChatInfo RequestChat();
+    CanvasChangeInfoList RequestCanvasChange();
 
     void StartGame();
-    void HandleCanvasChange(SDL_Texture *tex) {}
+    void UploadCanvasChange(const CanvasChangeInfo& canvas);
     void UploadText(const std::string& player, const std::string& text);
 };

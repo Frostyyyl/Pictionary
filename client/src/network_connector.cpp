@@ -52,13 +52,13 @@ void NetworkConnector::ExitError()
 }
 
 template <typename T>
-bool NetworkConnector::WriteWithRetry(int socket, const void *buffer, size_t size, const T& messageType)
+bool NetworkConnector::WriteWithRetry(int socket, const void *buffer, size_t size, const T &messageType)
 {
     for (int attempt = 0; attempt < MAX_RETRIES; ++attempt)
     {
-        // NOTE: Attempting to write data twice in a row without 
+        // NOTE: Attempting to write data twice in a row without server
         // reading causes the server to crash
-        if (send(socket, buffer, size, 0) != -1) 
+        if (send(socket, buffer, size, 0) != -1)
         {
             return true;
         }
@@ -70,7 +70,7 @@ bool NetworkConnector::WriteWithRetry(int socket, const void *buffer, size_t siz
 }
 
 template <typename T>
-bool NetworkConnector::ReadWithRetry(int socket, void *buffer, size_t size, const T& messageType)
+bool NetworkConnector::ReadWithRetry(int socket, void *buffer, size_t size, const T &messageType)
 {
     for (int attempt = 0; attempt < MAX_RETRIES; ++attempt)
     {
@@ -385,12 +385,70 @@ ChatInfo NetworkConnector::RequestChat()
     return chat;
 }
 
+CanvasChangeInfoList NetworkConnector::RequestCanvasChange()
+{
+    Message message = Message(static_cast<int>(MessageToServer::REQUEST_CANVAS));
+    CanvasChangeInfoList list;
+
+    // Send the message type
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::REQUEST_CANVAS))
+    {
+        ExitError();
+    }
+
+    // Read the message type alongside the size of canvas info list
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message), MessageToClient::UPLOAD_CANVAS))
+    {
+        ExitError();
+    }
+
+    // Handle based on response
+    switch (static_cast<MessageToClient>(message.GetMessageType()))
+    {
+    case MessageToClient::UPLOAD_CANVAS:
+        break; // Continue
+    case MessageToClient::INVALID:
+        std::cerr << "ERROR: Server closed connection" << std::endl;
+        ExitError();
+        break;
+    default:
+        std::cerr << "ERROR: While requesting canvas received unexpected message type" << std::endl;
+        ExitError();
+        break;
+    }
+
+    // Read the canvas info
+    if (!ReadWithRetry(mySocket, &list, message.GetSize(), "CanvasInfo"))
+    {
+        ExitError();
+    }
+
+    return list;
+}
+
 void NetworkConnector::StartGame()
 {
     Message message = Message(static_cast<int>(MessageToServer::START_GAME));
 
     // Send the message type
     if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::START_GAME))
+    {
+        ExitError();
+    }
+}
+
+void NetworkConnector::UploadCanvasChange(const CanvasChangeInfo& info)
+{
+    Message message = Message(static_cast<int>(MessageToServer::UPLOAD_CANVAS), sizeof(info));
+
+    // Send the message type
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::UPLOAD_CANVAS))
+    {
+        ExitError();
+    }
+
+    // Send the canvas information
+    if (!WriteWithRetry(mySocket, &info, sizeof(info), "CanvasInfo"))
     {
         ExitError();
     }

@@ -45,26 +45,26 @@ void Scene::Update()
         }
     }
 
+    GameMode mode = GameManager::getInstance().GetGameMode();
+
     switch (sceneType)
     {
     case SceneType::GAME:
+        if (mode != GameMode::DRAW && mode != GameMode::WAIT_FOR_PLAYERS)
+        {
+            if (frameCount == CanvasChangeInfoList::MAX_CANVAS_CHANGES)
+            {
+                ReadChanges();
+            }
+
+            UpdateCanvas();
+        }
+
         if (frameCount == FRAMES_PER_SECOND / 2)
         {
-            ChatInfo chat = NetworkConnector::getInstance().RequestChat();
+            UpdateChat();
 
-            if (chat.GetSize() != 0)
-            {
-                std::static_pointer_cast<MessageWindow>(GetObject("MsgWindow"))
-                    ->ClearMessages();
-            }
-
-            for (int i = 0; i < chat.GetSize(); i++)
-            {
-                std::static_pointer_cast<MessageWindow>(GetObject("MsgWindow"))
-                    ->AddMessage(chat.GetMessage(i).GetPlayerName() + ": " + chat.GetMessage(i).GetText());
-            }
-
-            if (GameManager::getInstance().GetGameMode() == GameMode::WAIT_FOR_PLAYERS)
+            if (mode == GameMode::WAIT_FOR_PLAYERS)
             {
                 UpdateGameMode();
             }
@@ -135,6 +135,56 @@ void Scene::UpdateGameMode()
             break;
         }
     }
+}
+
+void Scene::UpdateChat()
+{
+    ChatInfo chat = NetworkConnector::getInstance().RequestChat();
+
+    if (chat.GetSize() != 0)
+    {
+        std::static_pointer_cast<MessageWindow>(GetObject("MsgWindow"))
+            ->ClearMessages();
+    }
+
+    for (int i = 0; i < chat.GetSize(); i++)
+    {
+        std::static_pointer_cast<MessageWindow>(GetObject("MsgWindow"))
+            ->AddMessage(chat.GetMessage(i).GetPlayerName() + ": " + chat.GetMessage(i).GetText());
+    }
+}
+
+void Scene::UpdateCanvas()
+{
+    if (changes.GetSize() > 0)
+    {
+        CanvasChangeInfo change = changes.GetCanvasChange();
+        switch (change.GetType())
+        {
+        case CanvasChangeInfo::Type::NONE:
+            break;
+        case CanvasChangeInfo::Type::CLEAR:
+            std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                ->ClearCanvas();
+            break;
+        case CanvasChangeInfo::Type::LINE:
+            std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                ->DrawLine(change.GetX1(), change.GetY1(), change.GetX2(), change.GetY2());
+            break;
+        case CanvasChangeInfo::Type::CIRCLE:
+            std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                ->DrawCircle(change.GetX1(), change.GetY1(), change.GetRadius());
+            break;
+
+        default:
+            break;
+        }
+    }
+}
+
+void Scene::ReadChanges()
+{
+    changes = NetworkConnector::getInstance().RequestCanvasChange();
 }
 
 void Scene::AddObject(std::shared_ptr<Component> component)
