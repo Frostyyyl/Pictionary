@@ -187,7 +187,6 @@ class Canvas : public Interactable
 private:
     SDL_Texture *tex;
     Uint32 currentColor;
-    bool justPressed = false;
 
     Position prevPos = {0, 0};
 
@@ -200,8 +199,8 @@ public:
 
     void HandleEvent(SDL_Event event) override;
     void Update() override;
-    void DrawLine(int x1, int y1, int x2, int y2);
-    void DrawCircle(int x, int y, int radius);
+    void DrawLine(int x1, int y1, int x2, int y2, Uint32 color);
+    void DrawCircle(int x, int y, int radius, Uint32 color);
     void ClearCanvas();
 
     void ChangeColor(Uint32 newColor)

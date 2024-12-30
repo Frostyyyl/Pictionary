@@ -230,51 +230,24 @@ void Canvas::HandleEvent(SDL_Event event)
     int canvasX = x - rect.x;
     int canvasY = y - rect.y;
 
-    // Handle mouse button down event
+    // Handle mouse button down and up event 
     if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP)
     {
         prevPos = {canvasX, canvasY};
 
-        SDL_SetRenderTarget(GameManager::renderer, tex);
-        filledCircleColor(GameManager::renderer, canvasX, canvasY, 3, currentColor);
-        SDL_SetRenderTarget(GameManager::renderer, nullptr);
-        SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
+        DrawCircle(canvasX, canvasY, 3, currentColor);
 
         CanvasChangeInfo::Color color = (currentColor == Color::ABGR_BLACK) ? CanvasChangeInfo::Color::ABGR_BLACK : CanvasChangeInfo::Color::ABGR_WHITE;
         CanvasChangeInfo info = {canvasX, canvasY, 3, color};
         NetworkConnector::getInstance().UploadCanvasChange(info);
 
-        justPressed = true;
-        return;
-    }
-
-    // Handle mouse button up event
-    if (event.type == SDL_MOUSEBUTTONUP)
-    {
-        prevPos = {canvasX, canvasY};
-
-        SDL_SetRenderTarget(GameManager::renderer, tex);
-        filledCircleColor(GameManager::renderer, canvasX, canvasY, 3, currentColor);
-        SDL_SetRenderTarget(GameManager::renderer, nullptr);
-        SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
-
-        CanvasChangeInfo::Color color = (currentColor == Color::ABGR_BLACK) ? CanvasChangeInfo::Color::ABGR_BLACK : CanvasChangeInfo::Color::ABGR_WHITE;
-        CanvasChangeInfo info = {canvasX, canvasY, 3, color};
-        NetworkConnector::getInstance().UploadCanvasChange(info);
-
-        justPressed = false;
         return;
     }
 
     // Handle mouse motion event
     if (event.type == SDL_MOUSEMOTION && x >= rect.x && x < rect.x + rect.w && y >= rect.y && y < rect.y + rect.h)
     {
-        std::cout << "Mouse motion event" << std::endl;
-        SDL_SetRenderTarget(GameManager::renderer, tex);
-        thickLineColor(GameManager::renderer, prevPos.x, prevPos.y, canvasX, canvasY, 6, currentColor);
-        SDL_SetRenderTarget(GameManager::renderer, nullptr);
-        SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
-
+        DrawLine(prevPos.x, prevPos.y, canvasX, canvasY, currentColor);
 
         CanvasChangeInfo::Color color = (currentColor == Color::ABGR_BLACK) ? CanvasChangeInfo::Color::ABGR_BLACK : CanvasChangeInfo::Color::ABGR_WHITE;
         CanvasChangeInfo info = {prevPos.x, prevPos.y, canvasX, canvasY, color};
@@ -284,19 +257,18 @@ void Canvas::HandleEvent(SDL_Event event)
     }
 }
 
-void Canvas::DrawLine(int x1, int y1, int x2, int y2)
+void Canvas::DrawLine(int x1, int y1, int x2, int y2, Uint32 color)
 {
     SDL_SetRenderTarget(GameManager::renderer, tex);
-    SDL_SetRenderDrawColor(GameManager::renderer, 255, 0, 0, 255);
-    thickLineColor(GameManager::renderer, x1, y1, x2, y2, 6, currentColor);
+    thickLineColor(GameManager::renderer, x1, y1, x2, y2, 6, color);
     SDL_SetRenderTarget(GameManager::renderer, nullptr);
     SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
 }
 
-void Canvas::DrawCircle(int x, int y, int radius)
+void Canvas::DrawCircle(int x, int y, int radius, Uint32 color)
 {
     SDL_SetRenderTarget(GameManager::renderer, tex);
-    filledCircleColor(GameManager::renderer, x, y, radius, currentColor);
+    filledCircleColor(GameManager::renderer, x, y, radius, color);
     SDL_SetRenderTarget(GameManager::renderer, nullptr);
     SDL_SetRenderDrawColor(GameManager::renderer, 255, 255, 255, 255);
 }

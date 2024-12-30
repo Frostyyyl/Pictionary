@@ -169,11 +169,13 @@ void Scene::UpdateCanvas()
             break;
         case CanvasChangeInfo::Type::LINE:
             std::static_pointer_cast<Canvas>(GetObject("Canvas"))
-                ->DrawLine(change.GetX1(), change.GetY1(), change.GetX2(), change.GetY2());
+                ->DrawLine(change.GetX1(), change.GetY1(), change.GetX2(), change.GetY2(),
+                           change.GetColor() == CanvasChangeInfo::Color::ABGR_BLACK ? Color::ABGR_BLACK : Color::ABGR_WHITE);
             break;
         case CanvasChangeInfo::Type::CIRCLE:
             std::static_pointer_cast<Canvas>(GetObject("Canvas"))
-                ->DrawCircle(change.GetX1(), change.GetY1(), change.GetRadius());
+                ->DrawCircle(change.GetX1(), change.GetY1(), change.GetRadius(),
+                             change.GetColor() == CanvasChangeInfo::Color::ABGR_BLACK ? Color::ABGR_BLACK : Color::ABGR_WHITE);
             break;
 
         default:
