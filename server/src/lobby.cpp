@@ -148,40 +148,26 @@ CanvasChangeInfoList Lobby::GetCanvasChanges(int socket)
 
     players[socket]->SetLastReadChange(next + changes.GetSize() - 1);
     
-    int min = MinLastReadChange() + 1;
+    int min = players.begin()->second->GetLastReadChange();
+
+    for (const auto &pair : players)
+    {
+        if (pair.first != playerDrawing)
+        {
+            if (pair.second->GetLastReadChange() < min)
+            {
+                min = pair.second->GetLastReadChange();
+            }
+            pair.second->SetLastReadChange(pair.second->GetLastReadChange() - min);
+        }
+    }
+
     for (int i = 0; i < min; i++)
     {
         canvasChanges.pop_front();
     }
 
-    for (const auto &pair : players)
-    {
-        if (pair.first == playerDrawing)
-        {
-            continue;
-        }
-        pair.second->SetLastReadChange(pair.second->GetLastReadChange() - min);
-    }
-
     return changes;
-}
-
-int Lobby::MinLastReadChange()
-{
-    int min = players.begin()->second->GetLastReadChange();
-    for (const auto &pair : players)
-    {
-        if (pair.first == playerDrawing)
-        {
-            continue;
-        }
-        if (pair.second->GetLastReadChange() < min)
-        {
-            min = pair.second->GetLastReadChange();
-        }
-    }
-
-    return min;
 }
 
 std::shared_ptr<Lobby> LobbyManager::GetLobby(const std::string &name)

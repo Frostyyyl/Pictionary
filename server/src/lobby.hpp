@@ -82,8 +82,6 @@ private:
     bool gameStarted = false;
     bool roundStarted = false;
     std::chrono::steady_clock::time_point time = {};
-
-    int MinLastReadChange();
 };
 
 class LobbyManager
