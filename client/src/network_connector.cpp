@@ -426,6 +426,129 @@ CanvasChangeInfoList NetworkConnector::RequestCanvasChange()
     return list;
 }
 
+PromptsInfoList NetworkConnector::RequestPrompts()
+{
+    Message message = Message(static_cast<int>(MessageToServer::REQUEST_PROMPTS));
+    PromptsInfoList list;
+
+    // Send the message type
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::REQUEST_PROMPTS))
+    {
+        ExitError();
+    }
+
+    // Read the message type alongside the size of prompts list
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message), MessageToClient::UPLOAD_PROMPTS))
+    {
+        ExitError();
+    }
+
+    // Handle based on response
+    switch (static_cast<MessageToClient>(message.GetMessageType()))
+    {
+    case MessageToClient::UPLOAD_PROMPTS:
+        break; // Continue
+    case MessageToClient::INVALID:
+        std::cerr << "ERROR: Server closed connection" << std::endl;
+        ExitError();
+        break;
+    default:
+        std::cerr << "ERROR: While requesting prompts received unexpected message type" << std::endl;
+        ExitError();
+        break;
+    }
+
+    // Read the prompts list
+    if (!ReadWithRetry(mySocket, &list, message.GetSize(), "PromptInfo"))
+    {
+        ExitError();
+    }
+
+    return list;
+}
+
+PromptSizeInfo NetworkConnector::RequestPromptSize()
+{
+    Message message = Message(static_cast<int>(MessageToServer::REQUEST_PROMPT_SIZE));
+    PromptSizeInfo size;
+
+    // Send the message type
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::REQUEST_PROMPT_SIZE))
+    {
+        ExitError();
+    }
+
+    // Read the message type alongside the size of prompt
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message), MessageToClient::UPLOAD_PROMPT_SIZE))
+    {
+        ExitError();
+    }
+
+    // Handle based on response
+    switch (static_cast<MessageToClient>(message.GetMessageType()))
+    {
+    case MessageToClient::UPLOAD_PROMPT_SIZE:
+        break; // Continue
+    case MessageToClient::INVALID:
+        std::cerr << "ERROR: Server closed connection" << std::endl;
+        ExitError();
+        break;
+    default:
+        std::cerr << "ERROR: While requesting prompt size received unexpected message type" << std::endl;
+        ExitError();
+        break;
+    }
+
+    // Read the prompt size
+    if (!ReadWithRetry(mySocket, &size, message.GetSize(), "PromptSizeInfo"))
+    {
+        ExitError();
+    }
+
+    return size;
+}
+
+TimeInfo NetworkConnector::RequestTime()
+{
+    Message message = Message(static_cast<int>(MessageToServer::REQUEST_TIME));
+    TimeInfo time;
+
+    // Send the message type
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::REQUEST_TIME))
+    {
+        ExitError();
+    }
+
+    // Read the message type alongside the size of time
+    if (!ReadWithRetry(mySocket, &message, sizeof(Message), MessageToClient::UPLOAD_TIME))
+    {
+        ExitError();
+    }
+
+    // Handle based on response
+    switch (static_cast<MessageToClient>(message.GetMessageType()))
+    {
+    case MessageToClient::UPLOAD_TIME:
+        break; // Continue
+    case MessageToClient::INVALID:
+        std::cerr << "ERROR: Server closed connection" << std::endl;
+        ExitError();
+        break;
+    default:
+        std::cerr << "ERROR: While requesting time received unexpected message type" << std::endl;
+        ExitError();
+        break;
+    }
+
+    // Read the time
+    if (!ReadWithRetry(mySocket, &time, message.GetSize(), "TimeInfo"))
+    {
+        ExitError();
+    }
+
+    return time;
+}
+
 void NetworkConnector::StartGame()
 {
     Message message = Message(static_cast<int>(MessageToServer::START_GAME));
@@ -467,6 +590,24 @@ void NetworkConnector::UploadText(const std::string &player, const std::string &
 
     // Send the text information
     if (!WriteWithRetry(mySocket, &info, sizeof(info), "TextInfo"))
+    {
+        ExitError();
+    }
+}
+
+void NetworkConnector::UploadPrompt(const std::string &prompt)
+{
+    PromptInfo info = PromptInfo(prompt);
+    Message message = Message(static_cast<int>(MessageToServer::UPLOAD_PROMPT), sizeof(info));
+
+    // Send the message type
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::UPLOAD_PROMPT))
+    {
+        ExitError();
+    }
+
+    // Send the prompt information
+    if (!WriteWithRetry(mySocket, &info, sizeof(info), "PromptInfo"))
     {
         ExitError();
     }

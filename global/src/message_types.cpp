@@ -49,9 +49,6 @@ std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType)
     case MessageToServer::START_GAME:
         stream << "START_GAME";
         break;
-    case MessageToServer::PICK_PROMPT:
-        stream << "PICK_PROMPT";
-        break;
     default:
         stream << "UNKNOWN";
         break;
@@ -66,9 +63,6 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
     case MessageToClient::INVALID:
         stream << "INVALID";
         break;
-    case MessageToClient::UPLOAD_LOBBIES:
-        stream << "UPLOAD_LOBBIES";
-        break;
     case MessageToClient::CONFIRM_CONNECT:
         stream << "CONFIRM_CONNECT";
         break;
@@ -80,6 +74,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
         break;
     case MessageToClient::INCORRECT_PASSWORD:
         stream << "INCORRECT_PASSWORD";
+        break;
+    case MessageToClient::UPLOAD_LOBBIES:
+        stream << "UPLOAD_LOBBIES";
         break;
     case MessageToClient::UPLOAD_PLAYERS:
         stream << "UPLOAD_PLAYERS";
@@ -95,6 +92,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
         break;
     case MessageToClient::UPLOAD_PROMPTS:
         stream << "UPLOAD_PROMPTS";
+        break;
+    case MessageToClient::UPLOAD_PROMPT_SIZE:
+        stream << "UPLOAD_PROMPT_SIZE";
         break;
     case MessageToClient::UPLOAD_TIME:
         stream << "UPLOAD_TIME";

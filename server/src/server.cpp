@@ -48,6 +48,9 @@ void Server::Init()
     }
 
     maxSocket = serverSocket;
+
+    PromptsManager::getInstance().Init("data/prompts.txt");
+
     isInit = true;
 }
 
@@ -472,6 +475,49 @@ void Server::SendTime(int socket)
     }
 }
 
+void Server::SendPrompts(int socket)
+{
+    PromptsInfoList list = {PromptsManager::getInstance().GetPrompts()};
+
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_PROMPTS), sizeof(list));
+
+    // Send the message type
+    if (!WriteWithRetry(socket, &message, sizeof(Message), MessageToClient::UPLOAD_PROMPTS))
+    {
+        Disconnect(socket);
+        return;
+    }
+
+    // Send the prompts to client
+    if (!WriteWithRetry(socket, &list, sizeof(list), "PromptInfo"))
+    {
+        Disconnect(socket);
+        return;
+    }
+}
+
+void Server::SendPromptSize(int socket)
+{
+    Lobby lobby = *LobbyManager::getInstance().GetLobby(ClientManager::getInstance().GetClient(socket)->GetCurrentLobby());
+    PromptSizeInfo info = PromptSizeInfo(lobby.GetPrompt());
+
+    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_PROMPT_SIZE), sizeof(info));
+
+    // Send the message type
+    if (!WriteWithRetry(socket, &message, sizeof(Message), MessageToClient::UPLOAD_PROMPT_SIZE))
+    {
+        Disconnect(socket);
+        return;
+    }
+
+    // Send the prompt size to client
+    if (!WriteWithRetry(socket, &info, sizeof(info), "PromptSizeInfo"))
+    {
+        Disconnect(socket);
+        return;
+    }
+}
+
 void Server::UpdateChat(int socket, int message_size)
 {
     TextInfo info;
@@ -497,7 +543,7 @@ void Server::UpdateCanvas(int socket, int message_size)
 {
     CanvasChangeInfo info;
 
-    // Read the canvas info
+    // Read the canvas change info
     if (!ReadWithRetry(socket, &info, message_size, MessageToServer::UPLOAD_CANVAS))
     {
         return;
@@ -507,6 +553,26 @@ void Server::UpdateCanvas(int socket, int message_size)
 
     // Add canvas change to lobby
     LobbyManager::getInstance().GetLobby(lobby)->AddCanvasChange(info);
+
+    // Remove from other structers to handle
+    ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());
+}
+
+void Server::UpdatePrompt(int socket, int message_size)
+{
+    PromptInfo info;
+
+    // Read the prompt info
+    if (!ReadWithRetry(socket, &info, message_size, MessageToServer::UPLOAD_PROMPT))
+    {
+        return;
+    }
+
+    std::string lobby = ClientManager::getInstance().GetClient(socket)->GetCurrentLobby();
+    std::string prompt = info.GetPrompt();
+
+    // Add prompt to lobby
+    LobbyManager::getInstance().GetLobby(lobby)->SetPrompt(prompt);
 
     // Remove from other structers to handle
     ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());
@@ -690,6 +756,10 @@ void Server::Read(int socket)
         UpdateCanvas(socket, altMessage.GetSize());
         return;
         break;
+    case MessageToServer::UPLOAD_PROMPT:
+        UpdatePrompt(socket, altMessage.GetSize());
+        return;
+        break;
 
     case MessageToServer::INVALID: // Nothing to handle, continue
         break;
@@ -741,8 +811,10 @@ void Server::Read(int socket)
         LobbyManager::getInstance().GetLobby(ClientManager::getInstance().GetClient(socket)->GetCurrentLobby())->StartGame();
         break;
     case MessageToServer::REQUEST_PROMPTS:
+        SendPrompts(socket);
         break;
-    case MessageToServer::PICK_PROMPT:
+    case MessageToServer::UPLOAD_PROMPT:
+        ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(message);
         break;
     case MessageToServer::REQUEST_TIME:
         SendTime(socket);

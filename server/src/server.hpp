@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "prompts_manager.hpp"
 #include "lobby.hpp"
 #include "client.hpp"
 #include "../../global/src/messages.hpp"
@@ -38,9 +39,12 @@ private:
     void SendChat(int socket);
     void SendCanvasChanges(int socket);
     void SendTime(int socket);
+    void SendPrompts(int socket);
+    void SendPromptSize(int socket);
 
     void UpdateChat(int socket, int message_size);
     void UpdateCanvas(int socket, int message_size);
+    void UpdatePrompt(int socket, int message_size);
     void CreateLobby(int socket, int message_size);
     void ConnectToLobby(int socket, int message_size);
     

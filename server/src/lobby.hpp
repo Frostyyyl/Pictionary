@@ -66,10 +66,13 @@ public:
     ChatInfo &GetChat() { return chat; }
     void AddCanvasChange(const CanvasChangeInfo &change) { canvasChanges.push_back(change); }
     CanvasChangeInfoList GetCanvasChanges(int socket);
+    void SetPrompt(const std::string &prompt) { this->prompt = prompt; }
+    std::string GetPrompt() { return prompt; }
 
 private:
     ChatInfo chat = {};
     std::deque<CanvasChangeInfo> canvasChanges;
+    std::string prompt;
 
     std::string password;
     std::unordered_map<int, std::shared_ptr<Player>> players;

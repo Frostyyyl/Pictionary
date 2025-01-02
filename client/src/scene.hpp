@@ -23,12 +23,17 @@ private:
     std::vector<std::shared_ptr<Component>> hiddenObjects;
     CanvasChangeInfoList changes = {};
     int frameCount = 0;
+    int timeCount = 0;
 
     std::shared_ptr<Component> GetObject(const std::string &name);
     void AddObject(std::shared_ptr<Component> component);
+
+    void UpdatePlayers();
     void UpdateGameMode();
     void UpdateChat();
     void UpdateCanvas();
+    void UpdatePrompt();
+    void UpdateTime();
     void ReadChanges();
 
 public:

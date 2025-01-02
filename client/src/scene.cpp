@@ -3,6 +3,8 @@
 #include "scene.hpp"
 #include "game_manager.hpp"
 
+#include <chrono>
+
 Scene::Scene() {}
 Scene::~Scene() {}
 
@@ -26,7 +28,7 @@ std::shared_ptr<Component> Scene::GetObject(const std::string &name)
 
 void Scene::Update()
 {
-    // FIXME: For now update is split into two parts
+    // NOTE: For now update is split into two parts
     // Firstly update nameless objects (background objects)
     for (const auto &obj : objects)
     {
@@ -45,41 +47,62 @@ void Scene::Update()
         }
     }
 
-    GameMode mode = GameManager::getInstance().GetGameMode();
-
-    switch (sceneType)
+    if (sceneType == SceneType::GAME)
     {
-    case SceneType::GAME:
-        if (mode != GameMode::DRAW && mode != GameMode::WAIT_FOR_PLAYERS)
+        GameMode mode = GameManager::getInstance().GetGameMode();
+
+        // When a second passes reset frame count
+        if (frameCount == FRAMES_PER_SECOND)
         {
-            if (frameCount == CanvasChangeInfoList::MAX_CANVAS_CHANGES)
+            frameCount = 0;
+        }        
+
+        // NOTE: Split updates dependant on exchanging data with the server 
+        // to different frames to prevent lag
+
+        // NOTE: Make sure updates happen before frame count is reset
+
+        if (mode == GameMode::STANDBY || mode == GameMode::GUESS)
+        {
+            if ((frameCount % (CanvasChangeInfoList::MAX_CANVAS_CHANGES)) - 5 == 0) // Every fifth frame after MAX_CANVAS_CHANGES frames
             {
                 ReadChanges();
             }
 
-            UpdateCanvas();
+            UpdateCanvas(); // Every frame
+        }
+        
+        if (mode != GameMode::WAIT_FOR_PLAYERS)
+        {
+            if ((frameCount % (FRAMES_PER_SECOND / 4)) - 2 == 0) // Every second frame after quater of a second
+            {
+                UpdateTime();
+            }
         }
 
-        if (frameCount == FRAMES_PER_SECOND / 2)
+        if ((frameCount % (FRAMES_PER_SECOND / 2)) - 1 == 0) // Every first frame after half a second
         {
             UpdateChat();
+        }
+
+        if (frameCount % (FRAMES_PER_SECOND / 2) == 0) // Every half a second
+        {
+            UpdatePlayers();
 
             if (mode == GameMode::WAIT_FOR_PLAYERS)
             {
                 UpdateGameMode();
             }
-
-            DeleteObjects("Player");
-            CreatePlayerNames();
-            frameCount = 0;
         }
 
         frameCount++;
-        break;
-
-    default:
-        break;
     }
+}
+
+void Scene::UpdatePlayers()
+{
+    DeleteObjects("Player");
+    CreatePlayerNames();
 }
 
 void Scene::UpdateGameMode()
@@ -99,6 +122,8 @@ void Scene::UpdateGameMode()
             DeleteObjects("BlackButton");
             std::static_pointer_cast<Canvas>(GetObject("Canvas"))
                 ->ChangeColor(Color::ABGR_BLACK);
+
+            NetworkConnector::getInstance().UploadCanvasChange(CanvasChangeInfo(CanvasChangeInfo::Type::CLEAR));
         }
         else if (prevMode == GameMode::GUESS)
         {
@@ -123,7 +148,6 @@ void Scene::UpdateGameMode()
             CreateForStandByMode();
             break;
         case GameMode::DRAW:
-            GameManager::getInstance().RegisterInteractable("Canvas", std::static_pointer_cast<Interactable>(GetObject("Canvas")));
             CreateForDrawMode();
             break;
         case GameMode::GUESS:
@@ -182,6 +206,32 @@ void Scene::UpdateCanvas()
             break;
         }
     }
+}
+
+void Scene::UpdatePrompt()
+{
+    PromptSizeInfo prompt = NetworkConnector::getInstance().RequestPromptSize();
+    CreateTextObject(0, 0, std::string(prompt.GetSize(), '_'), "Prompt", 400);
+}
+
+void Scene::UpdateTime()
+{
+    TimeInfo time = NetworkConnector::getInstance().RequestTime();
+    timeCount = time.GetTime();
+
+    if (timeCount < 0)
+    {
+        GameManager::getInstance().SetGameMode(GameMode::WAIT_FOR_PLAYERS);
+        timeCount = 0;
+    }
+
+    std::string seconds = std::to_string(timeCount % 60);
+    if (seconds.size() < 2){
+        seconds = "0" + seconds;
+    }
+
+    DeleteObjects("Time");
+    CreateTextObject(800, 0, std::to_string(timeCount / 60) + ":" + seconds, "Time", 200);
 }
 
 void Scene::ReadChanges()
@@ -255,12 +305,26 @@ void Scene::CreateForDrawMode()
     // But in ChangeColor() it's AABBGGRR (and also FF is solid, 00 is transparent for alpha)
     // MAYBE WE'LL FIX THIS LATER
 
-    CreateButton(100, 500, 30, 30, Color::WHITE, [this]()
-                 { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
-                       ->ChangeColor(Color::ABGR_WHITE); }, "WhiteButton");
-    CreateButton(150, 500, 30, 30, Color::BLACK, [this]()
-                 { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
-                       ->ChangeColor(Color::ABGR_BLACK); }, "BlackButton");
+    PromptsInfoList prompts = NetworkConnector::getInstance().RequestPrompts();
+    for (int i = 0; i < PromptsInfoList::MAX_PROMPTS; i++)
+    {
+        std::string prompt = prompts.GetPrompt(i);
+        CreateTextButton(200 + (i * 100), 500, 90, 30, Padding(5), prompt, Color::DARK_PINK, [this, prompt]()
+                         { 
+                            NetworkConnector::getInstance().UploadPrompt(prompt);
+                            DeleteObjects("PromptButton0");
+                            DeleteObjects("PromptButton1");
+                            DeleteObjects("PromptButton2");
+                            CreateTextObject(0, 0, prompt, "Prompt", 400);
+                            CreateButton(100, 500, 30, 30, Color::WHITE, [this]()
+                                        { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                                            ->ChangeColor(Color::ABGR_WHITE); }, "WhiteButton");
+                            CreateButton(150, 500, 30, 30, Color::BLACK, [this]()
+                                        { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                                            ->ChangeColor(Color::ABGR_BLACK); }, "BlackButton");
+                            GameManager::getInstance().RegisterInteractable("Canvas", std::static_pointer_cast<Interactable>(GetObject("Canvas"))); 
+                         }, "PromptButton" + std::to_string(i));
+    }
 }
 
 void Scene::CreateForGuessMode()

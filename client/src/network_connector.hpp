@@ -51,8 +51,12 @@ public:
     GameMode RequestGameMode();
     ChatInfo RequestChat();
     CanvasChangeInfoList RequestCanvasChange();
+    PromptsInfoList RequestPrompts();
+    PromptSizeInfo RequestPromptSize();
+    TimeInfo RequestTime();
 
     void StartGame();
     void UploadCanvasChange(const CanvasChangeInfo& canvas);
     void UploadText(const std::string& player, const std::string& text);
+    void UploadPrompt(const std::string& prompt);
 };

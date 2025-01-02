@@ -2,6 +2,7 @@
 
 #include <string>
 #include <array>
+#include <vector> // NOTE: Only for constructors
 
 #include "game_mode.hpp"
 
@@ -214,7 +215,6 @@ private:
     int time = 0;
 };
 
-
 class CanvasChangeInfo
 {
 public:
@@ -256,16 +256,16 @@ private:
 class CanvasChangeInfoList
 {
 public:
-    static constexpr short MAX_CANVAS_CHANGES = 60;
+    static constexpr short MAX_CANVAS_CHANGES = 50; // TODO: Make sure this value is dividable by frames per second
 
     CanvasChangeInfoList() = default;
     ~CanvasChangeInfoList() noexcept = default;
 
     void AddCanvasChange(const CanvasChangeInfo &change) { list[size++] = change; }
-    CanvasChangeInfo &GetCanvasChange() 
-    { 
+    CanvasChangeInfo &GetCanvasChange()
+    {
         size--;
-        return list[index++]; 
+        return list[index++];
     }
     int GetSize() const { return size; }
 
@@ -273,4 +273,59 @@ private:
     short size = 0;
     short index = 0;
     std::array<CanvasChangeInfo, MAX_CANVAS_CHANGES> list = {};
+};
+
+class PromptSizeInfo
+{
+public:
+    PromptSizeInfo(const std::string &prompt) : size(prompt.size()) {}
+
+    PromptSizeInfo() = default;
+    ~PromptSizeInfo() noexcept = default;
+
+    int GetSize() { return size; }
+
+private:
+    int size = 0;
+};
+
+class PromptInfo
+{
+public:
+    static constexpr short MAX_PROMPT_SIZE = 16;
+
+    PromptInfo(const std::string &prompt)
+    {
+        prompt.copy(this->prompt.data(), MAX_PROMPT_SIZE);
+        this->prompt[MAX_PROMPT_SIZE] = '\0';
+    }
+    PromptInfo() = default;
+    ~PromptInfo() noexcept = default;
+
+    std::string GetPrompt() { return prompt.data(); }
+
+private:
+    std::array<char, MAX_PROMPT_SIZE + 1> prompt = {};
+};
+
+class PromptsInfoList
+{
+public:
+    static constexpr short MAX_PROMPTS = 3;
+
+    PromptsInfoList(const std::vector<std::string> &prompts)
+    {
+        for (int i = 0; i < MAX_PROMPTS; i++)
+        {
+            prompts[i].copy(this->prompts[i].data(), PromptInfo::MAX_PROMPT_SIZE);
+            this->prompts[i][PromptInfo::MAX_PROMPT_SIZE] = '\0';
+        }
+    }
+    PromptsInfoList() = default;
+    ~PromptsInfoList() noexcept = default;
+
+    std::string GetPrompt(int index) { return prompts[index].data(); }
+
+private:
+    std::array<std::array<char, PromptInfo::MAX_PROMPT_SIZE + 1>, MAX_PROMPTS> prompts = {};
 };

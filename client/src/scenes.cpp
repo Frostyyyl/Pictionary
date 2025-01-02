@@ -119,7 +119,7 @@ Scene *CreateLobbyScene()
                                 newScene->DeleteObjects("ConnectErrorText");
                                 newScene->CreateTextObject(200, 240, NetworkConnector::getInstance().GetError(), "ConnectErrorText", 500);
                             } }, "ConfirmButton2");
-                } }, "LobbyButton");
+                } }, "LobbyButton" + std::to_string(i));
     }
 
     return newScene;
