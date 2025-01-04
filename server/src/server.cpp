@@ -509,28 +509,6 @@ void Server::SendPrompts(int socket)
     }
 }
 
-void Server::SendPromptSize(int socket)
-{
-    Lobby lobby = *LobbyManager::getInstance().GetLobby(ClientManager::getInstance().GetClient(socket)->GetCurrentLobby());
-    PromptSizeInfo info = PromptSizeInfo(lobby.GetPrompt());
-
-    Message message = Message(static_cast<int>(MessageToClient::UPLOAD_PROMPT_SIZE), sizeof(info));
-
-    // Send the message type
-    if (!WriteWithRetry(socket, &message, sizeof(Message), MessageToClient::UPLOAD_PROMPT_SIZE))
-    {
-        Disconnect(socket);
-        return;
-    }
-
-    // Send the prompt size to client
-    if (!WriteWithRetry(socket, &info, sizeof(info), "PromptSizeInfo"))
-    {
-        Disconnect(socket);
-        return;
-    }
-}
-
 void Server::UpdateChat(int socket, int message_size)
 {
     TextInfo info;
@@ -547,6 +525,16 @@ void Server::UpdateChat(int socket, int message_size)
 
     // Add message to chat
     LobbyManager::getInstance().GetLobby(lobby)->AddMessage(TextInfo(name, text));
+
+    
+    std::transform(text.begin(), text.end(), text.begin(),
+        [](unsigned char c){ return std::toupper(c); });
+
+    if (text == LobbyManager::getInstance().GetLobby(lobby)->GetPrompt() && LobbyManager::getInstance().GetLobby(lobby)->GetPrompt() != "")
+    {
+        LobbyManager::getInstance().GetLobby(lobby)->AddMessage(TextInfo("SERVER", "Correct guess!"));
+        LobbyManager::getInstance().GetLobby(lobby)->EndRound();
+    }
 
     // Remove from other structers to handle
     ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());
@@ -614,7 +602,7 @@ void Server::CreateLobby(int socket, int message_size)
     }
 
     // Make sure that player name is correct
-    if (name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE)
+    if (name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE || name == "SERVER")
     {
         SendIncorrectPlayerName(socket);
         ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());
@@ -674,7 +662,7 @@ void Server::ConnectToLobby(int socket, int message_size)
     }
 
     // Check if player name is unique/correct
-    if (LobbyManager::getInstance().GetLobby(lobby)->hasPlayerName(name) || name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE)
+    if (LobbyManager::getInstance().GetLobby(lobby)->hasPlayerName(name) || name.empty() || name.size() > ConnectInfo::MAX_CLIENT_NAME_SIZE  || name == "SERVER")
     {
         SendIncorrectPlayerName(socket);
         ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());

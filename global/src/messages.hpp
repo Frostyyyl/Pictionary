@@ -275,20 +275,6 @@ private:
     std::array<CanvasChangeInfo, MAX_CANVAS_CHANGES> list = {};
 };
 
-class PromptSizeInfo
-{
-public:
-    PromptSizeInfo(const std::string &prompt) : size(prompt.size()) {}
-
-    PromptSizeInfo() = default;
-    ~PromptSizeInfo() noexcept = default;
-
-    int GetSize() { return size; }
-
-private:
-    int size = 0;
-};
-
 class PromptInfo
 {
 public:

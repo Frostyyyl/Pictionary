@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <algorithm>
+#include <cctype>
 #include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -40,7 +42,6 @@ private:
     void SendCanvasChanges(int socket);
     void SendTime(int socket);
     void SendPrompts(int socket);
-    void SendPromptSize(int socket);
 
     void UpdateChat(int socket, int message_size);
     void UpdateCanvas(int socket, int message_size);

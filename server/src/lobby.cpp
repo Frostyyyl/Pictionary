@@ -101,6 +101,7 @@ void Lobby::EndRound()
     playerDrawing = -1;
 
     canvasChanges.clear();
+    prompt = "";
 
     for (const auto &pair : players)
     {
