@@ -375,7 +375,6 @@ void Server::SendGameMode(int socket)
                 if (lobby.isEveryoneReady())
                 {
                     lobby.StartRound();
-                    lobby.ClearCanvasChanges();
                 }
             }
             else

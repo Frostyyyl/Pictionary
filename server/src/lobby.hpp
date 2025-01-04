@@ -63,7 +63,6 @@ public:
     void AddMessage(const TextInfo &message) { chat.AddMessage(message); }
     ChatInfo &GetChat() { return chat; }
     void AddCanvasChange(const CanvasChangeInfo &change) { canvasChanges.push_back(change); }
-    void ClearCanvasChanges() { canvasChanges.clear(); AddCanvasChange(CanvasChangeInfo(CanvasChangeInfo::Type::CLEAR)); }
     CanvasChangeInfoList GetCanvasChanges(int socket);
     void SetPrompt(const std::string &prompt) { this->prompt = prompt; }
     std::string GetPrompt() { return prompt; }
