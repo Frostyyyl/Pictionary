@@ -64,32 +64,34 @@ void Scene::Update()
 
         if (mode == GameMode::STANDBY || mode == GameMode::GUESS)
         {
-            if ((frameCount % (CanvasChangeInfoList::MAX_CANVAS_CHANGES)) - 5 == 0) // Every fifth frame after MAX_CANVAS_CHANGES frames
+            if ((frameCount % (CanvasChangeInfoList::MAX_CANVAS_CHANGES)) - 25 == 0) // Every MAX_CANVAS_CHANGES frames after 25 frames
             {
                 ReadChanges();
             }
-
             UpdateCanvas(); // Every frame
         }
         
         if (mode != GameMode::WAIT_FOR_PLAYERS)
         {
-            if ((frameCount % (FRAMES_PER_SECOND / 4)) - 2 == 0) // Every second frame after quater of a second
+            if ((frameCount % (FRAMES_PER_SECOND / 2)) - 50 == 0) // Every half a second after 50 frames
             {
-                UpdateTime();
+                if (UpdateTime())
+                {
+                    UpdateGameMode(GameMode::BETWEEN_ROUNDS);
+                }
             }
         }
 
-        if ((frameCount % (FRAMES_PER_SECOND / 2)) - 1 == 0) // Every first frame after half a second
+        if ((frameCount % (FRAMES_PER_SECOND)) - 100 == 0) // Every second after 100 frames
         {
             UpdateChat();
         }
 
-        if (frameCount % (FRAMES_PER_SECOND / 2) == 0) // Every half a second
+        if (frameCount % (FRAMES_PER_SECOND) == 0) // Every second
         {
             UpdatePlayers();
 
-            if (mode == GameMode::WAIT_FOR_PLAYERS)
+            if (mode == GameMode::WAIT_FOR_PLAYERS || mode == GameMode::BETWEEN_ROUNDS)
             {
                 UpdateGameMode();
             }
@@ -105,37 +107,43 @@ void Scene::UpdatePlayers()
     CreatePlayerNames();
 }
 
-void Scene::UpdateGameMode()
+void Scene::UpdateGameMode(GameMode mode)
 {
     GameMode prevMode = GameManager::getInstance().GetGameMode();
-    GameMode mode = NetworkConnector::getInstance().RequestGameMode();
     GameManager::getInstance().SetGameMode(mode);
 
     if (mode != prevMode)
     {
         // Delete objects and remove from interacables
-        if (prevMode == GameMode::DRAW)
+        switch (prevMode)
         {
+        case GameMode::DRAW:
             GameManager::getInstance().RemoveInteractable("Canvas");
             GameManager::getInstance().StopDrawing();
             DeleteObjects("WhiteButton");
             DeleteObjects("BlackButton");
+            DeleteObjects("PromptButton0");
+            DeleteObjects("PromptButton1");
+            DeleteObjects("PromptButton2");
             std::static_pointer_cast<Canvas>(GetObject("Canvas"))
                 ->ChangeColor(Color::ABGR_BLACK);
-
             NetworkConnector::getInstance().UploadCanvasChange(CanvasChangeInfo(CanvasChangeInfo::Type::CLEAR));
-        }
-        else if (prevMode == GameMode::GUESS)
-        {
+            break;
+        case GameMode::GUESS:
             GameManager::getInstance().RemoveInteractable("TextInput");
             GameManager::getInstance().ResetCurrentTextInput();
             std::static_pointer_cast<TextInput>(GetObject("TextInput"))
                 ->FlushText();
             GameManager::getInstance().RemoveInteractable("EnterTextButton");
-        }
-        else
-        {
+            break;
+        case GameMode::STANDBY:
             DeleteObjects("GameModeMessage");
+            break;
+        case GameMode::WAIT_FOR_PLAYERS:
+            DeleteObjects("GameModeMessage");
+            break;
+        default:
+            break;
         }
 
         // Create objects
@@ -145,20 +153,33 @@ void Scene::UpdateGameMode()
             CreateForWaitMode();
             break;
         case GameMode::STANDBY:
+            changes = CanvasChangeInfoList();
             CreateForStandByMode();
             break;
         case GameMode::DRAW:
             CreateForDrawMode();
             break;
         case GameMode::GUESS:
+            changes = CanvasChangeInfoList();
             GameManager::getInstance().RegisterInteractable("TextInput", std::static_pointer_cast<Interactable>(GetObject("TextInput")));
             GameManager::getInstance().RegisterInteractable("EnterTextButton", std::static_pointer_cast<Interactable>(GetObject("EnterTextButton")));
             CreateForGuessMode();
+            break;
+        case GameMode::BETWEEN_ROUNDS:
+            std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                ->ClearCanvas();
+            DeleteObjects("Prompt");
             break;
         default:
             break;
         }
     }
+}
+
+void Scene::UpdateGameMode()
+{
+    GameModeInfo info = NetworkConnector::getInstance().RequestGameMode();
+    UpdateGameMode(info.GetGameMode());
 }
 
 void Scene::UpdateChat()
@@ -214,15 +235,16 @@ void Scene::UpdatePrompt()
     CreateTextObject(0, 0, std::string(prompt.GetSize(), '_'), "Prompt", 400);
 }
 
-void Scene::UpdateTime()
+bool Scene::UpdateTime()
 {
+    bool value = false;
     TimeInfo time = NetworkConnector::getInstance().RequestTime();
     timeCount = time.GetTime();
 
     if (timeCount < 0)
     {
-        GameManager::getInstance().SetGameMode(GameMode::WAIT_FOR_PLAYERS);
         timeCount = 0;
+        value = true;
     }
 
     std::string seconds = std::to_string(timeCount % 60);
@@ -232,6 +254,8 @@ void Scene::UpdateTime()
 
     DeleteObjects("Time");
     CreateTextObject(800, 0, std::to_string(timeCount / 60) + ":" + seconds, "Time", 200);
+
+    return value;
 }
 
 void Scene::ReadChanges()

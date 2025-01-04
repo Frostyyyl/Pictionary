@@ -256,7 +256,7 @@ private:
 class CanvasChangeInfoList
 {
 public:
-    static constexpr short MAX_CANVAS_CHANGES = 50; // TODO: Make sure this value is dividable by frames per second
+    static constexpr short MAX_CANVAS_CHANGES = 100; // TODO: Make sure this value is correct (multiplied to frame rate)
 
     CanvasChangeInfoList() = default;
     ~CanvasChangeInfoList() noexcept = default;

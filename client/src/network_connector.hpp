@@ -48,7 +48,7 @@ public:
     bool ConnectToLobby(const std::string &lobby, const std::string &name, const std::string &password);
     LobbyInfoList RequestLobbies();
     PlayerInfoList RequestPlayers();
-    GameMode RequestGameMode();
+    GameModeInfo RequestGameMode();
     ChatInfo RequestChat();
     CanvasChangeInfoList RequestCanvasChange();
     PromptsInfoList RequestPrompts();

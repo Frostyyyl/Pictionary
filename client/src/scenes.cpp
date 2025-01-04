@@ -132,7 +132,8 @@ Scene *CreateGameScene()
     newScene->sceneType = SceneType::GAME;
     newScene->CreatePlayerNames();
 
-    GameMode mode = NetworkConnector::getInstance().RequestGameMode();
+    GameModeInfo info = NetworkConnector::getInstance().RequestGameMode();
+    GameMode mode = info.GetGameMode();
     GameManager::getInstance().SetGameMode(mode);
 
     // For now backgrounds have unstable Z-index
@@ -167,6 +168,8 @@ Scene *CreateGameScene()
         break;
     case GameMode::GUESS:
         newScene->CreateForGuessMode();
+        break;
+    default:
         break;
     }
 

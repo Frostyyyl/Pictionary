@@ -6,7 +6,7 @@
 #include "text_manager.hpp"
 #include "network_connector.hpp"
 
-const int FRAME_DELAY = 1000 / FRAMES_PER_SECOND;
+const double FRAME_DELAY = 1000 / (double)FRAMES_PER_SECOND;
 
 SDL_Renderer *GameManager::renderer = nullptr;
 

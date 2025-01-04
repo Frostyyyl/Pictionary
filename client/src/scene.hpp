@@ -30,10 +30,11 @@ private:
 
     void UpdatePlayers();
     void UpdateGameMode();
+    void UpdateGameMode(GameMode mode);
     void UpdateChat();
     void UpdateCanvas();
     void UpdatePrompt();
-    void UpdateTime();
+    bool UpdateTime();
     void ReadChanges();
 
 public:

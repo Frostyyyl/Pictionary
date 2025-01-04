@@ -91,30 +91,59 @@ void Lobby::StartRound()
 {
     roundStarted = true;
     time = std::chrono::steady_clock::now();
+
+    canvasChanges.clear();
 }
 
 void Lobby::EndRound()
 {
     roundStarted = false;
     playerDrawing = -1;
+
+    canvasChanges.clear();
+
+    for (const auto &pair : players)
+    {
+        pair.second->SetIsReady(false);
+    }
+
+    for (const auto &pair : players)
+    {
+        pair.second->SetLastReadChange(-1);
+    }
 }
 
 bool Lobby::isEveryoneReady()
 {
+    bool val = true;
+
     for (const auto &pair : players)
     {
         if (!pair.second->isReady())
         {
-            return false;
+            val =  false;
         }
     }
-    return true;
+
+    return val;
 }
 
 int Lobby::GetTime()
 {
+    if (!roundStarted)
+    {
+        return ROUND_TIME_SEC;
+    }
+
     std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-    return ROUND_TIME_SEC - std::chrono::duration_cast<std::chrono::seconds>(now - time).count();
+    int timeLeft = ROUND_TIME_SEC - std::chrono::duration_cast<std::chrono::seconds>(now - time).count();
+
+    if (timeLeft < 0)
+    {
+        EndRound();
+    }
+
+    return timeLeft;
 }
 
 bool Lobby::hasPlayerName(const std::string &name)
@@ -132,6 +161,12 @@ bool Lobby::hasPlayerName(const std::string &name)
 CanvasChangeInfoList Lobby::GetCanvasChanges(int socket)
 {
     CanvasChangeInfoList changes;
+
+    if (!hasRoundStarted())
+    {
+        return changes;
+    }
+
     int next = players[socket]->GetLastReadChange() + 1;
 
     for (int i = next; i < next + CanvasChangeInfoList::MAX_CANVAS_CHANGES; i++)
@@ -148,20 +183,27 @@ CanvasChangeInfoList Lobby::GetCanvasChanges(int socket)
 
     players[socket]->SetLastReadChange(next + changes.GetSize() - 1);
     
-    int min = players.begin()->second->GetLastReadChange();
+    // Get the minimum last read change
+    int min = players[socket]->GetLastReadChange();
+    for (const auto &pair : players)
+    {
+        if (pair.first != playerDrawing && pair.second->GetLastReadChange() < min)
+        {
+            min = pair.second->GetLastReadChange();
+        }
+    }
+    min++;
 
+    // Adjust the last read change for all players
     for (const auto &pair : players)
     {
         if (pair.first != playerDrawing)
         {
-            if (pair.second->GetLastReadChange() < min)
-            {
-                min = pair.second->GetLastReadChange();
-            }
             pair.second->SetLastReadChange(pair.second->GetLastReadChange() - min);
         }
     }
 
+    // Remove the changes read by all players
     for (int i = 0; i < min; i++)
     {
         canvasChanges.pop_front();

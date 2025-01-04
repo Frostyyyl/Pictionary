@@ -303,10 +303,10 @@ PlayerInfoList NetworkConnector::RequestPlayers()
     return list;
 }
 
-GameMode NetworkConnector::RequestGameMode()
+GameModeInfo NetworkConnector::RequestGameMode()
 {
     Message message = Message(static_cast<int>(MessageToServer::REQUEST_GAMEMODE));
-    GameMode mode;
+    GameModeInfo mode;
 
     // Send the message type
     if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::REQUEST_GAMEMODE))

@@ -225,6 +225,10 @@ void Server::EnterLobby(int socket, const std::string &lobby, const std::string 
 
 void Server::Disconnect(int socket)
 {
+    if (!ClientManager::getInstance().hasClient(socket)) {
+        return; // Check if client exists before disconnecting
+    }
+
     if (!ClientManager::getInstance().GetClient(socket)->GetCurrentLobby().empty())
     {
         ExitLobby(socket);
@@ -371,6 +375,7 @@ void Server::SendGameMode(int socket)
                 if (lobby.isEveryoneReady())
                 {
                     lobby.StartRound();
+                    lobby.ClearCanvasChanges();
                 }
             }
             else
@@ -456,7 +461,16 @@ void Server::SendTime(int socket)
 {
     // Get time from lobby
     std::string lobby = ClientManager::getInstance().GetClient(socket)->GetCurrentLobby();
-    TimeInfo time = TimeInfo(LobbyManager::getInstance().GetLobby(lobby)->GetTime());
+    TimeInfo time;
+
+    if (!LobbyManager::getInstance().GetLobby(lobby)->hasRoundStarted() && !LobbyManager::getInstance().GetLobby(lobby)->GetPlayer(socket)->isReady())
+    {
+        time = TimeInfo(-1);
+    }
+    else
+    {
+        time = TimeInfo(LobbyManager::getInstance().GetLobby(lobby)->GetTime());
+    }
 
     Message message = Message(static_cast<int>(MessageToClient::UPLOAD_TIME), sizeof(time));
 
@@ -679,7 +693,7 @@ void Server::ConnectToLobby(int socket, int message_size)
 }
 
 template <typename T>
-bool Server::ReadWithRetry(int socket, void *buffer, size_t size, const T& messageType)
+bool Server::ReadWithRetry(int socket, void *buffer, size_t size, const T &messageType)
 {
     for (int attempt = 0; attempt < MAX_RETRIES; ++attempt)
     {
@@ -709,7 +723,7 @@ bool Server::ReadWithRetry(int socket, void *buffer, size_t size, const T& messa
 }
 
 template <typename T>
-bool Server::WriteWithRetry(int socket, const void *buffer, size_t size, const T& messageType)
+bool Server::WriteWithRetry(int socket, const void *buffer, size_t size, const T &messageType)
 {
     for (int attempt = 0; attempt < MAX_RETRIES; ++attempt)
     {
