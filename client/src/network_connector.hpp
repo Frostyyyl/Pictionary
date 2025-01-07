@@ -52,7 +52,6 @@ public:
     ChatInfo RequestChat();
     CanvasChangeInfoList RequestCanvasChange();
     PromptsInfoList RequestPrompts();
-    PromptSizeInfo RequestPromptSize();
     TimeInfo RequestTime();
 
     void StartGame();

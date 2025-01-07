@@ -32,7 +32,15 @@ void Scene::Update()
     // Firstly update nameless objects (background objects)
     for (const auto &obj : objects)
     {
-        if (obj->GetName() == "")
+        if (obj->GetName() == "0")
+        {
+            obj->Update();
+        }
+    }
+
+    for (const auto &obj : objects)
+    {
+        if (obj->GetName() == "1")
         {
             obj->Update();
         }
@@ -41,7 +49,8 @@ void Scene::Update()
     // Secondly update the rest
     for (const auto &obj : objects)
     {
-        if (obj->GetName() != "")
+        const std::string &name = obj->GetName();
+        if (!std::all_of(name.begin(), name.end(), ::isdigit)) // Check if all characters are digits
         {
             obj->Update();
         }
@@ -55,9 +64,9 @@ void Scene::Update()
         if (frameCount == FRAMES_PER_SECOND)
         {
             frameCount = 0;
-        }        
+        }
 
-        // NOTE: Split updates dependant on exchanging data with the server 
+        // NOTE: Split updates dependant on exchanging data with the server
         // to different frames to prevent lag
 
         // NOTE: Make sure updates happen before frame count is reset
@@ -70,7 +79,7 @@ void Scene::Update()
             }
             UpdateCanvas(); // Every frame
         }
-        
+
         if (mode != GameMode::WAIT_FOR_PLAYERS)
         {
             if ((frameCount % (FRAMES_PER_SECOND / 2)) - 50 == 0) // Every half a second after 50 frames
@@ -229,12 +238,6 @@ void Scene::UpdateCanvas()
     }
 }
 
-void Scene::UpdatePrompt()
-{
-    PromptSizeInfo prompt = NetworkConnector::getInstance().RequestPromptSize();
-    CreateTextObject(0, 0, std::string(prompt.GetSize(), '_'), "Prompt", 400);
-}
-
 bool Scene::UpdateTime()
 {
     bool value = false;
@@ -248,7 +251,8 @@ bool Scene::UpdateTime()
     }
 
     std::string seconds = std::to_string(timeCount % 60);
-    if (seconds.size() < 2){
+    if (seconds.size() < 2)
+    {
         seconds = "0" + seconds;
     }
 
@@ -318,8 +322,9 @@ void Scene::CreatePlayerNames()
     PlayerInfoList list = NetworkConnector::getInstance().RequestPlayers();
     for (int i = 0; i < list.GetSize(); i++)
     {
-        auto txt = std::make_shared<TextObject>(440, 20 + (20 * i), list.GetPlayer(i).GetPlayerName(), "Player", 200);
-        AddObject(txt);
+        auto player = list.GetPlayer(i);
+        CreateTextObject(440, 20 + (20 * i), player.GetPlayerName(), "Player", 200);
+        CreateTextObject(640, 20 + (20 * i), std::to_string(player.GetPoints()), "Player", 200);
     }
 }
 
@@ -333,7 +338,7 @@ void Scene::CreateForDrawMode()
     for (int i = 0; i < PromptsInfoList::MAX_PROMPTS; i++)
     {
         std::string prompt = prompts.GetPrompt(i);
-        CreateTextButton(200 + (i * 100), 500, 90, 30, Padding(5), prompt, Color::DARK_PINK, [this, prompt]()
+        CreateTextButton(200 + (i * 100), 500, 90, 30, Padding(5), prompt, Color::LIGHT_SKY_BLUE, [this, prompt]()
                          { 
                             NetworkConnector::getInstance().UploadPrompt(prompt);
                             DeleteObjects("PromptButton0");
@@ -346,8 +351,7 @@ void Scene::CreateForDrawMode()
                             CreateButton(150, 500, 30, 30, Color::BLACK, [this]()
                                         { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
                                             ->ChangeColor(Color::ABGR_BLACK); }, "BlackButton");
-                            GameManager::getInstance().RegisterInteractable("Canvas", std::static_pointer_cast<Interactable>(GetObject("Canvas"))); 
-                         }, "PromptButton" + std::to_string(i));
+                            GameManager::getInstance().RegisterInteractable("Canvas", std::static_pointer_cast<Interactable>(GetObject("Canvas"))); }, "PromptButton" + std::to_string(i));
     }
 }
 
@@ -409,7 +413,7 @@ std::shared_ptr<Button> Scene::CreateButton(int x, int y, int w, int h, Uint32 c
 std::shared_ptr<FixedTextInput> Scene::CreateFixedTextInput(int x, int y, int w, int h, int maxSize, const std::string &name)
 {
     // FIXME: For now fixed text input object's background is achieved using a color button
-    CreateButton(x, y, w, h, Color::LIGHT_PINK, []() {}, "");
+    CreateButton(x, y, w, h, Color::YINMN_BLUE, []() {}, "");
     auto fixedTxtInput = std::make_shared<FixedTextInput>(x + 5, y, w, h, maxSize, name);
     AddObject(fixedTxtInput);
     GameManager::getInstance().RegisterInteractable(name, fixedTxtInput);
@@ -428,7 +432,7 @@ std::shared_ptr<TextObject> Scene::CreateTextObject(int x, int y, const std::str
 std::shared_ptr<MessageWindow> Scene::CreateMessageWindow(int x, int y, int w, int h, const std::string &name)
 {
     // FIXME: For now fixed text input object's background is achieved using a color button
-    CreateButton(x, y, w, h, Color::PUMPKIN, []() {}, "");
+    CreateButton(x, y, w, h, Color::MUSTARD, []() {}, "");
     auto msgWindow = std::make_shared<MessageWindow>(x, y, w, h, name);
     AddObject(msgWindow);
     return msgWindow;
@@ -438,7 +442,7 @@ std::shared_ptr<MessageWindow> Scene::CreateMessageWindow(int x, int y, int w, i
 std::shared_ptr<TextInput> Scene::CreateTextInput(int x, int y, int w, int h, MessageWindow *msgWindow, const std::string &name)
 {
     // FIXME: For now fixed text input object's background is achieved using a color button
-    CreateButton(x, y, w, h, Color::DARK_PINK, []() {}, "");
+    CreateButton(x, y, w, h, Color::LIGHT_SKY_BLUE, []() {}, "");
     auto txtInput = std::make_shared<TextInput>(x, y, w, h, msgWindow, name);
     AddObject(txtInput);
 
@@ -462,4 +466,12 @@ std::shared_ptr<Canvas> Scene::CreateCanvas(const std::string &name)
     }
 
     return cvs;
+}
+
+std::shared_ptr<Background> Scene::CreateBackground(int x, int y, int w, int h, Uint32 color, const std::string &name)
+{
+    auto obj = std::make_shared<Background>(x, y, w, h, color, name);
+    AddObject(obj);
+
+    return obj;
 }

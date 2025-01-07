@@ -11,7 +11,7 @@ Scene *CreateMainMenuScene()
     Scene *newScene = new Scene();
     newScene->sceneType = SceneType::MAIN_MENU;
 
-    newScene->CreateTextButton(600, 400, 80, 80, Padding(24), "Play", "images/button.png", []()
+    newScene->CreateTextButton(400, 350, 200, 100, Padding(80), "Play", "images/button.png", []()
                                { GameManager::getInstance().ChangeCurrentScene(SceneType::LOBBY); }, "PlayButton");
 
     return newScene;
@@ -21,6 +21,17 @@ Scene *CreateLobbyScene()
 {
     Scene *newScene = new Scene();
     newScene->sceneType = SceneType::LOBBY;
+
+    // Main blue background rectangle
+    newScene->CreateBackground(0, 40, 1000, 540, Color::YINMN_BLUE, "0");
+    // newScene->CreateBackground(0, 20, 1000, 570, Color::YINMN_BLUE, "0");
+
+    // Light blue rectangle (background for lobbies)
+    newScene->CreateBackground(20, 60, 600, 500, Color::LIGHT_SKY_BLUE, "1");
+    
+    // Orange rectangle (background for refresh)
+    newScene->CreateBackground(640, 440, 340, 120, Color::ORANGE, "1");
+
 
     auto createLobbyButton = newScene->CreateTextButton(100, 80, 100, 60, Padding(5), "Create Lobby", "images/button.png", [newScene]()
                                                         {

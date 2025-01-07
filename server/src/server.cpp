@@ -319,9 +319,9 @@ void Server::SendPlayerList(int socket)
     std::string lobby = ClientManager::getInstance().GetClient(socket)->GetCurrentLobby();
 
     // List player names
-    for (auto i : LobbyManager::getInstance().GetLobby(lobby)->GetNames())
+    for (auto i : LobbyManager::getInstance().GetLobby(lobby)->GetPlayerInfos())
     {
-        PlayerInfo info = PlayerInfo(i);
+        PlayerInfo info = PlayerInfo(i.first, i.second);
 
         list.AddPlayerInfo(info);
     }
@@ -533,6 +533,7 @@ void Server::UpdateChat(int socket, int message_size)
     if (text == LobbyManager::getInstance().GetLobby(lobby)->GetPrompt() && LobbyManager::getInstance().GetLobby(lobby)->GetPrompt() != "")
     {
         LobbyManager::getInstance().GetLobby(lobby)->AddMessage(TextInfo("SERVER", "Correct guess!"));
+        LobbyManager::getInstance().GetLobby(lobby)->GetPlayer(socket)->AddPoints(1);
         LobbyManager::getInstance().GetLobby(lobby)->EndRound();
     }
 

@@ -31,9 +31,6 @@ std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType)
     case MessageToServer::REQUEST_PROMPTS:
         stream << "REQUEST_PROMPTS";
         break;
-    case MessageToServer::REQUEST_PROMPT_SIZE:
-        stream << "REQUEST_PROMPT_SIZE";
-        break;
     case MessageToServer::REQUEST_TIME:
         stream << "REQUEST_TIME";
         break;
@@ -93,14 +90,10 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
     case MessageToClient::UPLOAD_PROMPTS:
         stream << "UPLOAD_PROMPTS";
         break;
-    case MessageToClient::UPLOAD_PROMPT_SIZE:
-        stream << "UPLOAD_PROMPT_SIZE";
         break;
     case MessageToClient::UPLOAD_TIME:
         stream << "UPLOAD_TIME";
         break;
-    case MessageToClient::CONFIRM_PROMPT:
-        stream << "CONFIRM_PROMPT";
         break;
     default:
         stream << "UNKNOWN";

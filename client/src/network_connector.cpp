@@ -467,47 +467,6 @@ PromptsInfoList NetworkConnector::RequestPrompts()
     return list;
 }
 
-PromptSizeInfo NetworkConnector::RequestPromptSize()
-{
-    Message message = Message(static_cast<int>(MessageToServer::REQUEST_PROMPT_SIZE));
-    PromptSizeInfo size;
-
-    // Send the message type
-    if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::REQUEST_PROMPT_SIZE))
-    {
-        ExitError();
-    }
-
-    // Read the message type alongside the size of prompt
-    if (!ReadWithRetry(mySocket, &message, sizeof(Message), MessageToClient::UPLOAD_PROMPT_SIZE))
-    {
-        ExitError();
-    }
-
-    // Handle based on response
-    switch (static_cast<MessageToClient>(message.GetMessageType()))
-    {
-    case MessageToClient::UPLOAD_PROMPT_SIZE:
-        break; // Continue
-    case MessageToClient::INVALID:
-        std::cerr << "ERROR: Server closed connection" << std::endl;
-        ExitError();
-        break;
-    default:
-        std::cerr << "ERROR: While requesting prompt size received unexpected message type" << std::endl;
-        ExitError();
-        break;
-    }
-
-    // Read the prompt size
-    if (!ReadWithRetry(mySocket, &size, message.GetSize(), "PromptSizeInfo"))
-    {
-        ExitError();
-    }
-
-    return size;
-}
-
 TimeInfo NetworkConnector::RequestTime()
 {
     Message message = Message(static_cast<int>(MessageToServer::REQUEST_TIME));

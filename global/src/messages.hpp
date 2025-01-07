@@ -106,7 +106,7 @@ private:
 class PlayerInfo
 {
 public:
-    PlayerInfo(const std::string &name)
+    PlayerInfo(const std::string &name, int points) : points(points)
     {
         name.copy(this->name.data(), ConnectInfo::MAX_CLIENT_NAME_SIZE);
         this->name[ConnectInfo::MAX_CLIENT_NAME_SIZE] = '\0';
@@ -115,9 +115,11 @@ public:
     ~PlayerInfo() noexcept = default;
 
     std::string GetPlayerName() const { return name.data(); }
+    int GetPoints() { return points; }
 
 private:
     std::array<char, ConnectInfo::MAX_CLIENT_NAME_SIZE + 1> name = {};
+    int points = 0;
 };
 
 class PlayerInfoList

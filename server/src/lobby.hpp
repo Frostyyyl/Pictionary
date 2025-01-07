@@ -18,6 +18,8 @@ public:
     ~Player() noexcept = default;
 
     std::string GetName() { return name; }
+    void AddPoints(int points) { this->points += points; }
+    int GetPoints() { return points; }
     bool isReady() { return ready; }
     void SetIsReady(bool value) { ready = value; }
     void SetLastReadChange(int value) { lastReadChange = value; }
@@ -25,6 +27,7 @@ public:
 
 private:
     std::string name;
+    int points = 0;
     bool ready = false;
     int lastReadChange = -1;
 };
@@ -53,7 +56,7 @@ public:
     void EndRound();
 
     std::vector<int> GetSockets();
-    std::vector<std::string> GetNames();
+    std::vector<std::pair<std::string, int>> GetPlayerInfos();
 
     bool hasPlayerName(const std::string &name);
     bool hasGameStarted() { return gameStarted; }

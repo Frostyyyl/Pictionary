@@ -125,6 +125,17 @@ void FixedTextInput::Update()
     text.Update();
 }
 
+Background::Background(int x, int y, int w, int h, Uint32 color, const std::string &name) : Component(name)
+{
+    rect = {x, y, w, h};
+    tex = TextureManager::LoadSolidColor(w, h, color);
+}
+
+void Background::Update()
+{
+    TextureManager::Draw(tex, rect);
+}
+
 Button::Button(int x, int y, int w, int h, const std::string &filename, std::function<void()> func, const std::string &name) : Interactable(name)
 {
     rect = {x, y, w, h};

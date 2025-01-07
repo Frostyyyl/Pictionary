@@ -75,12 +75,12 @@ std::vector<int> Lobby::GetSockets()
     return tmp;
 }
 
-std::vector<std::string> Lobby::GetNames()
+std::vector<std::pair<std::string, int>> Lobby::GetPlayerInfos()
 {
-    std::vector<std::string> tmp;
+    std::vector<std::pair<std::string, int>> tmp;
     for (const auto &pair : players)
     {
-        tmp.push_back(pair.second->GetName());
+        tmp.push_back({pair.second->GetName(), pair.second->GetPoints()});
     }
 
     std::reverse(tmp.begin(), tmp.end());

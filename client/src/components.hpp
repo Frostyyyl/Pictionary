@@ -29,15 +29,21 @@ class Color
 {
 private:
     Color() {}
+
 public:
+    // Colors used for drawing (AABBGGRR)
     static constexpr Uint32 ABGR_WHITE = 0xffffffff;
     static constexpr Uint32 ABGR_BLACK = 0xff000000;
-
+    
+    // Colors used for objects (RRGGBBAA)
     static constexpr Uint32 WHITE = 0xf0f0f000;
     static constexpr Uint32 BLACK = 0x000000ff;
-    static constexpr Uint32 LIGHT_PINK = 0xffcccbff;
-    static constexpr Uint32 DARK_PINK = 0xde3163ff;
-    static constexpr Uint32 PUMPKIN = 0xff8c42ff;
+    static constexpr Uint32 YINMN_BLUE = 0x3D5A80ff;
+    static constexpr Uint32 LIGHT_SKY_BLUE = 0xA2D2FFff;
+    static constexpr Uint32 MUSTARD = 0xFFD449ff;
+    static constexpr Uint32 ORANGE = 0xF9A620ff; 
+    static constexpr Uint32 BURNT_SIENNA = 0xEE6C4Dff;
+    static constexpr Uint32 CORAL_PINK = 0xE8998Dff;
 };
 
 class SpriteRenderer : public Component
@@ -80,6 +86,18 @@ public:
         rect.x = x;
         rect.y = y;
     }
+
+    void Update() override;
+};
+
+class Background : public Component
+{
+protected:
+    SDL_Texture *tex;
+
+public:
+    Background(int x, int y, int w, int h, Uint32 color, const std::string &name);
+    ~Background() {}
 
     void Update() override;
 };
@@ -131,7 +149,6 @@ public:
 
     void Update() override;
     void ClearMessages();
-
     void AddMessage(std::string message);
 };
 
@@ -151,9 +168,9 @@ public:
     ~TextInput() {};
 
     std::string GetText() { return text.text.text; }
-    void FlushText() 
-    { 
-        text.text.text = ""; 
+    void FlushText()
+    {
+        text.text.text = "";
         text.LoadText();
     }
     void SendMessage();

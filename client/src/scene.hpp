@@ -33,7 +33,6 @@ private:
     void UpdateGameMode(GameMode mode);
     void UpdateChat();
     void UpdateCanvas();
-    void UpdatePrompt();
     bool UpdateTime();
     void ReadChanges();
 
@@ -64,6 +63,7 @@ public:
     std::shared_ptr<TextObject> CreateTextObject(int x, int y, const std::string &text, const std::string &name, int wrapLength);
     std::shared_ptr<MessageWindow> CreateMessageWindow(int x, int y, int w, int h, const std::string &name);
     std::shared_ptr<Canvas> CreateCanvas(const std::string &name);
+    std::shared_ptr<Background> CreateBackground(int x, int y, int w, int h, Uint32 color, const std::string& name);
     
     void CreatePlayerNames();
 
