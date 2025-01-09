@@ -28,8 +28,8 @@ std::shared_ptr<Component> Scene::GetObject(const std::string &name)
 
 void Scene::Update()
 {
-    // NOTE: For now update is split into two parts
-    // Firstly update nameless objects (background objects)
+    // NOTE: For now update is split into parts
+    // Firstly update objects with numeric names (background objects)
     for (const auto &obj : objects)
     {
         if (obj->GetName() == "0")
@@ -46,6 +46,14 @@ void Scene::Update()
         }
     }
 
+    for (const auto &obj : objects)
+    {
+        if (obj->GetName() == "2")
+        {
+            obj->Update();
+        }
+    }
+
     // Secondly update the rest
     for (const auto &obj : objects)
     {
@@ -53,6 +61,19 @@ void Scene::Update()
         if (!std::all_of(name.begin(), name.end(), ::isdigit)) // Check if all characters are digits
         {
             obj->Update();
+        }
+    }
+
+    // Lastly update the rest of numeric objects
+    for (const auto &obj : objects)
+    {
+        const std::string &name = obj->GetName();
+        if (std::all_of(name.begin(), name.end(), ::isdigit)) // Check if all characters are digits
+        {
+            if (name != "0" && name != "1" && name != "2")
+            {
+                obj->Update();
+            }
         }
     }
 
@@ -369,7 +390,6 @@ void Scene::CreateForStandByMode()
     CreateTextObject(250, 0, "Wait for the round to end to play", "GameModeMessage", 475);
 }
 
-// Helper function to create a TextButton
 std::shared_ptr<TextButton> Scene::CreateTextButton(int x, int y, int w, int h, const Padding &padding, const std::string &text,
                                                     const std::string &filename, std::function<void()> onClick, const std::string &name)
 {
@@ -379,7 +399,6 @@ std::shared_ptr<TextButton> Scene::CreateTextButton(int x, int y, int w, int h, 
     return txtButton;
 }
 
-// Helper function to create a TextButton
 std::shared_ptr<TextButton> Scene::CreateTextButton(int x, int y, int w, int h, const Padding &padding, const std::string &text,
                                                     Uint32 color, std::function<void()> onClick, const std::string &name)
 {
@@ -389,7 +408,6 @@ std::shared_ptr<TextButton> Scene::CreateTextButton(int x, int y, int w, int h, 
     return txtButton;
 }
 
-// Helper function to create a Button
 std::shared_ptr<Button> Scene::CreateButton(int x, int y, int w, int h, const std::string &filename,
                                             std::function<void()> onClick, const std::string &name)
 {
@@ -399,7 +417,6 @@ std::shared_ptr<Button> Scene::CreateButton(int x, int y, int w, int h, const st
     return button;
 }
 
-// Helper function to create a Button
 std::shared_ptr<Button> Scene::CreateButton(int x, int y, int w, int h, Uint32 color,
                                             std::function<void()> onClick, const std::string &name)
 {
@@ -409,18 +426,15 @@ std::shared_ptr<Button> Scene::CreateButton(int x, int y, int w, int h, Uint32 c
     return button;
 }
 
-// Helper function to create FixedTextInput
 std::shared_ptr<FixedTextInput> Scene::CreateFixedTextInput(int x, int y, int w, int h, int maxSize, const std::string &name)
 {
-    // FIXME: For now fixed text input object's background is achieved using a color button
-    CreateButton(x, y, w, h, Color::YINMN_BLUE, []() {}, "");
+    CreateBackground(x, y, w, h, Color::CORAL_PINK, "2");
     auto fixedTxtInput = std::make_shared<FixedTextInput>(x + 5, y, w, h, maxSize, name);
     AddObject(fixedTxtInput);
     GameManager::getInstance().RegisterInteractable(name, fixedTxtInput);
     return fixedTxtInput;
 }
 
-// Helper function to create TextObject
 std::shared_ptr<TextObject> Scene::CreateTextObject(int x, int y, const std::string &text, const std::string &name, int wrapLength)
 {
     auto txt = std::make_shared<TextObject>(x, y, text, name, wrapLength);
@@ -428,21 +442,17 @@ std::shared_ptr<TextObject> Scene::CreateTextObject(int x, int y, const std::str
     return txt;
 }
 
-// Helper function to create MessageWindow
 std::shared_ptr<MessageWindow> Scene::CreateMessageWindow(int x, int y, int w, int h, const std::string &name)
 {
-    // FIXME: For now fixed text input object's background is achieved using a color button
-    CreateButton(x, y, w, h, Color::MUSTARD, []() {}, "");
+    CreateBackground(x, y, w, h, Color::MUSTARD, "");
     auto msgWindow = std::make_shared<MessageWindow>(x, y, w, h, name);
     AddObject(msgWindow);
     return msgWindow;
 }
 
-// Helper function to create a TextInput
 std::shared_ptr<TextInput> Scene::CreateTextInput(int x, int y, int w, int h, MessageWindow *msgWindow, const std::string &name)
 {
-    // FIXME: For now fixed text input object's background is achieved using a color button
-    CreateButton(x, y, w, h, Color::LIGHT_SKY_BLUE, []() {}, "");
+    CreateBackground(x, y, w, h, Color::LIGHT_SKY_BLUE, "");
     auto txtInput = std::make_shared<TextInput>(x, y, w, h, msgWindow, name);
     AddObject(txtInput);
 
@@ -454,7 +464,6 @@ std::shared_ptr<TextInput> Scene::CreateTextInput(int x, int y, int w, int h, Me
     return txtInput;
 }
 
-// Helper function to create Canvas
 std::shared_ptr<Canvas> Scene::CreateCanvas(const std::string &name)
 {
     auto cvs = std::make_shared<Canvas>(name);

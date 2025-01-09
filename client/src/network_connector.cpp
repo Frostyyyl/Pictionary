@@ -99,7 +99,11 @@ bool NetworkConnector::ValidateData(const std::string &lobby, const std::string 
     }
     else if (name.empty())
     {
-        errorMessage = "Player name must be non-empty, please try again";
+        errorMessage = "Nickname cannot be empty, please try again";
+    }
+    else if (name == "SERVER")
+    {
+        errorMessage = "This name is taken, please try again";
     }
     else
     {
@@ -144,7 +148,7 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
         errorMessage = "Unfortunately this lobby name is taken, please pick another one";
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
-        errorMessage = "Player name must be non-empty, please try again";
+        errorMessage = "Incorrect nickname, please try again";
         break;
     case MessageToClient::CONFIRM_CONNECT:
         hasCreated = true;

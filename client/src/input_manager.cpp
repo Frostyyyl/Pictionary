@@ -72,6 +72,7 @@ void InputManager::HandleEvent()
                 isDrawing = true;
             }
             obj.lock().get()->HandleEvent(event);
+            return;
         }
     }
     else if (event.type == SDL_MOUSEBUTTONUP)
