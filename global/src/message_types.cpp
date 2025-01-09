@@ -46,6 +46,9 @@ std::ostream &operator<<(std::ostream &stream, const MessageToServer &msgType)
     case MessageToServer::START_GAME:
         stream << "START_GAME";
         break;
+    case MessageToServer::EXIT_LOBBY:
+        stream << "EXIT_LOBBY";
+        break;
     default:
         stream << "UNKNOWN";
         break;

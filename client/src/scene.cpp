@@ -54,6 +54,14 @@ void Scene::Update()
         }
     }
 
+    for (const auto &obj : objects)
+    {
+        if (obj->GetName() == "3")
+        {
+            obj->Update();
+        }
+    }
+
     // Secondly update the rest
     for (const auto &obj : objects)
     {
@@ -70,7 +78,7 @@ void Scene::Update()
         const std::string &name = obj->GetName();
         if (std::all_of(name.begin(), name.end(), ::isdigit)) // Check if all characters are digits
         {
-            if (name != "0" && name != "1" && name != "2")
+            if (name != "0" && name != "1" && name != "2" && name != "3")
             {
                 obj->Update();
             }
@@ -112,7 +120,7 @@ void Scene::Update()
             }
         }
 
-        if ((frameCount % (FRAMES_PER_SECOND)) - 100 == 0) // Every second after 100 frames
+        if ((frameCount % (FRAMES_PER_SECOND / 2)) - 100 == 0) // Every second after 100 frames
         {
             UpdateChat();
         }
@@ -278,7 +286,7 @@ bool Scene::UpdateTime()
     }
 
     DeleteObjects("Time");
-    CreateTextObject(800, 0, std::to_string(timeCount / 60) + ":" + seconds, "Time", 200);
+    CreateTextObject(640, 413, std::to_string(timeCount / 60) + ":" + seconds, "Time", 40);
 
     return value;
 }
@@ -344,34 +352,105 @@ void Scene::CreatePlayerNames()
     for (int i = 0; i < list.GetSize(); i++)
     {
         auto player = list.GetPlayer(i);
-        CreateTextObject(440, 20 + (20 * i), player.GetPlayerName(), "Player", 200);
-        CreateTextObject(640, 20 + (20 * i), std::to_string(player.GetPoints()), "Player", 200);
+        CreateTextObject(30, 70 + (30 * i), player.GetPlayerName(), "Player", 255);
+        CreateTextObject(270, 70 + (30 * i), std::to_string(player.GetPoints()), "Player", 25);
+    }
+}
+
+void Scene::CreateLobbyButtons()
+{
+    LobbyInfoList list = NetworkConnector::getInstance().RequestLobbies();
+
+    // Lobby buttons
+    for (int i = 0; i < list.GetSize(); i++)
+    {
+        LobbyInfo info = list.GetLobbyInfo(i);
+
+        int y_pos = 65 + 75 * (i % LobbyInfoList::MAX_LOBBIES_PER_PAGE);
+
+        // Display if lobby has name
+        if (info.hasPassword())
+        {
+            CreateBackground(460, y_pos + 10, 40, 40, Color::ORANGE, "10");
+        }
+        // Display lobby's player count
+        CreateTextObject(520, y_pos + 17, std::to_string(info.GetPlayerCount()) + "/" + std::to_string(LobbyInfo::MAX_PLAYERS_PER_LOBBY), "10", 40);
+
+        // Create the lobby button
+        CreateTextButton(40, y_pos, 560, 60, Padding(5), info.GetLobbyName(), Color::BURNT_SIENNA, [info, this]()
+                         {
+                DeleteObjects("PlayerNameText2");
+                DeleteObjects("PlayerNameInput2");
+                DeleteObjects("PasswordText2");
+                DeleteObjects("PasswordInput2");
+                DeleteObjects("ConfirmButton2");
+                DeleteObjects("ConnectErrorText");
+                DeleteObjects("3"); // Input backgrounds
+
+                CreateTextObject(40, 515, "Enter nickname:", "PlayerNameText2", 150);
+                auto playerNameInput = CreateFixedTextInput(190, 515, 255, 25, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput2", "3");
+
+                if (info.GetPlayerCount() >= info.MAX_PLAYERS_PER_LOBBY)
+                {
+                    DeleteObjects("ConnectErrorText");
+                    CreateTextObject(150, 30, "This lobby is full", "ConnectErrorText", 450);
+                }
+                else if (info.hasPassword())
+                {
+                    CreateTextObject(40, 545, "Enter password:", "PasswordText2", 150);
+                    auto passwordInput = CreateFixedTextInput(190, 545, 255, 25, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput2", "3");
+
+                    CreateTextButton(470, 515, 130, 55, Padding(30), "CONFIRM ", Color::BURNT_SIENNA, [this, info, playerNameInput, passwordInput]()
+                        {
+                            if (NetworkConnector::getInstance().ConnectToLobby(info.GetLobbyName(), playerNameInput->GetText(), passwordInput->GetText()))
+                            {
+                                GameManager::getInstance().SetPlayerName(playerNameInput->GetText());
+                                GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
+                            }
+                            else
+                            {
+                                DeleteObjects("ConnectErrorText");
+                                CreateTextObject(150, 30, NetworkConnector::getInstance().GetError(), "ConnectErrorText", 450);
+                            } }, "ConfirmButton2");
+                }
+                else
+                {
+                    CreateTextButton(470, 515, 130, 55, Padding(30), "CONFIRM ", Color::BURNT_SIENNA, [this, info, playerNameInput]()
+                        {
+                            if (NetworkConnector::getInstance().ConnectToLobby(info.GetLobbyName(), playerNameInput->GetText(), "")) // No password
+                            {
+                                GameManager::getInstance().SetPlayerName(playerNameInput->GetText());
+                                GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
+                            }
+                            else
+                            {
+                                DeleteObjects("ConnectErrorText");
+                                CreateTextObject(150, 30, NetworkConnector::getInstance().GetError(), "ConnectErrorText", 450);
+                            } }, "ConfirmButton2");
+                } }, "LobbyButton" + std::to_string(i));
     }
 }
 
 void Scene::CreateForDrawMode()
 {
-    // This is a little tricky in creating color it's RRGGBBAA
-    // But in ChangeColor() it's AABBGGRR (and also FF is solid, 00 is transparent for alpha)
-    // MAYBE WE'LL FIX THIS LATER
 
     PromptsInfoList prompts = NetworkConnector::getInstance().RequestPrompts();
     for (int i = 0; i < PromptsInfoList::MAX_PROMPTS; i++)
     {
         std::string prompt = prompts.GetPrompt(i);
-        CreateTextButton(200 + (i * 100), 500, 90, 30, Padding(5), prompt, Color::LIGHT_SKY_BLUE, [this, prompt]()
+        CreateTextButton(40 + (i * 310), 490, 300, 70, Padding(5), prompt, Color::BURNT_SIENNA, [this, prompt]()
                          { 
                             NetworkConnector::getInstance().UploadPrompt(prompt);
                             DeleteObjects("PromptButton0");
                             DeleteObjects("PromptButton1");
                             DeleteObjects("PromptButton2");
-                            CreateTextObject(0, 0, prompt, "Prompt", 400);
-                            CreateButton(100, 500, 30, 30, Color::WHITE, [this]()
-                                        { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
-                                            ->ChangeColor(Color::ABGR_WHITE); }, "WhiteButton");
-                            CreateButton(150, 500, 30, 30, Color::BLACK, [this]()
+                            CreateTextObject(380, 413, "Prompt:   " + prompt, "Prompt", 400);
+                            CreateButton(320, 413, 25, 25, Color::BLACK, [this]()
                                         { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
                                             ->ChangeColor(Color::ABGR_BLACK); }, "BlackButton");
+                            CreateButton(345, 413, 25, 25, Color::WHITE, [this]()
+                                        { std::static_pointer_cast<Canvas>(GetObject("Canvas"))
+                                            ->ChangeColor(Color::ABGR_WHITE); }, "WhiteButton");
                             GameManager::getInstance().RegisterInteractable("Canvas", std::static_pointer_cast<Interactable>(GetObject("Canvas"))); }, "PromptButton" + std::to_string(i));
     }
 }
@@ -382,12 +461,12 @@ void Scene::CreateForGuessMode()
 
 void Scene::CreateForWaitMode()
 {
-    CreateTextObject(300, 0, "Wait for others to play", "GameModeMessage", 400);
+    CreateTextObject(415, 380, "Wait for others to play", "GameModeMessage", 400);
 }
 
 void Scene::CreateForStandByMode()
 {
-    CreateTextObject(250, 0, "Wait for the round to end to play", "GameModeMessage", 475);
+    CreateTextObject(370, 380, "Wait for the round to end to play", "GameModeMessage", 475);
 }
 
 std::shared_ptr<TextButton> Scene::CreateTextButton(int x, int y, int w, int h, const Padding &padding, const std::string &text,
@@ -426,9 +505,9 @@ std::shared_ptr<Button> Scene::CreateButton(int x, int y, int w, int h, Uint32 c
     return button;
 }
 
-std::shared_ptr<FixedTextInput> Scene::CreateFixedTextInput(int x, int y, int w, int h, int maxSize, const std::string &name)
+std::shared_ptr<FixedTextInput> Scene::CreateFixedTextInput(int x, int y, int w, int h, int maxSize, const std::string &name, const std::string &z_index)
 {
-    CreateBackground(x, y, w, h, Color::CORAL_PINK, "2");
+    CreateBackground(x, y, w, h, Color::CORAL_PINK, z_index);
     auto fixedTxtInput = std::make_shared<FixedTextInput>(x + 5, y, w, h, maxSize, name);
     AddObject(fixedTxtInput);
     GameManager::getInstance().RegisterInteractable(name, fixedTxtInput);
@@ -444,7 +523,7 @@ std::shared_ptr<TextObject> Scene::CreateTextObject(int x, int y, const std::str
 
 std::shared_ptr<MessageWindow> Scene::CreateMessageWindow(int x, int y, int w, int h, const std::string &name)
 {
-    CreateBackground(x, y, w, h, Color::MUSTARD, "");
+    CreateBackground(x, y, w, h, Color::LIGHT_SKY_BLUE, "");
     auto msgWindow = std::make_shared<MessageWindow>(x, y, w, h, name);
     AddObject(msgWindow);
     return msgWindow;
@@ -452,7 +531,7 @@ std::shared_ptr<MessageWindow> Scene::CreateMessageWindow(int x, int y, int w, i
 
 std::shared_ptr<TextInput> Scene::CreateTextInput(int x, int y, int w, int h, MessageWindow *msgWindow, const std::string &name)
 {
-    CreateBackground(x, y, w, h, Color::LIGHT_SKY_BLUE, "");
+    CreateBackground(x, y, w, h, Color::CORAL_PINK, "");
     auto txtInput = std::make_shared<TextInput>(x, y, w, h, msgWindow, name);
     AddObject(txtInput);
 
@@ -464,9 +543,9 @@ std::shared_ptr<TextInput> Scene::CreateTextInput(int x, int y, int w, int h, Me
     return txtInput;
 }
 
-std::shared_ptr<Canvas> Scene::CreateCanvas(const std::string &name)
+std::shared_ptr<Canvas> Scene::CreateCanvas()
 {
-    auto cvs = std::make_shared<Canvas>(name);
+    auto cvs = std::make_shared<Canvas>("Canvas");
     AddObject(cvs);
 
     if (GameManager::getInstance().GetGameMode() == GameMode::DRAW)

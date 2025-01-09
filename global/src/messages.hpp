@@ -25,9 +25,9 @@ private:
 class ConnectInfo
 {
 public:
-    static constexpr short MAX_LOBBY_NAME_SIZE = 16;
-    static constexpr short MAX_LOBBY_PASSWORD_SIZE = 16;
-    static constexpr short MAX_CLIENT_NAME_SIZE = 16;
+    static constexpr short MAX_LOBBY_NAME_SIZE = 15;
+    static constexpr short MAX_LOBBY_PASSWORD_SIZE = 15;
+    static constexpr short MAX_CLIENT_NAME_SIZE = 15;
 
     ConnectInfo(const std::string &lobby, const std::string &name, const std::string &password)
     {
@@ -89,7 +89,7 @@ private:
 class LobbyInfoList
 {
 public:
-    static constexpr short MAX_LOBBIES_PER_PAGE = 16;
+    static constexpr short MAX_LOBBIES_PER_PAGE = 6;
 
     LobbyInfoList() = default;
     ~LobbyInfoList() noexcept = default;
@@ -280,7 +280,7 @@ private:
 class PromptInfo
 {
 public:
-    static constexpr short MAX_PROMPT_SIZE = 16;
+    static constexpr short MAX_PROMPT_SIZE = 30;
 
     PromptInfo(const std::string &prompt)
     {

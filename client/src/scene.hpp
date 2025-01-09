@@ -22,6 +22,7 @@ private:
     std::set<std::shared_ptr<Component>> objects;
     std::vector<std::shared_ptr<Component>> hiddenObjects;
     CanvasChangeInfoList changes = {};
+    std::string lobbyName = "";
     int frameCount = 0;
     int timeCount = 0;
 
@@ -59,13 +60,14 @@ public:
                                          std::function<void()> onClick, const std::string &name);
     std::shared_ptr<TextInput> CreateTextInput(int x, int y, int w, int h,
                                                MessageWindow *msgWindow, const std::string &name);
-    std::shared_ptr<FixedTextInput> CreateFixedTextInput(int x, int y, int w, int h, int maxSize, const std::string &name);
+    std::shared_ptr<FixedTextInput> CreateFixedTextInput(int x, int y, int w, int h, int maxSize, const std::string &name, const std::string &z_index = "2");
     std::shared_ptr<TextObject> CreateTextObject(int x, int y, const std::string &text, const std::string &name, int wrapLength);
     std::shared_ptr<MessageWindow> CreateMessageWindow(int x, int y, int w, int h, const std::string &name);
-    std::shared_ptr<Canvas> CreateCanvas(const std::string &name);
-    std::shared_ptr<Background> CreateBackground(int x, int y, int w, int h, Uint32 color, const std::string& name);
-    
+    std::shared_ptr<Canvas> CreateCanvas();
+    std::shared_ptr<Background> CreateBackground(int x, int y, int w, int h, Uint32 color, const std::string &name);
+
     void CreatePlayerNames();
+    void CreateLobbyButtons();
 
     void CreateForDrawMode();
     void CreateForGuessMode();

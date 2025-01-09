@@ -9,7 +9,7 @@ class TextManager
 {
 private:
     TextManager() {};
-    const char *fontFilename = "fonts/placeholder.ttf";
+    const char *fontFilename = "fonts/font.ttf";
     TTF_Font *font;
 
 public:

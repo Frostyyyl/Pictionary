@@ -18,6 +18,7 @@ enum class MessageToServer : int
     UPLOAD_TEXT,
     UPLOAD_PROMPT,
     START_GAME,
+    EXIT_LOBBY,
 };
 
 enum class MessageToClient : int

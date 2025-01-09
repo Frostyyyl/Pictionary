@@ -821,6 +821,9 @@ void Server::Read(int socket)
     case MessageToServer::REQUEST_TIME:
         SendTime(socket);
         break;
+    case MessageToServer::EXIT_LOBBY:
+        ExitLobby(socket);
+        break;
 
     // Remove from descriptors and lobby, close socket
     case MessageToServer::INVALID:

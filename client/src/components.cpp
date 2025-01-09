@@ -225,11 +225,10 @@ void MessageWindow::AddMessage(std::string message)
 
 Canvas::Canvas(const std::string &name) : Interactable(name)
 {
-    rect = {20, 20, 400, 400};
-    tex = TextureManager::CreateCanvas(400, 400);
+    rect = {320, 20, 360, 360};
+    tex = TextureManager::CreateCanvas(360, 360);
     currentColor = Color::ABGR_BLACK;
 }
-#include <iostream>
 
 void Canvas::HandleEvent(SDL_Event event)
 {

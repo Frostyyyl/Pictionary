@@ -202,7 +202,7 @@ bool NetworkConnector::ConnectToLobby(const std::string &lobby, const std::strin
         errorMessage = "This lobby no longer exists, please try refreshing";
         break;
     case MessageToClient::INCORRECT_PLAYER_NAME:
-        errorMessage = "Unfortunately someone already took this name, please pick another one";
+        errorMessage = "Unfortunately someone already took this name";
         break;
     case MessageToClient::INCORRECT_PASSWORD:
         errorMessage = "Given password is incorrect, try again";
@@ -571,6 +571,17 @@ void NetworkConnector::UploadPrompt(const std::string &prompt)
 
     // Send the prompt information
     if (!WriteWithRetry(mySocket, &info, sizeof(info), "PromptInfo"))
+    {
+        ExitError();
+    }
+}
+
+void NetworkConnector::UploadLobbyExit()
+{
+    Message message = Message(static_cast<int>(MessageToServer::EXIT_LOBBY));
+
+    // Send the message type
+    if (!WriteWithRetry(mySocket, &message, sizeof(Message), MessageToServer::EXIT_LOBBY))
     {
         ExitError();
     }
