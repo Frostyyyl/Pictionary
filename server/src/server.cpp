@@ -273,6 +273,17 @@ void Server::SendIncorrectPassword(int socket)
     }
 }
 
+void Server::SendMaxLobbiesReached(int socket)
+{
+    Message message = Message(static_cast<int>(MessageToClient::MAX_LOBBIES_REACHED));
+
+    // Send information about incorrect player name
+    if (!WriteWithRetry(socket, &message, sizeof(Message), MessageToClient::MAX_LOBBIES_REACHED))
+    {
+        Disconnect(socket);
+    }
+}
+
 void Server::SendConfirmConnect(int socket)
 {
     Message message = Message(static_cast<int>(MessageToClient::CONFIRM_CONNECT));
@@ -593,6 +604,14 @@ void Server::CreateLobby(int socket, int message_size)
     std::string lobby = info.GetLobbyName();
     std::string name = info.GetPlayerName();
     std::string password = info.GetPassword();
+
+    if (LobbyManager::getInstance().GetLobbyNames(LobbyInfoList::MAX_LOBBIES_PER_PAGE).size() == LobbyInfoList::MAX_LOBBIES_PER_PAGE)
+    {
+        SendMaxLobbiesReached(socket);
+        ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());
+        return;
+
+    }
 
     // Check if the lobby name is unique/correct
     if (LobbyManager::getInstance().hasLobby(lobby) || lobby.empty() || lobby.size() > ConnectInfo::MAX_LOBBY_NAME_SIZE)

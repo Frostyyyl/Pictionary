@@ -34,6 +34,7 @@ private:
     void SendIncorrectLobbyName(int socket);
     void SendIncorrectPlayerName(int socket);
     void SendIncorrectPassword(int socket);
+    void SendMaxLobbiesReached(int socket);
     void SendConfirmConnect(int socket);
     void SendLobbyList(int socket);
     void SendPlayerList(int socket);

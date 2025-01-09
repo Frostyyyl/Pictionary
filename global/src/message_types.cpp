@@ -75,6 +75,10 @@ std::ostream &operator<<(std::ostream &stream, const MessageToClient &msgType)
     case MessageToClient::INCORRECT_PASSWORD:
         stream << "INCORRECT_PASSWORD";
         break;
+    case MessageToClient::MAX_LOBBIES_REACHED:
+        stream << "MAX_LOBBIES_REACHED";
+        break;
+
     case MessageToClient::UPLOAD_LOBBIES:
         stream << "UPLOAD_LOBBIES";
         break;

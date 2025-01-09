@@ -150,6 +150,9 @@ bool NetworkConnector::CreateLobby(const std::string &lobby, const std::string &
     case MessageToClient::INCORRECT_PLAYER_NAME:
         errorMessage = "Incorrect nickname, please try again";
         break;
+    case MessageToClient::MAX_LOBBIES_REACHED:
+        errorMessage = "Max numbers of lobbies reached, join to one already available";
+        break;
     case MessageToClient::CONFIRM_CONNECT:
         hasCreated = true;
         return true;
