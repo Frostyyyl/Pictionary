@@ -55,7 +55,7 @@ public:
     TimeInfo RequestTime();
 
     void StartGame();
-    void UploadCanvasChange(const CanvasChangeInfo& canvas);
+    void UploadCanvasChanges(const CanvasChangeInfoList& canvas);
     void UploadText(const std::string& player, const std::string& text);
     void UploadPrompt(const std::string& prompt);
     void UploadLobbyExit();

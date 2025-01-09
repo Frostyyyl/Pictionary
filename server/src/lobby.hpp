@@ -35,7 +35,7 @@ private:
 class Lobby
 {
 public:
-    static constexpr int ROUND_TIME_SEC = 10;
+    static constexpr int ROUND_TIME_SEC = 60;
 
     Lobby(const std::string &password) : password(password) {}
     Lobby() = default;

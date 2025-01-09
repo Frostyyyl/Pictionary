@@ -526,7 +526,7 @@ void NetworkConnector::StartGame()
     }
 }
 
-void NetworkConnector::UploadCanvasChange(const CanvasChangeInfo& info)
+void NetworkConnector::UploadCanvasChanges(const CanvasChangeInfoList& info)
 {
     Message message = Message(static_cast<int>(MessageToServer::UPLOAD_CANVAS), sizeof(info));
 

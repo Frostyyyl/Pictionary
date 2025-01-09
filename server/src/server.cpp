@@ -554,7 +554,7 @@ void Server::UpdateChat(int socket, int message_size)
 
 void Server::UpdateCanvas(int socket, int message_size)
 {
-    CanvasChangeInfo info;
+    CanvasChangeInfoList info;
 
     // Read the canvas change info
     if (!ReadWithRetry(socket, &info, message_size, MessageToServer::UPLOAD_CANVAS))
@@ -563,9 +563,13 @@ void Server::UpdateCanvas(int socket, int message_size)
     }
 
     std::string lobby = ClientManager::getInstance().GetClient(socket)->GetCurrentLobby();
+    int size = info.GetSize();
 
     // Add canvas change to lobby
-    LobbyManager::getInstance().GetLobby(lobby)->AddCanvasChange(info);
+    for (int i = 0; i < size; i++)
+    {
+        LobbyManager::getInstance().GetLobby(lobby)->AddCanvasChange(info.GetCanvasChange());
+    }           
 
     // Remove from other structers to handle
     ClientManager::getInstance().GetClient(socket)->SetMessageToHandle(Message());

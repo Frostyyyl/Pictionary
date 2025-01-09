@@ -248,8 +248,8 @@ void Canvas::HandleEvent(SDL_Event event)
         DrawCircle(canvasX, canvasY, 3, currentColor);
 
         CanvasChangeInfo::Color color = (currentColor == Color::ABGR_BLACK) ? CanvasChangeInfo::Color::ABGR_BLACK : CanvasChangeInfo::Color::ABGR_WHITE;
-        CanvasChangeInfo info = {canvasX, canvasY, 3, color};
-        NetworkConnector::getInstance().UploadCanvasChange(info);
+        CanvasChangeInfo change = {canvasX, canvasY, 3, color};
+        GameManager::getInstance().changes.AddCanvasChange(change); 
 
         return;
     }
@@ -260,8 +260,8 @@ void Canvas::HandleEvent(SDL_Event event)
         DrawLine(prevPos.x, prevPos.y, canvasX, canvasY, currentColor);
 
         CanvasChangeInfo::Color color = (currentColor == Color::ABGR_BLACK) ? CanvasChangeInfo::Color::ABGR_BLACK : CanvasChangeInfo::Color::ABGR_WHITE;
-        CanvasChangeInfo info = {prevPos.x, prevPos.y, canvasX, canvasY, color};
-        NetworkConnector::getInstance().UploadCanvasChange(info);
+        CanvasChangeInfo change = {prevPos.x, prevPos.y, canvasX, canvasY, color};
+        GameManager::getInstance().changes.AddCanvasChange(change);
         
         prevPos = {canvasX, canvasY};
     }

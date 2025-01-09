@@ -3,7 +3,7 @@
 #include <string>
 #include <array>
 #include <vector> // NOTE: Only for constructors
-
+#include <iostream>
 #include "game_mode.hpp"
 
 class Message
@@ -270,6 +270,7 @@ public:
         return list[index++];
     }
     int GetSize() const { return size; }
+    void ResetSize() { size = 0; }
 
 private:
     short size = 0;

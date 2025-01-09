@@ -22,6 +22,7 @@ private:
     std::string playerName = "";
 
 public:
+    CanvasChangeInfoList changes = {};
     bool wasSceneChanged;
     bool isRunning;
 
