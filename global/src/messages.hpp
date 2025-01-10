@@ -3,7 +3,7 @@
 #include <string>
 #include <array>
 #include <vector> // NOTE: Only for constructors
-#include <iostream>
+
 #include "game_mode.hpp"
 
 class Message
@@ -150,18 +150,57 @@ private:
     GameMode mode = GameMode::STANDBY;
 };
 
+class PromptInfo
+{
+public:
+    static constexpr short MAX_PROMPT_SIZE = 15;
+
+    PromptInfo(const std::string &prompt)
+    {
+        prompt.copy(this->prompt.data(), MAX_PROMPT_SIZE);
+        this->prompt[MAX_PROMPT_SIZE] = '\0';
+    }
+    PromptInfo() = default;
+    ~PromptInfo() noexcept = default;
+
+    std::string GetPrompt() { return prompt.data(); }
+
+private:
+    std::array<char, MAX_PROMPT_SIZE + 1> prompt = {};
+};
+
+class PromptsInfoList
+{
+public:
+    static constexpr short MAX_PROMPTS = 3;
+
+    PromptsInfoList(const std::vector<std::string> &prompts)
+    {
+        for (int i = 0; i < MAX_PROMPTS; i++)
+        {
+            prompts[i].copy(this->prompts[i].data(), PromptInfo::MAX_PROMPT_SIZE);
+            this->prompts[i][PromptInfo::MAX_PROMPT_SIZE] = '\0';
+        }
+    }
+    PromptsInfoList() = default;
+    ~PromptsInfoList() noexcept = default;
+
+    std::string GetPrompt(int index) { return prompts[index].data(); }
+
+private:
+    std::array<std::array<char, PromptInfo::MAX_PROMPT_SIZE + 1>, MAX_PROMPTS> prompts = {};
+};
+
 class TextInfo
 {
 public:
-    static constexpr short MAX_TEXT_SIZE = 19; // TODO: Update alongside the size of the chat window
-
     TextInfo(const std::string &name, const std::string &text)
     {
         name.copy(this->name.data(), ConnectInfo::MAX_CLIENT_NAME_SIZE);
         this->name[ConnectInfo::MAX_CLIENT_NAME_SIZE] = '\0';
 
-        text.copy(this->text.data(), MAX_TEXT_SIZE);
-        this->text[MAX_TEXT_SIZE] = '\0';
+        text.copy(this->text.data(), PromptInfo::MAX_PROMPT_SIZE);
+        this->text[PromptInfo::MAX_PROMPT_SIZE] = '\0';
     };
     TextInfo() = default;
     ~TextInfo() noexcept = default;
@@ -170,14 +209,14 @@ public:
     std::string GetPlayerName() { return name.data(); }
 
 private:
-    std::array<char, MAX_TEXT_SIZE + 1> text = {};
+    std::array<char, PromptInfo::MAX_PROMPT_SIZE + 1> text = {};
     std::array<char, ConnectInfo::MAX_CLIENT_NAME_SIZE + 1> name = {};
 };
 
 class ChatInfo
 {
 public:
-    static constexpr short MAX_TEXTS = 14; // TODO: Update alongside the size of the chat window
+    static constexpr short MAX_TEXTS = 18; // TODO: Update alongside the size of the chat window
 
     ChatInfo() = default;
     ~ChatInfo() noexcept = default;
@@ -276,45 +315,4 @@ private:
     short size = 0;
     short index = 0;
     std::array<CanvasChangeInfo, MAX_CANVAS_CHANGES> list = {};
-};
-
-class PromptInfo
-{
-public:
-    static constexpr short MAX_PROMPT_SIZE = 30;
-
-    PromptInfo(const std::string &prompt)
-    {
-        prompt.copy(this->prompt.data(), MAX_PROMPT_SIZE);
-        this->prompt[MAX_PROMPT_SIZE] = '\0';
-    }
-    PromptInfo() = default;
-    ~PromptInfo() noexcept = default;
-
-    std::string GetPrompt() { return prompt.data(); }
-
-private:
-    std::array<char, MAX_PROMPT_SIZE + 1> prompt = {};
-};
-
-class PromptsInfoList
-{
-public:
-    static constexpr short MAX_PROMPTS = 3;
-
-    PromptsInfoList(const std::vector<std::string> &prompts)
-    {
-        for (int i = 0; i < MAX_PROMPTS; i++)
-        {
-            prompts[i].copy(this->prompts[i].data(), PromptInfo::MAX_PROMPT_SIZE);
-            this->prompts[i][PromptInfo::MAX_PROMPT_SIZE] = '\0';
-        }
-    }
-    PromptsInfoList() = default;
-    ~PromptsInfoList() noexcept = default;
-
-    std::string GetPrompt(int index) { return prompts[index].data(); }
-
-private:
-    std::array<std::array<char, PromptInfo::MAX_PROMPT_SIZE + 1>, MAX_PROMPTS> prompts = {};
 };

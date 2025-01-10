@@ -20,6 +20,7 @@ private:
     GameMode mode = GameMode::STANDBY;
     std::string currentTextInput = "";
     std::string playerName = "";
+    std::string lobbyName = "";
 
 public:
     CanvasChangeInfoList changes = {};
@@ -51,4 +52,6 @@ public:
 
     void SetPlayerName(const std::string& name) { playerName = name; }
     std::string GetPlayerName() { return playerName; }
+    void SetLobbyName(const std::string& name) { lobbyName = name; }
+    std::string GetLobbyName() { return lobbyName; }
 };

@@ -178,6 +178,7 @@ void Scene::UpdateGameMode(GameMode mode)
             std::static_pointer_cast<TextInput>(GetObject("TextInput"))
                 ->FlushText();
             GameManager::getInstance().RemoveInteractable("EnterTextButton");
+            DeleteObjects("GameModeMessage");
             break;
         case GameMode::STANDBY:
             DeleteObjects("GameModeMessage");
@@ -410,6 +411,7 @@ void Scene::CreateLobbyButtons()
                             if (NetworkConnector::getInstance().ConnectToLobby(info.GetLobbyName(), playerNameInput->GetText(), passwordInput->GetText()))
                             {
                                 GameManager::getInstance().SetPlayerName(playerNameInput->GetText());
+                                GameManager::getInstance().SetLobbyName(info.GetLobbyName());
                                 GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
                             }
                             else
@@ -425,6 +427,7 @@ void Scene::CreateLobbyButtons()
                             if (NetworkConnector::getInstance().ConnectToLobby(info.GetLobbyName(), playerNameInput->GetText(), "")) // No password
                             {
                                 GameManager::getInstance().SetPlayerName(playerNameInput->GetText());
+                                GameManager::getInstance().SetLobbyName(info.GetLobbyName());
                                 GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
                             }
                             else
@@ -462,6 +465,7 @@ void Scene::CreateForDrawMode()
 
 void Scene::CreateForGuessMode()
 {
+    CreateTextObject(420, 380, "Guess the prompt", "GameModeMessage", 200);
 }
 
 void Scene::CreateForWaitMode()
@@ -528,7 +532,7 @@ std::shared_ptr<TextObject> Scene::CreateTextObject(int x, int y, const std::str
 
 std::shared_ptr<MessageWindow> Scene::CreateMessageWindow(int x, int y, int w, int h, const std::string &name)
 {
-    CreateBackground(x, y, w, h, Color::LIGHT_SKY_BLUE, "");
+    CreateBackground(x, y, w, h, Color::LIGHT_SKY_BLUE, "2");
     auto msgWindow = std::make_shared<MessageWindow>(x, y, w, h, name);
     AddObject(msgWindow);
     return msgWindow;
@@ -536,7 +540,7 @@ std::shared_ptr<MessageWindow> Scene::CreateMessageWindow(int x, int y, int w, i
 
 std::shared_ptr<TextInput> Scene::CreateTextInput(int x, int y, int w, int h, MessageWindow *msgWindow, const std::string &name)
 {
-    CreateBackground(x, y, w, h, Color::CORAL_PINK, "");
+    CreateBackground(x, y, w, h, Color::CORAL_PINK, "2");
     auto txtInput = std::make_shared<TextInput>(x, y, w, h, msgWindow, name);
     AddObject(txtInput);
 

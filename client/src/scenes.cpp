@@ -70,7 +70,7 @@ Scene *CreateMainMenuScene()
     newScene->CreateBackground(startPos.x, startPos.y + unit * 6, unit * 2 + gap, unit, Color::CORAL_PINK, "2");
 
     // Play button
-    newScene->CreateTextButton(400, 360, 200, 100, Padding(80), "Play", Color::BURNT_SIENNA, []()
+    newScene->CreateTextButton(400, 360, 200, 100, Padding(80), "PLAY", Color::BURNT_SIENNA, []()
                                { GameManager::getInstance().ChangeCurrentScene(SceneType::LOBBY); }, "PlayButton");
 
     return newScene;
@@ -115,6 +115,7 @@ Scene *CreateLobbyScene()
                     if (NetworkConnector::getInstance().CreateLobby(lobbyNameInput->GetText(), playerNameInput->GetText(), passwordInput->GetText()))
                     {
                         GameManager::getInstance().SetPlayerName(playerNameInput->GetText());
+                        GameManager::getInstance().SetLobbyName(lobbyNameInput->GetText());
                         GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
                     }
                     else
@@ -187,6 +188,7 @@ Scene *CreateGameScene()
     newScene->CreatePlayerNames();
 
     newScene->CreateBackground(65, 425, 235, 25, Color::CORAL_PINK, "2");
+    newScene->CreateTextObject(70, 425, GameManager::getInstance().GetLobbyName(), "LobbyNameText", 235);
     newScene->CreateTextButton(20, 425, 45, 25, Padding(5, -12), "EXIT", Color::BURNT_SIENNA, [](){
         NetworkConnector::getInstance().UploadLobbyExit();
 

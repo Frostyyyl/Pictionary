@@ -132,8 +132,6 @@ public:
 
     void Update() override;
 };
-
-// NOTE: if we want scroll we need Interactable though
 class MessageWindow : public Component
 {
 private:

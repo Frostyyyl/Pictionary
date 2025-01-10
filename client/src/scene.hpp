@@ -21,7 +21,6 @@ class Scene
 private:
     std::set<std::shared_ptr<Component>> objects;
     std::vector<std::shared_ptr<Component>> hiddenObjects;
-    std::string lobbyName = "";
     int frameCount = 0;
     int timeCount = 0;
 

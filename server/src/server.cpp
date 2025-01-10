@@ -537,7 +537,6 @@ void Server::UpdateChat(int socket, int message_size)
     // Add message to chat
     LobbyManager::getInstance().GetLobby(lobby)->AddMessage(TextInfo(name, text));
 
-    
     std::transform(text.begin(), text.end(), text.begin(),
         [](unsigned char c){ return std::toupper(c); });
 

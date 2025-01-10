@@ -48,14 +48,13 @@ void TextObject::LoadText()
 void TextObject::Update()
 {
     TextureManager::Draw(tex, rect);
-    // SDL_RenderCopy(GameManager::renderer, tex, NULL, &rect);
 }
 
 void TextInput::HandleEvent(SDL_Event event)
 {
     if (event.type == SDL_TEXTINPUT)
     {
-        if ((int)text.text.text.size() < TextInfo::MAX_TEXT_SIZE)
+        if ((int)text.text.text.size() < PromptInfo::MAX_PROMPT_SIZE)
         {
             text.text.text += event.text.text;
             text.LoadText();
@@ -86,6 +85,7 @@ void TextInput::Update()
 
 void TextInput::SendMessage()
 {
+    std::cout << "Message: \"" << text.text.text << "\"\n";
     std::string msg = text.text.text;
 
     if (msg.empty())
@@ -219,7 +219,7 @@ void MessageWindow::AddMessage(std::string message)
     {
         auto &message = *it;
         yOffset -= (message->GetHeight());
-        message->SetPosition(rect.x, yOffset);
+        message->SetPosition(rect.x + 5, yOffset);
     }
 }
 
