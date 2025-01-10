@@ -1,10 +1,13 @@
 #pragma once
 
-#include "scene.hpp"
 #include <SDL2/SDL.h>
+
+#include "scene.hpp"
 #include "interactable.hpp"
-#include "player.hpp"
 #include "input_manager.hpp"
+#include "../../global/src/game_mode.hpp"
+
+const int FRAMES_PER_SECOND = 400;
 
 class GameManager
 {
@@ -14,10 +17,14 @@ private:
     SDL_Window *window;
     Scene *currentScene;
     InputManager *inputManager;
+    GameMode mode = GameMode::STANDBY;
+    std::string currentTextInput = "";
+    std::string playerName = "";
+    std::string lobbyName = "";
 
 public:
+    CanvasChangeInfoList changes = {};
     bool wasSceneChanged;
-    Player *currentPlayer;
     bool isRunning;
 
     static SDL_Renderer *renderer;
@@ -29,7 +36,22 @@ public:
     void Run();
     void Exit();
 
-    void ChangeCurrentScene(const char *newScene);
+    void ChangeCurrentScene(SceneType newScene);
 
-    void RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable);
+    void RegisterInteractable(const std::string& name, std::shared_ptr<Interactable> interactable);
+    void RemoveInteractable(const std::string& name);
+
+    void SetGameMode(GameMode mode) { this->mode = mode; }
+    GameMode GetGameMode() { return mode; }
+
+    void StopDrawing() { inputManager->StopDrawing(); }
+
+    void SetCurrentTextInput(const std::string &input) { currentTextInput = input; }
+    std::string GetCurrentTextInput() { return currentTextInput; }
+    void ResetCurrentTextInput() { currentTextInput = ""; }
+
+    void SetPlayerName(const std::string& name) { playerName = name; }
+    std::string GetPlayerName() { return playerName; }
+    void SetLobbyName(const std::string& name) { lobbyName = name; }
+    std::string GetLobbyName() { return lobbyName; }
 };

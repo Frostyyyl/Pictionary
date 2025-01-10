@@ -1,17 +1,17 @@
-#include "game_manager.hpp"
-#include "scenes.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include "text_manager.hpp"
 
-const int FRAMES_PER_SECOND = 60;
-const int FRAME_DELAY = 1000 / FRAMES_PER_SECOND;
+#include "game_manager.hpp"
+#include "scenes.hpp"
+#include "text_manager.hpp"
+#include "network_connector.hpp"
+
+const double FRAME_DELAY = 1000 / (double)FRAMES_PER_SECOND;
 
 SDL_Renderer *GameManager::renderer = nullptr;
 
 GameManager::GameManager()
 {
-    currentPlayer = nullptr;
     inputManager = nullptr;
     wasSceneChanged = false;
 }
@@ -94,51 +94,53 @@ void GameManager::Run()
     }
 }
 
-void GameManager::ChangeCurrentScene(const char *newScene)
+void GameManager::ChangeCurrentScene(SceneType newScene)
 {
 
-    if (strcmp(newScene, "game") == 0)
+    if (newScene == SceneType::GAME)
     {
-        // For now this cause segmentation fault in inputManager, maybe it's not important to have
+        // Clear last scene
         inputManager->ClearInteractables();
-
-        // BE CAREFUL WITH THIS FUNCTION FOR NOW
         currentScene->DeleteScene();
 
-        currentPlayer = new Player(1, "player");
-        currentPlayer->ChangeGameMode(DRAW);
-
-        for (int i = 0; i < 10; i++)
-        {
-            // This loop does nothing but it prevents CreateGameScene() from crashing
-            // when it tries to acces newly created currentPlayer
-        }
-
+        // Inicialize new scene
         currentScene = CreateGameScene();
     }
-    if (strcmp(newScene, "lobby") == 0)
+    if (newScene == SceneType::LOBBY)
     {
+        // Clear last scene
         inputManager->ClearInteractables();
-        for (int i = 0; i < 10; i++)
+        currentScene->DeleteScene();
+
+        // Inicialize connection with server
+        if (!NetworkConnector::getInstance().isInitialized())
         {
-            // This loop does nothing but it prevents CreateGameScene() from crashing
+            NetworkConnector::getInstance().Init();
         }
-        // currentScene->DeleteScene();
+
+        // Inicialize new scene
         currentScene = CreateLobbyScene();
     }
     wasSceneChanged = true;
 }
 
-void GameManager::RegisterInteractable(std::string name, std::shared_ptr<Interactable> interactable)
+void GameManager::RegisterInteractable(const std::string& name, std::shared_ptr<Interactable> interactable)
 {
     inputManager->AddInteractable(name, interactable);
 }
 
+void GameManager::RemoveInteractable(const std::string& name)
+{
+    inputManager->DeleteInteractable(name);
+}
+
 void GameManager::Exit()
 {
+    NetworkConnector::getInstance().Exit();
     isRunning = false;
     SDL_StopTextInput();
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
+    sleep(1);
 }

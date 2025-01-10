@@ -1,24 +1,77 @@
+#include <string>
+#include <functional>
+
 #include "game_manager.hpp"
 #include "scenes.hpp"
-#include <string>
+#include "network_connector.hpp"
+#include "../../global/src/game_mode.hpp"
 
 Scene *CreateMainMenuScene()
 {
     Scene *newScene = new Scene();
-    newScene->sceneName = "mainMenu";
+    newScene->sceneType = SceneType::MAIN_MENU;
 
-    // For now backgrounds have unstable Z-index
-    // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
-    // newScene->AddObject(bg);
+    newScene->CreateBackground(0, 0, 1000, 600, Color::YINMN_BLUE, "0");
+    newScene->CreateBackground(20, 20, 960, 560, Color::LIGHT_SKY_BLUE, "1");
 
-    auto txt = std::make_shared<TextObject>(600, 500, "GAME");
-    newScene->AddObject(txt);
+    // Title
+    int unit = 38;
+    int gap = 15;
+    Position startPos = {47, 40};
+    // P
+    newScene->CreateBackground(startPos.x, startPos.y, unit, unit * 5, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y, unit, unit, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 2, unit, unit, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit * 2, startPos.y, unit, unit * 3, Color::CORAL_PINK, "2");
+    // I
+    startPos.x += unit * 3 + gap;
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    // C
+    startPos.x += unit + gap;
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 2, unit, unit, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 4, unit, unit, Color::CORAL_PINK, "2");
+    // T
+    startPos.x += unit * 2 + gap;
+    newScene->CreateBackground(startPos.x, startPos.y, unit, unit * 5, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 1, unit * 0.5, unit, Color::CORAL_PINK, "2");
+    // I
+    startPos.x += unit * 1.5 + gap;
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    // O
+    startPos.x += unit + gap;
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 2, gap, unit, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 4, gap, unit, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit + gap, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    // N
+    startPos.x += unit * 2 + gap * 2;
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 2.75, gap, unit, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit + gap, startPos.y + unit * 3.25, gap, unit, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit + gap * 2, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    // A
+    startPos.x += unit * 2 + gap * 3;
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 3, unit, unit * 2, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 2, unit * 2 + gap, unit * 0.5, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 3, gap, unit * 0.5, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 4.5, gap, unit * 0.5, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit + gap, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    // R
+    startPos.x += unit * 2 + gap * 2;
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 2.5, gap, unit, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit + gap, startPos.y + unit * 2, gap, unit, Color::CORAL_PINK, "2");
+    // Y
+    startPos.x += unit + gap * 3;
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 2, unit, unit * 3, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit + gap, startPos.y + unit * 2, unit, unit * 5, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x + unit, startPos.y + unit * 4, gap, unit, Color::CORAL_PINK, "2");
+    newScene->CreateBackground(startPos.x, startPos.y + unit * 6, unit * 2 + gap, unit, Color::CORAL_PINK, "2");
 
-    auto btn = std::make_shared<Button>(600, 400, 80, 80, "images/button.png", []()
-                                        { GameManager::getInstance().ChangeCurrentScene("lobby"); });
-    newScene->AddObject(btn);
-
-    GameManager::getInstance().RegisterInteractable("startButton", btn);
+    // Play button
+    newScene->CreateTextButton(400, 360, 200, 100, Padding(80), "PLAY", Color::BURNT_SIENNA, []()
+                               { GameManager::getInstance().ChangeCurrentScene(SceneType::LOBBY); }, "PlayButton");
 
     return newScene;
 }
@@ -26,23 +79,88 @@ Scene *CreateMainMenuScene()
 Scene *CreateLobbyScene()
 {
     Scene *newScene = new Scene();
-    newScene->sceneName = "lobby";
+    newScene->sceneType = SceneType::LOBBY;
 
-    // For now backgrounds have unstable Z-index
-    // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
-    // newScene->AddObject(bg);
+    // Main blue background rectangle
+    newScene->CreateBackground(0, 0, 1000, 600, Color::YINMN_BLUE, "0");
 
-    auto txt = std::make_shared<TextObject>(300, 50, "LOBBY");
-    newScene->AddObject(txt);
+    // Light blue rectangle (background for lobbies)
+    newScene->CreateBackground(20, 20, 600, 560, Color::LIGHT_SKY_BLUE, "1");
 
-    std::string names[4] = {"lobby_1", "lobby_2", "lobby_3", "lobby_4"};
-    for (int i = 0; i < 4; i++)
-    {
-        auto obj = std::make_shared<Button>(100 + 500 * (i % 2), 80 + 300 * (int)(i / 2), 240, 180, "images/button.png", []()
-                                            { GameManager::getInstance().ChangeCurrentScene("game"); });
-        newScene->AddObject(obj);
-        GameManager::getInstance().RegisterInteractable("lobby_" + std::to_string(i + 1), obj);
-    }
+    // Mustard rectangle (background for creating a lobby)
+    newScene->CreateBackground(640, 20, 340, 400, Color::MUSTARD, "1");
+
+    // Orange rectangle (background for refresh)
+    newScene->CreateBackground(640, 440, 340, 140, Color::ORANGE, "1");
+
+    // Create a lobby button
+    auto createLobbyButton = newScene->CreateTextButton(680, 40, 260, 60, Padding(62), "CREATE  A  LOBBY", Color::BURNT_SIENNA, [newScene]()
+                                                        {
+            newScene->HideObjects("CreateLobbyButton");
+
+            // Create input fields
+            newScene->CreateTextObject(680, 120, "Enter the lobby name:", "LobbyNameText", 300);
+            auto lobbyNameInput = newScene->CreateFixedTextInput(680, 145, 260, 25, ConnectInfo::MAX_LOBBY_NAME_SIZE, "LobbyNameInput");
+
+            newScene->CreateTextObject(680, 175, "Pick a nickname:", "PlayerNameText", 300);
+            auto playerNameInput = newScene->CreateFixedTextInput(680, 200, 260, 25, ConnectInfo::MAX_CLIENT_NAME_SIZE, "PlayerNameInput");
+
+            newScene->CreateTextObject(680, 230, "Add a password:", "PasswordText", 300);
+            auto passwordInput = newScene->CreateFixedTextInput(680, 255, 260, 25, ConnectInfo::MAX_LOBBY_PASSWORD_SIZE, "PasswordInput");
+
+            // Confirm button
+            newScene->CreateTextButton(680, 340, 260, 60, Padding(92), "CONFIRM ", Color::BURNT_SIENNA, 
+                [newScene, lobbyNameInput, playerNameInput, passwordInput]()
+                {
+                    if (NetworkConnector::getInstance().CreateLobby(lobbyNameInput->GetText(), playerNameInput->GetText(), passwordInput->GetText()))
+                    {
+                        GameManager::getInstance().SetPlayerName(playerNameInput->GetText());
+                        GameManager::getInstance().SetLobbyName(lobbyNameInput->GetText());
+                        GameManager::getInstance().ChangeCurrentScene(SceneType::GAME);
+                    }
+                    else
+                    {
+                        newScene->DeleteObjects("CreateErrorText");
+                        newScene->CreateTextObject(680, 285, NetworkConnector::getInstance().GetError(), "CreateErrorText", 260);
+                    } }, "ConfirmButton");
+
+            // Cancel button
+            newScene->CreateTextButton(680, 40, 260, 60, Padding(92), "CANCEL", Color::BURNT_SIENNA, [newScene]()
+                {
+                    newScene->DeleteObjects("ConfirmButton");
+                    newScene->DeleteObjects("CancelButton");
+                    newScene->DeleteObjects("CreateErrorText");
+                    newScene->DeleteObjects("LobbyNameText");
+                    newScene->DeleteObjects("LobbyNameInput");
+                    newScene->DeleteObjects("PasswordText");
+                    newScene->DeleteObjects("PasswordInput");
+                    newScene->DeleteObjects("PlayerNameText");
+                    newScene->DeleteObjects("PlayerNameInput");
+                    newScene->DeleteObjects("2");
+                    newScene->ShowObject();
+                    GameManager::getInstance().ResetCurrentTextInput();
+                }, "CancelButton"); }, "CreateLobbyButton");
+
+    newScene->CreateTextObject(40, 30, "Pick a lobby:", "LobbiesText", 160);
+
+    newScene->CreateLobbyButtons();
+
+    newScene->CreateTextButton(680, 480, 260, 60, Padding(62), "REFRESH  LOBBIES", Color::BURNT_SIENNA, [newScene]()
+                               {
+        for (size_t i = 0; i < LobbyInfoList::MAX_LOBBIES_PER_PAGE; i++)
+        {
+            newScene->DeleteObjects("LobbyButton" + std::to_string(i));
+        }
+        newScene->DeleteObjects("PlayerNameText2");
+        newScene->DeleteObjects("PlayerNameInput2");
+        newScene->DeleteObjects("PasswordText2");
+        newScene->DeleteObjects("PasswordInput2");
+        newScene->DeleteObjects("ConfirmButton2");
+        newScene->DeleteObjects("ConnectErrorText");
+
+        newScene->DeleteObjects("3"); // Input backgrounds
+
+        newScene->CreateLobbyButtons(); }, "RefreshButton");
 
     return newScene;
 }
@@ -50,53 +168,62 @@ Scene *CreateLobbyScene()
 Scene *CreateGameScene()
 {
     Scene *newScene = new Scene();
-    newScene->sceneName = "game";
 
-    // For now backgrounds have unstable Z-index
-    // auto bg = std::make_shared<SpriteRenderer>(0, 0, "images/background.png");
-    // newScene->AddObject(bg);
+    newScene->sceneType = SceneType::GAME;
 
-    auto cvs = std::make_shared<Canvas>();
-    newScene->AddObject(cvs);
+    auto cvs = newScene->CreateCanvas();
 
-    // if the player is the one drawing, add canvas to interactables
-    if (GameManager::getInstance().currentPlayer->GetGameMode() == DRAW)
+    newScene->CreateBackground(0, 0, 1000, 600, Color::YINMN_BLUE, "0");
+    newScene->CreateBackground(20, 20, 280, 405, Color::MUSTARD, "1");
+    newScene->CreateBackground(20, 470, 960, 110, Color::ORANGE, "1");
+    newScene->CreateBackground(20, 20, 280, 35, Color::ORANGE, "2");
+
+    auto msgWindow = newScene->CreateMessageWindow(700, 20, 280, 405, "MsgWindow");
+    auto txtInput = newScene->CreateTextInput(700, 425, 230, 25, msgWindow.get(), "TextInput");
+    newScene->CreateTextButton(930, 425, 50, 25, Padding(5, -12), "SEND", Color::BURNT_SIENNA, [txtInput]()
+                           { txtInput->SendMessage(); }, "EnterTextButton");
+
+    newScene->CreateTextObject(30, 25, "Players", "PlayersListText", 200);
+    newScene->CreateTextObject(240, 25, "Points", "PointsListText", 200);
+    newScene->CreatePlayerNames();
+
+    newScene->CreateBackground(65, 425, 235, 25, Color::CORAL_PINK, "2");
+    newScene->CreateTextObject(70, 425, GameManager::getInstance().GetLobbyName(), "LobbyNameText", 235);
+    newScene->CreateTextButton(20, 425, 45, 25, Padding(5, -12), "EXIT", Color::BURNT_SIENNA, [](){
+        NetworkConnector::getInstance().UploadLobbyExit();
+
+        GameManager::getInstance().ChangeCurrentScene(SceneType::LOBBY);
+    }, "ExitButton");
+
+    if (NetworkConnector::getInstance().hasPlayerCreatedLobby())
     {
-        GameManager::getInstance().RegisterInteractable("canvas", cvs);
-
-        // This is a little tricky in creating color it's RRGGBBAA
-        // But in ChangeColor() it's AABBGGRR (and also FF is solid, 00 is transparent for alpha)
-        // MAYBE WE'LL FIX THIS LATER
-        auto blackButton = std::make_shared<Button>(100, 500, 30, 30, 0x00000000, [cvs]()
-                                                    { cvs.get()->ChangeColor(0xff000000); });
-
-        newScene->AddObject(blackButton);
-        GameManager::getInstance().RegisterInteractable("blackButton", blackButton);
-
-        auto whiteButton = std::make_shared<Button>(150, 500, 30, 30, 0xf0f0f000, [cvs]()
-                                                    { cvs.get()->ChangeColor(0xffffffff); });
-
-        newScene->AddObject(whiteButton);
-        GameManager::getInstance().RegisterInteractable("whiteButton", whiteButton);
+        newScene->CreateTextButton(350, 490, 300, 70, Padding(75), "START  THE  GAME", Color::BURNT_SIENNA, [newScene]()
+                                   { 
+                                    NetworkConnector::getInstance().StartGame();
+                                    newScene->DeleteObjects("StartButton"); }, "StartButton");
     }
 
-    auto msgWindow = std::make_shared<MessageWindow>(600, 100, 200, 300);
-    newScene->AddObject(msgWindow);
+    GameModeInfo info = NetworkConnector::getInstance().RequestGameMode();
+    GameMode mode = info.GetGameMode();
+    GameManager::getInstance().SetGameMode(mode);
 
-    auto txtInput = std::make_shared<TextInput>(600, 10, 100, 100, msgWindow.get());
-    newScene->AddObject(txtInput);
-
-    // if the player is the one guessing, allow them that and also show button for guess
-    if (GameManager::getInstance().currentPlayer->GetGameMode() == GUESS)
+    // Create objects based on game mode
+    switch (mode)
     {
-        SDL_StartTextInput();
-
-        GameManager::getInstance().RegisterInteractable("textInput", txtInput);
-
-        auto enterButton = std::make_shared<Button>(720, 10, 30, 30, "images/button.png", [txtInput]()
-                                                    { txtInput->SendMessage(); });
-        newScene->AddObject(enterButton);
-        GameManager::getInstance().RegisterInteractable("enterButton", enterButton);
+    case GameMode::WAIT_FOR_PLAYERS:
+        newScene->CreateForWaitMode();
+        break;
+    case GameMode::STANDBY:
+        newScene->CreateForStandByMode();
+        break;
+    case GameMode::DRAW:
+        newScene->CreateForDrawMode();
+        break;
+    case GameMode::GUESS:
+        newScene->CreateForGuessMode();
+        break;
+    default:
+        break;
     }
 
     return newScene;
