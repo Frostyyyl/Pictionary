@@ -204,6 +204,12 @@ void Server::ExitLobby(int socket)
 
     LobbyManager::getInstance().GetLobby(lobby)->RemovePlayer(socket);
 
+    // If the person who created the lobby leaves without staring the game, start it
+    if (!LobbyManager::getInstance().GetLobby(lobby)->hasGameStarted() && LobbyManager::getInstance().GetLobby(lobby)->GetCreator() == socket)
+    {
+        LobbyManager::getInstance().GetLobby(lobby)->StartGame();
+    }
+
     if (LobbyManager::getInstance().GetLobby(lobby)->GetSize() == 0)
     {
         LobbyManager::getInstance().RemoveLobby(lobby);
@@ -646,6 +652,8 @@ void Server::CreateLobby(int socket, int message_size)
 
     // Add client do lobby
     EnterLobby(socket, lobby, name);
+    // Set the creator of lobby
+    LobbyManager::getInstance().GetLobby(lobby)->SetCreator(socket); 
 
     // Send information about successfully creating a lobby
     SendConfirmConnect(socket);

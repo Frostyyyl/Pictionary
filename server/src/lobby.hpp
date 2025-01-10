@@ -69,12 +69,14 @@ public:
     CanvasChangeInfoList GetCanvasChanges(int socket);
     void SetPrompt(const std::string &prompt) { this->prompt = prompt; }
     std::string GetPrompt() { return prompt; }
+    void SetCreator(int socket) { this->creator = socket; }
+    int GetCreator() { return creator; }
 
 private:
     ChatInfo chat = {};
     std::deque<CanvasChangeInfo> canvasChanges;
     std::string prompt;
-
+    int creator;
     std::string password;
     std::unordered_map<int, std::shared_ptr<Player>> players;
 
