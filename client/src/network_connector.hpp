@@ -23,7 +23,7 @@ private:
     bool hasCreated;
 
     const int PORT = 1100;
-    const std::string ADDRESS = "127.0.0.1";
+    const std::string ADDRESS = "192.168.1.110";
     const int MAX_RETRIES = 3;
     const int RETRY_DELAY_SEC = 0.010;
 
