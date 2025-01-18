@@ -21,6 +21,9 @@ private:
     std::string currentTextInput = "";
     std::string playerName = "";
     std::string lobbyName = "";
+    
+    std::string address = "127.0.0.1";
+    int port = 1100;
 
 public:
     CanvasChangeInfoList changes = {};
@@ -32,7 +35,7 @@ public:
     static GameManager &getInstance();
     ~GameManager();
 
-    void Init(const char *title, int width, int height);
+    void Init(const char *title, int width, int height, const std::string &address, int port);
     void Run();
     void Exit();
 

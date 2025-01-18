@@ -85,7 +85,6 @@ void TextInput::Update()
 
 void TextInput::SendMessage()
 {
-    std::cout << "Message: \"" << text.text.text << "\"\n";
     std::string msg = text.text.text;
 
     if (msg.empty())

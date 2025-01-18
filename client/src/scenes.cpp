@@ -159,6 +159,7 @@ Scene *CreateLobbyScene()
         newScene->DeleteObjects("ConnectErrorText");
 
         newScene->DeleteObjects("3"); // Input backgrounds
+        newScene->DeleteObjects("10"); // Password and player count
 
         newScene->CreateLobbyButtons(); }, "RefreshButton");
 

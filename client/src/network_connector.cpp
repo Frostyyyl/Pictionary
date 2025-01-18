@@ -10,14 +10,14 @@ NetworkConnector &NetworkConnector::getInstance()
 
 NetworkConnector::~NetworkConnector() {}
 
-void NetworkConnector::Init()
+void NetworkConnector::Init(const std::string &address, int port)
 {
-    struct sockaddr_in address;
+    struct sockaddr_in addr;
 
-    memset(&address, 0, sizeof address);
-    address.sin_family = AF_INET;
-    address.sin_port = htons(PORT);
-    address.sin_addr.s_addr = inet_addr(ADDRESS.c_str());
+    memset(&addr, 0, sizeof addr);
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = inet_addr(address.c_str());
 
     mySocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -27,7 +27,7 @@ void NetworkConnector::Init()
         exit(EXIT_FAILURE);
     }
 
-    if (connect(mySocket, (struct sockaddr *)&address, sizeof address) == -1)
+    if (connect(mySocket, (struct sockaddr *)&addr, sizeof addr) == -1)
     {
         std::cerr << "ERROR: Could not connect to server" << std::endl;
         close(mySocket);
@@ -76,7 +76,8 @@ bool NetworkConnector::ReadWithRetry(int socket, void *buffer, size_t size, cons
     ioctl(mySocket, FIONREAD, &bytes_available);
 
     while (bytes_available < size){
-        sleep(0.001);
+        sleep(AWAIT_FULL_MESSAGE_SEC);
+        
         ioctl(mySocket, FIONREAD, &bytes_available);
     }
 

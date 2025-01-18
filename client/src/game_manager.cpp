@@ -24,7 +24,7 @@ GameManager &GameManager::getInstance()
 
 GameManager::~GameManager() {}
 
-void GameManager::Init(const char *title, int width, int height)
+void GameManager::Init(const char *title, int width, int height, const std::string &address, int port)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING))
     {
@@ -115,7 +115,7 @@ void GameManager::ChangeCurrentScene(SceneType newScene)
         // Inicialize connection with server
         if (!NetworkConnector::getInstance().isInitialized())
         {
-            NetworkConnector::getInstance().Init();
+            NetworkConnector::getInstance().Init(address, port);
         }
 
         // Inicialize new scene
@@ -142,5 +142,4 @@ void GameManager::Exit()
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     SDL_Quit();
-    sleep(1);
 }

@@ -23,10 +23,9 @@ private:
     std::string errorMessage;
     bool hasCreated;
 
-    const int PORT = 1100;
-    const std::string ADDRESS = "127.0.0.1";
     const int MAX_RETRIES = 3;
     const int RETRY_DELAY_SEC = 0.010;
+    const int AWAIT_FULL_MESSAGE_SEC = 0.0001;
 
     void ExitError();
     template <typename T>
@@ -43,7 +42,7 @@ public:
     std::string GetError() { return errorMessage; };
     bool hasPlayerCreatedLobby() { return hasCreated; };
 
-    void Init();
+    void Init(const std::string &address, int port);
     void Exit();
     bool CreateLobby(const std::string &lobby, const std::string &name, const std::string &password);
     bool ConnectToLobby(const std::string &lobby, const std::string &name, const std::string &password);
