@@ -72,6 +72,14 @@ bool NetworkConnector::WriteWithRetry(int socket, const void *buffer, size_t siz
 template <typename T>
 bool NetworkConnector::ReadWithRetry(int socket, void *buffer, size_t size, const T &messageType)
 {
+    size_t bytes_available = 0;
+    ioctl(mySocket, FIONREAD, &bytes_available);
+
+    while (bytes_available < size){
+        sleep(0.001);
+        ioctl(mySocket, FIONREAD, &bytes_available);
+    }
+
     for (int attempt = 0; attempt < MAX_RETRIES; ++attempt)
     {
         int rv = recv(socket, buffer, size, 0);
@@ -255,7 +263,7 @@ LobbyInfoList NetworkConnector::RequestLobbies()
         ExitError();
         break;
     default:
-        std::cerr << "ERROR: While requesting lobbies received unexpected message type" << std::endl;
+        std::cerr << "ERROR: While requesting time received unexpected message type"<< std::endl; 
         ExitError();
         break;
     }
@@ -337,7 +345,7 @@ GameModeInfo NetworkConnector::RequestGameMode()
         ExitError();
         break;
     default:
-        std::cerr << "ERROR: While requesting game mode received unexpected message type" << std::endl;
+        std::cerr << "ERROR: While requesting players received unexpected message type" << std::endl;
         ExitError();
         break;
     }
@@ -378,7 +386,7 @@ ChatInfo NetworkConnector::RequestChat()
         ExitError();
         break;
     default:
-        std::cerr << "ERROR: While requesting chat received unexpected message type" << std::endl;
+        std::cerr << "ERROR: While requesting players received unexpected message type" << std::endl;
         ExitError();
         break;
     }
@@ -419,7 +427,7 @@ CanvasChangeInfoList NetworkConnector::RequestCanvasChange()
         ExitError();
         break;
     default:
-        std::cerr << "ERROR: While requesting canvas received unexpected message type" << std::endl;
+        std::cerr << "ERROR: While requesting players received unexpected message type" << std::endl;
         ExitError();
         break;
     }
@@ -460,7 +468,7 @@ PromptsInfoList NetworkConnector::RequestPrompts()
         ExitError();
         break;
     default:
-        std::cerr << "ERROR: While requesting prompts received unexpected message type" << std::endl;
+        std::cerr << "ERROR: While requesting players received unexpected message type" << std::endl;
         ExitError();
         break;
     }
@@ -501,7 +509,7 @@ TimeInfo NetworkConnector::RequestTime()
         ExitError();
         break;
     default:
-        std::cerr << "ERROR: While requesting time received unexpected message type" << std::endl;
+        std::cerr << "ERROR: While requesting players received unexpected message type" << std::endl;
         ExitError();
         break;
     }
