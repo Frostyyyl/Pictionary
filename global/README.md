@@ -1,1 +1,1 @@
-# Here put any data or classes which should be shared between server and client 
+# This folder contains any datawhich should be shared between server and client 
