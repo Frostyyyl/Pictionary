@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     g++ \
     libsdl2-dev libsdl2-ttf-dev libsdl2-image-dev libsdl2-gfx-dev \
     && rm -rf /var/lib/apt/lists/* \
-    && g++ -std=c++17 -g src/*.cpp src/../../global/src/*cpp -Wall -o client.exe -lSDL2 -lSDL2main -lSDL2_ttf -lSDL2_image -lSDL2_gfx
+    && g++ -std=c++17 -g src/*.cpp ../global/src/*cpp -Wall -o client.exe -lSDL2 -lSDL2main -lSDL2_ttf -lSDL2_image -lSDL2_gfx
 
 # Specify the command to run your application
 CMD ["./client.exe"]
